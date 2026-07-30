@@ -36,7 +36,6 @@ class AdminUserSeeder extends Seeder
                 'password' => bcrypt($password),
                 'contact_number' => null,
                 'status' => 'active',
-
             ]
         );
 
