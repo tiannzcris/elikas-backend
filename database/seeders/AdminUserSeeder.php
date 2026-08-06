@@ -17,9 +17,15 @@ class AdminUserSeeder extends Seeder
             return;
         }
 
-  
-        $email = env('ADMIN_SEED_EMAIL');
-        $password = env('ADMIN_SEED_PASSWORD');
+        // Read through config(), not env() directly -- raw env() calls
+        // outside config files can silently return stale/empty values once
+        // `php artisan config:cache` has run in production (exactly what
+        // happened during initial deployment: the seeder ran once with a
+        // stale cached config before `config:clear` was run, using an empty
+        // password). config('elikas.admin_seed...') is reliably correct
+        // whether or not config is cached.
+        $email = config('elikas.admin_seed.email');
+        $password = config('elikas.admin_seed.password');
 
         if (! $email || ! $password) {
             $this->command->error('ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD must both be set in .env before running this seeder.');
