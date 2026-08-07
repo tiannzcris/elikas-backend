@@ -266,7 +266,7 @@
                     Input: ${latest.input_payload.rainfall_mm}mm rainfall, ${latest.input_payload.wind_speed_kph}kph wind &middot;
                     generated ${new Date(latest.generated_at).toLocaleString()} &middot; ${latest.model_used}
                 </p>
-                <a href="/predictive-analytics" class="text-xs text-brand hover:underline">View full analytics &rarr;</a>`;
+                <a href="/predictive-analytics" class="text-xs text-brand hover:underline">View full analytics &amp; AI recommendations &rarr;</a>`;
         } catch (error) {
             document.getElementById('stat-predicted').textContent = 'None yet';
             document.getElementById('predicted-influx-content').innerHTML =

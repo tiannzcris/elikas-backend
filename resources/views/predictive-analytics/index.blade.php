@@ -127,6 +127,17 @@
             </div>
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center shrink-0">
+                        <i class="ti ti-sparkles text-white" style="font-size: 13px;" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-700">AI recommendations</p>
+                </div>
+                <div id="recommendations-list" class="flex flex-col gap-3"></div>
+                <p class="text-xs text-gray-400 mt-3">Rule-based guidance computed from the latest forecast's own numbers and current center capacity -- not a separate AI model.</p>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
                 <p class="text-sm font-semibold text-gray-700 mb-3">PAGASA signal reference</p>
                 <div class="space-y-1.5 text-xs">
                     <div class="flex items-center justify-between"><span class="text-gray-600">Signal 1</span><span class="text-gray-800 font-medium">39&ndash;61 kph</span></div>
@@ -175,8 +186,108 @@
 
     let accuracyChartInstance = null;
     let allPredictions = [];
+    let allCenters = [];
     const user = Api.getUser();
     const isAdministrator = user && user.role === 'administrator';
+
+    // Rule-based recommendations derived from the latest forecast's own
+    // numbers plus current center capacity -- deterministic thresholds,
+    // not a separate recommendation model. Every figure quoted here is
+    // real data already shown elsewhere on this page/system; nothing is
+    // invented copy.
+    function buildRecommendations(prediction, centers) {
+        if (! prediction) return [];
+
+        const recs = [];
+        const totalCapacity = centers.reduce((sum, c) => sum + (c.capacity_persons ?? 0), 0);
+        const totalAvailable = centers.reduce((sum, c) => sum + Math.max((c.capacity_persons ?? 0) - (c.current_occupancy ?? 0), 0), 0);
+        const predictedEvacuees = prediction.predicted_evacuees ?? 0;
+
+        if (totalCapacity > 0 && predictedEvacuees > totalAvailable) {
+            recs.push({
+                icon: 'ti-alert-triangle', color: '#EF4444', bg: '#FEE2E2',
+                title: 'Pre-position additional resources',
+                body: `Predicted evacuees (${predictedEvacuees}) exceed currently available center capacity (${totalAvailable}). Consider activating standby centers or coordinating relief goods ahead of arrival.`,
+                link: { href: '/evacuation-centers', label: 'Manage centers' },
+            });
+        } else if (totalCapacity > 0 && predictedEvacuees > totalAvailable * 0.7) {
+            recs.push({
+                icon: 'ti-building', color: '#F59E0B', bg: '#FEF3C7',
+                title: 'Monitor center capacity closely',
+                body: `Predicted evacuees (${predictedEvacuees}) would use most of the currently available capacity (${totalAvailable}). Watch occupancy as centers fill up.`,
+                link: { href: '/evacuation-centers', label: 'View centers' },
+            });
+        } else if (totalCapacity > 0) {
+            recs.push({
+                icon: 'ti-circle-check', color: '#22C55E', bg: '#DCFCE7',
+                title: 'Capacity looks sufficient',
+                body: `Available center capacity (${totalAvailable}) currently covers the predicted evacuee volume (${predictedEvacuees}).`,
+            });
+        }
+
+        const rainfall = Number(prediction.input_payload?.rainfall_mm ?? 0);
+        if (rainfall >= 100) {
+            recs.push({
+                icon: 'ti-droplet', color: '#2563EB', bg: '#DBEAFE',
+                title: 'Prepare for possible flooding',
+                body: `Forecasted rainfall of ${rainfall}mm is high. Coordinate with barangays in mapped flood-prone zones.`,
+                link: { href: '/gis-map', label: 'View hazard map' },
+            });
+        } else if (rainfall >= 50) {
+            recs.push({
+                icon: 'ti-cloud-rain', color: '#0891B2', bg: '#CFFAFE',
+                title: 'Watch rainfall accumulation',
+                body: `Forecasted rainfall of ${rainfall}mm is moderate. Advise low-lying barangays to stay alert.`,
+            });
+        }
+
+        const wind = Number(prediction.input_payload?.wind_speed_kph ?? 0);
+        if (wind >= 62) {
+            recs.push({
+                icon: 'ti-wind', color: '#7C3AED', bg: '#EDE9FE',
+                title: 'Consider issuing an evacuation advisory',
+                body: `Forecasted wind speed (${wind}kph) corresponds to PAGASA ${computeSignalLevel(wind)}. Consider sending an alert to residents in at-risk barangays.`,
+                link: { href: '/alerts/create', label: 'Send an alert' },
+            });
+        }
+
+        if (prediction.r2_score === null || prediction.r2_score < 0.4) {
+            recs.push({
+                icon: 'ti-alert-circle', color: '#F59E0B', bg: '#FEF3C7',
+                title: 'Treat this forecast as preliminary',
+                body: prediction.r2_score === null
+                    ? 'Not enough historical events yet to establish model confidence -- cross-check with PAGASA\'s official bulletin before acting on this number alone.'
+                    : `Model confidence is low (R² ${prediction.r2_score.toFixed(3)}) -- cross-check with PAGASA's official bulletin before acting on this number alone.`,
+            });
+        }
+
+        return recs;
+    }
+
+    function renderRecommendations() {
+        const box = document.getElementById('recommendations-list');
+        const latest = allPredictions[0];
+
+        if (! latest) {
+            box.innerHTML = '<p class="text-xs text-gray-400">Generate a forecast to see recommendations.</p>';
+            return;
+        }
+
+        const recs = buildRecommendations(latest, allCenters);
+        box.innerHTML = recs.length === 0
+            ? '<p class="text-xs text-gray-400">No specific concerns flagged for this forecast.</p>'
+            : recs.map((r) => `
+                <div class="flex gap-2.5">
+                    <div class="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style="background:${r.bg}">
+                        <i class="ti ${r.icon}" style="font-size:14px; color:${r.color}" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-medium text-gray-700">${r.title}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${r.body}</p>
+                        ${r.link ? `<a href="${r.link.href}" class="text-xs text-brand hover:underline">${r.link.label} &rarr;</a>` : ''}
+                    </div>
+                </div>`).join('');
+    }
 
     function renderConfidence(evaluation) {
         const box = document.getElementById('confidence-content');
@@ -311,6 +422,7 @@
         allPredictions = result.data.data;
         renderLatestStats();
         renderPredictionsList();
+        renderRecommendations();
     }
 
     async function loadActivity() {
@@ -343,6 +455,9 @@
             const events = await Api.get('/evacuation-events');
             document.getElementById('evacuation_event_id').insertAdjacentHTML('beforeend',
                 events.data.map((ev) => `<option value="${ev.id}">${ev.name}</option>`).join(''));
+
+            const centersResult = await Api.get('/public/evacuation-centers');
+            allCenters = centersResult.data;
 
             await loadPredictions();
             await loadActivity();
