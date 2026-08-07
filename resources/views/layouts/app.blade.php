@@ -97,7 +97,17 @@
 
         <div class="flex-1 flex flex-col min-w-0">
             <div class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shrink-0">
-                <div id="topbar-datetime" class="text-xs text-gray-400"></div>
+                <div class="flex items-center gap-3 text-xs text-gray-400">
+                    <span class="flex items-center gap-1.5">
+                        <i class="ti ti-calendar" style="font-size: 14px;" aria-hidden="true"></i>
+                        <span id="topbar-datetime"></span>
+                    </span>
+                    <span class="text-gray-300">&middot;</span>
+                    <span class="flex items-center gap-1.5">
+                        <i class="ti ti-map-pin" style="font-size: 14px;" aria-hidden="true"></i>
+                        Ligao City, Albay
+                    </span>
+                </div>
                 <div class="flex items-center gap-4">
                     <a href="/alerts/create"
                         class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2">
@@ -114,12 +124,22 @@
                             <div id="notif-list" class="divide-y divide-gray-100"></div>
                         </div>
                     </div>
-                    <div class="text-right leading-tight">
-                        <p id="topbar-user-name" class="text-sm font-medium text-gray-700"></p>
-                        <p class="text-xs text-gray-400">Personnel account</p>
+                    <div class="relative">
+                        <button id="user-menu-btn" class="flex items-center gap-2.5">
+                            <div id="topbar-avatar" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0" style="background:#2563EB"></div>
+                            <div class="text-left leading-tight">
+                                <p id="topbar-user-name" class="text-sm font-medium text-gray-700"></p>
+                                <p id="topbar-user-role" class="text-xs text-gray-400"></p>
+                            </div>
+                            <i class="ti ti-chevron-down text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
+                        </button>
+                        <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
+                            <button onclick="Api.clear(); window.location.href = '/login';"
+                                class="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+                                <i class="ti ti-logout" style="font-size: 15px;" aria-hidden="true"></i> Log out
+                            </button>
+                        </div>
                     </div>
-                    <button onclick="Api.clear(); window.location.href = '/login';"
-                        class="text-sm text-gray-500 hover:text-red-600">Log out</button>
                 </div>
             </div>
 
@@ -136,8 +156,11 @@
         Api.requireAuth();
         const currentUser = Api.getUser();
         if (currentUser) {
-            document.getElementById('topbar-user-name').textContent =
-                `${currentUser.name} (${currentUser.role_display_name || currentUser.role})`;
+            document.getElementById('topbar-user-name').textContent = currentUser.name;
+            document.getElementById('topbar-user-role').textContent = currentUser.role_display_name || currentUser.role;
+
+            const initials = currentUser.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+            document.getElementById('topbar-avatar').textContent = initials;
 
             if (currentUser.role === 'administrator') {
                 document.getElementById('nav-users-link').classList.remove('hidden');
@@ -159,7 +182,7 @@
             const formatted = now.toLocaleString('en-US', {
                 month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
             });
-            document.getElementById('topbar-datetime').textContent = `${formatted} · Ligao City, Albay`;
+            document.getElementById('topbar-datetime').textContent = formatted;
         }
         updateTopbarClock();
         setInterval(updateTopbarClock, 1000 * 30);
@@ -213,8 +236,23 @@
 
         document.getElementById('notif-bell').addEventListener('click', () => {
             document.getElementById('notif-dropdown').classList.toggle('hidden');
+            document.getElementById('user-menu-dropdown').classList.add('hidden');
             notifCount = 0;
             document.getElementById('notif-badge').classList.add('hidden');
+        });
+
+        document.getElementById('user-menu-btn').addEventListener('click', () => {
+            document.getElementById('user-menu-dropdown').classList.toggle('hidden');
+            document.getElementById('notif-dropdown').classList.add('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (! e.target.closest('#user-menu-btn') && ! e.target.closest('#user-menu-dropdown')) {
+                document.getElementById('user-menu-dropdown').classList.add('hidden');
+            }
+            if (! e.target.closest('#notif-bell') && ! e.target.closest('#notif-dropdown')) {
+                document.getElementById('notif-dropdown').classList.add('hidden');
+            }
         });
 
         // Show the last few alerts on load, so the dropdown isn't empty
