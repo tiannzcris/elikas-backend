@@ -47,23 +47,23 @@
                 style="z-index: 0; opacity: 0.65; object-fit: cover; object-position: bottom;">
 
             <div class="relative flex flex-col h-full" style="z-index: 1;">
-            <div class="flex flex-col items-center px-2 pb-3 mb-2 border-b border-white/10">
-                {{-- Full logo lockup (badge + "E-LIKAS" wordmark + subtitle
-                    bar already baked into the source file), not just the
-                    small circular badge -- cropped to the meaningful content
-                    band (skipping the mostly-empty margins above/below it in
-                    the source) via object-fit:cover. mix-blend-mode:screen
-                    makes the file's solid BLACK background disappear into
-                    whatever's behind it (the navy sidebar / watermark art)
-                    without needing an actual transparent PNG -- pure black
-                    contributes nothing under "screen", so it reads as
-                    invisible while the bright logo artwork stays visible. --}}
-                <div class="w-full overflow-hidden" style="height: 92px;">
-                    <img src="/images/elikas-emblem.png" alt="E-LIKAS - Electronic Ligao Kaligtasan Sistema"
-                        class="w-full h-full"
-                        style="object-fit: cover; object-position: 50% 32%; mix-blend-mode: screen;">
+            <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
+                {{-- Badge built from the icon font already loaded on every
+                    page (Tabler), not the emblem PNG -- the source photo's
+                    solid black background never cropped cleanly across
+                    attempts, so this sidesteps that entirely with something
+                    guaranteed crisp and properly transparent at any size. --}}
+                <div class="w-11 h-11 rounded-full flex items-center justify-center relative shrink-0"
+                    style="background: radial-gradient(circle at 35% 30%, #3B82F6, #1D4ED8 70%);">
+                    <i class="ti ti-home text-white" style="font-size: 20px;" aria-hidden="true"></i>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center border-2" style="border-color: #1F3A6E;">
+                        <i class="ti ti-check text-white" style="font-size: 9px;" aria-hidden="true"></i>
+                    </span>
                 </div>
-                <p class="text-xs -mt-1" style="color: #A8C2E8;">CSWDO Ligao City</p>
+                <div class="leading-tight">
+                    <p class="text-white font-semibold text-sm">E-LIKAS</p>
+                    <p class="text-xs" style="color: #A8C2E8;">CSWDO Ligao City</p>
+                </div>
             </div>
 
             <nav class="flex flex-col gap-1">
