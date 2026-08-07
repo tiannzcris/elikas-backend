@@ -36,18 +36,26 @@
 <body class="bg-gray-50 text-gray-900">
     <div class="flex h-screen overflow-hidden">
         <aside class="w-56 shrink-0 h-full p-3 flex flex-col relative overflow-hidden" style="background: #1F3A6E;">
-            {{-- Decorative watermark art pinned to the bottom of the sidebar --
-                behind the nav/status content, which sits in the z-index:1
-                wrapper below so it stays readable on top of it. --}}
+            {{-- Decorative watermark art covering the FULL sidebar height (not
+                just a natural-aspect-ratio slice pinned to the bottom, which
+                left a visible gap on tall viewports) -- object-fit:cover with
+                object-position:bottom keeps the family/evacuation-center
+                scene anchored at the bottom edge while stretching to fill
+                whatever space is available above it. --}}
             <img src="/images/elikas-sidebar-art.png" alt=""
-                class="absolute bottom-0 left-0 w-full pointer-events-none select-none"
-                style="z-index: 0; opacity: 0.65;">
+                class="absolute inset-0 w-full h-full pointer-events-none select-none"
+                style="z-index: 0; opacity: 0.65; object-fit: cover; object-position: bottom;">
 
             <div class="relative flex flex-col h-full" style="z-index: 1;">
             <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
-                <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-black">
+                {{-- The source emblem file is a full vertical lockup (badge +
+                    "E-LIKAS" wordmark + subtitle bar) on a solid BLACK
+                    background -- since this circle's own background is also
+                    black, any of that padding left inside the crop blends in
+                    invisibly rather than needing pixel-perfect centering. --}}
+                <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-black">
                     <img src="/images/elikas-emblem.png" alt="E-LIKAS logo"
-                        class="w-full h-full object-cover" style="object-position: 50% 24%;">
+                        class="w-full h-full object-cover" style="object-position: 50% 18%;">
                 </div>
                 <div class="leading-tight">
                     <p class="text-white font-semibold text-sm">E-LIKAS</p>
