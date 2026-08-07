@@ -230,9 +230,15 @@
     }
 
     async function loadReportsList() {
+        // /system-logs is administrator-only server-side, unlike /reports
+        // which all three staff roles can read -- gate the call itself so
+        // CSWD personnel/barangay officials don't get a 403 that breaks
+        // the whole Promise.all just because they can't see the audit log.
+        const user = Api.getUser();
+        const isAdministrator = user && user.role === 'administrator';
         const [reportsResult, logsResult] = await Promise.all([
             Api.get('/reports?per_page=100'),
-            Api.get('/system-logs?per_page=200'),
+            isAdministrator ? Api.get('/system-logs?per_page=200') : Promise.resolve({ data: { data: [] } }),
         ]);
         allReports = reportsResult.data.data;
         allLogs = logsResult.data.data;
