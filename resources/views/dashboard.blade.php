@@ -151,7 +151,11 @@
 @section('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-    const currentUser = Api.getUser();
+    // currentUser is already declared as a global by layouts/app.blade.php's
+    // own inline script, which runs before this one (it sits earlier in the
+    // document, ahead of @yield('scripts')) -- redeclaring it here with
+    // `const` threw "Identifier 'currentUser' has already been declared",
+    // a SyntaxError that silently broke this entire script block.
     if (currentUser) {
         document.getElementById('dashboard-greeting').textContent = `Welcome back, ${currentUser.name}!`;
     }
