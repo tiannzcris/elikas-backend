@@ -35,10 +35,19 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div class="flex h-screen overflow-hidden">
-        <aside class="w-56 shrink-0 h-full p-3 flex flex-col" style="background: #1F3A6E;">
+        <aside class="w-56 shrink-0 h-full p-3 flex flex-col relative overflow-hidden" style="background: #1F3A6E;">
+            {{-- Decorative watermark art pinned to the bottom of the sidebar --
+                behind the nav/status content, which sits in the z-index:1
+                wrapper below so it stays readable on top of it. --}}
+            <img src="/images/elikas-sidebar-art.png" alt=""
+                class="absolute bottom-0 left-0 w-full pointer-events-none select-none"
+                style="z-index: 0; opacity: 0.65;">
+
+            <div class="relative flex flex-col h-full" style="z-index: 1;">
             <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
-                <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
-                    <i class="ti ti-shield-check text-white" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-black">
+                    <img src="/images/elikas-emblem.png" alt="E-LIKAS logo"
+                        class="w-full h-full object-cover" style="object-position: 50% 24%;">
                 </div>
                 <div class="leading-tight">
                     <p class="text-white font-semibold text-sm">E-LIKAS</p>
@@ -76,12 +85,13 @@
                 </a>
             </nav>
 
-            <div id="sidebar-status" class="px-3 py-3 mt-auto border-t border-white/10">
+            <div id="sidebar-status" class="px-3 py-3 mt-auto border-t border-white/10" style="background: rgba(31,58,110,0.75); border-radius: 0.5rem;">
                 <p id="sidebar-status-label" class="text-xs" style="color: #A8C2E8;">Loading...</p>
                 <div id="sidebar-status-indicator" class="hidden items-center gap-1.5 mt-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                     <p class="text-xs text-green-300 font-medium">Operations active</p>
                 </div>
+            </div>
             </div>
         </aside>
 
