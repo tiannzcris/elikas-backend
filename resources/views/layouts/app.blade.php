@@ -47,20 +47,23 @@
                 style="z-index: 0; opacity: 0.65; object-fit: cover; object-position: bottom;">
 
             <div class="relative flex flex-col h-full" style="z-index: 1;">
-            <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
-                {{-- The source emblem file is a full vertical lockup (badge +
-                    "E-LIKAS" wordmark + subtitle bar) on a solid BLACK
-                    background -- since this circle's own background is also
-                    black, any of that padding left inside the crop blends in
-                    invisibly rather than needing pixel-perfect centering. --}}
-                <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 bg-black">
-                    <img src="/images/elikas-emblem.png" alt="E-LIKAS logo"
-                        class="w-full h-full object-cover" style="object-position: 50% 18%;">
+            <div class="flex flex-col items-center px-2 pb-3 mb-2 border-b border-white/10">
+                {{-- Full logo lockup (badge + "E-LIKAS" wordmark + subtitle
+                    bar already baked into the source file), not just the
+                    small circular badge -- cropped to the meaningful content
+                    band (skipping the mostly-empty margins above/below it in
+                    the source) via object-fit:cover. mix-blend-mode:screen
+                    makes the file's solid BLACK background disappear into
+                    whatever's behind it (the navy sidebar / watermark art)
+                    without needing an actual transparent PNG -- pure black
+                    contributes nothing under "screen", so it reads as
+                    invisible while the bright logo artwork stays visible. --}}
+                <div class="w-full overflow-hidden" style="height: 92px;">
+                    <img src="/images/elikas-emblem.png" alt="E-LIKAS - Electronic Ligao Kaligtasan Sistema"
+                        class="w-full h-full"
+                        style="object-fit: cover; object-position: 50% 32%; mix-blend-mode: screen;">
                 </div>
-                <div class="leading-tight">
-                    <p class="text-white font-semibold text-sm">E-LIKAS</p>
-                    <p class="text-xs" style="color: #A8C2E8;">CSWDO Ligao City</p>
-                </div>
+                <p class="text-xs -mt-1" style="color: #A8C2E8;">CSWDO Ligao City</p>
             </div>
 
             <nav class="flex flex-col gap-1">
