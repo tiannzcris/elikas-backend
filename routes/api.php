@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\HazardProneAreaController;
 use App\Http\Controllers\Api\PredictiveAnalyticsController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SystemLogController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -135,6 +136,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/users', [UserController::class, 'index']);
             Route::post('/users', [UserController::class, 'store']);
             Route::patch('/users/{user}', [UserController::class, 'update']);
+
+            Route::get('/system-logs', [SystemLogController::class, 'index']);
         });
     });
 
