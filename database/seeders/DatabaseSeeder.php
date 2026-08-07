@@ -10,8 +10,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
-            // Step 3 onward: EvacuationCenterSeeder, BarangaySeeder (all 46
-            // Ligao City barangays), etc. will be added here.
+            BarangaySeeder::class,
+            // Step 3 onward: EvacuationCenterSeeder, etc. will be added here.
         ]);
     }
 }

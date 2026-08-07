@@ -8,30 +8,37 @@
  * by JS) rather than server-side Blade sessions -- the web dashboard and the
  * Flutter app both talk to the exact same token-based API (see Chapter 3's
  * Sanctum section), so there's only one auth system to maintain, not two.
+ *
+ * "Remember me" makes this a real functional choice, not decorative: checked
+ * -> localStorage (survives closing the browser). Unchecked -> sessionStorage
+ * (gone as soon as the tab/browser closes). Reads check both, since we don't
+ * know which one was used until we look.
  */
 const Api = {
     baseUrl: '/api/v1',
 
     getToken() {
-        return localStorage.getItem('elikas_token');
+        return localStorage.getItem('elikas_token') || sessionStorage.getItem('elikas_token');
     },
 
-    setToken(token) {
-        localStorage.setItem('elikas_token', token);
+    setToken(token, remember = true) {
+        (remember ? localStorage : sessionStorage).setItem('elikas_token', token);
     },
 
-    setUser(user) {
-        localStorage.setItem('elikas_user', JSON.stringify(user));
+    setUser(user, remember = true) {
+        (remember ? localStorage : sessionStorage).setItem('elikas_user', JSON.stringify(user));
     },
 
     getUser() {
-        const raw = localStorage.getItem('elikas_user');
+        const raw = localStorage.getItem('elikas_user') || sessionStorage.getItem('elikas_user');
         return raw ? JSON.parse(raw) : null;
     },
 
     clear() {
         localStorage.removeItem('elikas_token');
         localStorage.removeItem('elikas_user');
+        sessionStorage.removeItem('elikas_token');
+        sessionStorage.removeItem('elikas_user');
     },
 
     /**
@@ -64,7 +71,7 @@ const Api = {
         // revoked it, or it was a stale token from a previous session) --
         // there's no recovering from this client-side, so send them back to
         // log in again rather than showing a confusing error on the page.
-        if (response.status === 401) {
+        if (response.status === 401 && path !== '/auth/login') {
             this.clear();
             window.location.href = '/login';
             return null;
