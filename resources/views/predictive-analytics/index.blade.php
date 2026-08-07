@@ -7,66 +7,148 @@
     <h1 class="text-xl font-semibold mb-1">Predictive analytics</h1>
     <p class="text-sm text-gray-500 mb-6">Forecasts expected evacuee volume from rainfall and wind speed, based on this system's own historical events.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
+    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
 
-    <div id="status-card" class="bg-white border border-gray-200 rounded-xl p-4 mb-6 max-w-2xl">
-        <div class="flex items-center gap-2 mb-2">
-            <div class="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-database text-blue-500" style="font-size: 15px;" aria-hidden="true"></i>
+    <div id="latest-stats-row" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
+            <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Predicted evacuees</p>
+                <p id="latest-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
+                <p class="text-xs text-gray-400 italic mt-1">Latest forecast</p>
             </div>
-            <p class="text-sm font-medium">Training data status</p>
+            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
+            </div>
         </div>
-        <div id="status-content" class="text-sm text-gray-600">Loading...</div>
+        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
+            <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Predicted occupancy</p>
+                <p id="latest-occupancy" class="text-2xl font-bold text-gray-800">&mdash;</p>
+                <p class="text-xs text-gray-400 italic mt-1">Across centers</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-building text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
+            <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Estimated resource cost</p>
+                <p id="latest-cost" class="text-2xl font-bold text-gray-800">&mdash;</p>
+                <p id="latest-cost-note" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-currency-peso text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
+            <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Signal level</p>
+                <p id="latest-signal" class="text-lg font-bold text-gray-800">&mdash;</p>
+                <p id="latest-signal-note" class="text-xs text-gray-400 italic mt-1">From forecasted wind speed</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                <i class="ti ti-wind text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-xl p-4 mb-8 max-w-2xl">
-        <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 rounded-md bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-trending-up text-orange-500" style="font-size: 15px;" aria-hidden="true"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 min-w-0 flex flex-col gap-6">
+            <div id="status-card" class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+                        <i class="ti ti-database text-blue-500" style="font-size: 15px;" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-medium">Training data status</p>
+                </div>
+                <div id="status-content" class="text-sm text-gray-600">Loading...</div>
             </div>
-            <p class="text-sm font-medium">Generate a forecast</p>
-        </div>
-        <div class="grid grid-cols-3 gap-4 mb-3">
-            <div>
-                <label class="text-xs text-gray-600 block mb-1">Forecasted rainfall (mm)</label>
-                <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-md bg-orange-50 flex items-center justify-center shrink-0">
+                        <i class="ti ti-trending-up text-orange-500" style="font-size: 15px;" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-medium">Generate a forecast</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-3">
+                    <div>
+                        <label class="text-xs text-gray-600 block mb-1">Forecasted rainfall (mm)</label>
+                        <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 block mb-1">Forecasted max wind speed (kph)</label>
+                        <input type="number" step="0.1" id="wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 block mb-1">Signal level</label>
+                        <div id="signal-level-display" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">
+                            Enter wind speed
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-xs text-gray-600 block mb-1">Link to an event (optional)</label>
+                    <select id="evacuation_event_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">None -- standalone what-if scenario</option>
+                    </select>
+                </div>
+                <button id="generate-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    Generate forecast
+                </button>
             </div>
-            <div>
-                <label class="text-xs text-gray-600 block mb-1">Forecasted max wind speed (kph)</label>
-                <input type="number" step="0.1" id="wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            </div>
-            <div>
-                <label class="text-xs text-gray-600 block mb-1">Signal level</label>
-                <div id="signal-level-display" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">
-                    Enter wind speed
+
+            <div id="accuracy-chart-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
+                        <i class="ti ti-chart-line text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-medium">Historical forecast accuracy</p>
+                </div>
+                <div style="position: relative; width: 100%; height: 260px;">
+                    <canvas id="accuracyChart" role="img" aria-label="Line chart comparing actual vs predicted evacuees per historical event">Loading chart data</canvas>
                 </div>
             </div>
-        </div>
-        <div class="mb-3">
-            <label class="text-xs text-gray-600 block mb-1">Link to an event (optional)</label>
-            <select id="evacuation_event_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <option value="">None -- standalone what-if scenario</option>
-            </select>
-        </div>
-        <button id="generate-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
-            Generate forecast
-        </button>
-    </div>
 
-    <div id="accuracy-chart-card" class="hidden bg-white border border-gray-200 rounded-xl p-4 mb-8 max-w-3xl">
-        <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-chart-line text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-gray-700">Forecast history</p>
+                    <input id="history-search" type="text" placeholder="Search by event..."
+                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs w-48">
+                </div>
+                <div id="predictions-list" class="flex flex-col gap-2"></div>
             </div>
-            <p class="text-sm font-medium">Historical forecast accuracy</p>
         </div>
-        <div style="position: relative; width: 100%; height: 260px;">
-            <canvas id="accuracyChart" role="img" aria-label="Line chart comparing actual vs predicted evacuees per historical event">Loading chart data</canvas>
+
+        <div class="flex flex-col gap-4">
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <p class="text-sm font-semibold text-gray-700 mb-3">Model confidence</p>
+                <div id="confidence-content"></div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <p class="text-sm font-semibold text-gray-700 mb-3">PAGASA signal reference</p>
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 1</span><span class="text-gray-800 font-medium">39&ndash;61 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 2</span><span class="text-gray-800 font-medium">62&ndash;88 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 3</span><span class="text-gray-800 font-medium">89&ndash;117 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 4</span><span class="text-gray-800 font-medium">118&ndash;184 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 5</span><span class="text-gray-800 font-medium">185+ kph</span></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-3">Computed client-side from the wind speed you enter above -- not a separate model input.</p>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+                <div id="activity-timeline" class="space-y-4 text-xs"></div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-2.5">
+                <i class="ti ti-info-circle text-blue-500 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
+                <p class="text-xs text-blue-800">This model forecasts total evacuee volume citywide from rainfall and wind speed. It does not currently produce per-barangay risk levels or hazard-type breakdowns -- that would need barangay-level population figures and a separate risk-scoring model, neither of which exist in this system yet.</p>
+            </div>
         </div>
     </div>
-
-    <p class="text-sm font-medium text-gray-700 mb-3">Forecast history</p>
-    <div id="predictions-list" class="flex flex-col gap-2"></div>
 @endsection
 
 @section('scripts')
@@ -92,11 +174,43 @@
     });
 
     let accuracyChartInstance = null;
+    let allPredictions = [];
+    const user = Api.getUser();
+    const isAdministrator = user && user.role === 'administrator';
+
+    function renderConfidence(evaluation) {
+        const box = document.getElementById('confidence-content');
+
+        if (! evaluation || evaluation.r2 === null || evaluation.r2 === undefined) {
+            box.innerHTML = `
+                <p class="text-2xl font-bold text-gray-300 mb-1">&mdash;</p>
+                <p class="text-xs text-gray-400">Not enough historical events with variation yet to compute R&sup2;. Forecasts still generate, just without a confidence score attached.</p>`;
+            return;
+        }
+
+        // R² can technically go negative (worse than just predicting the
+        // mean) -- clamped to 0% for display rather than shown as a
+        // confusing negative percentage, with the raw score still visible.
+        const pct = Math.max(0, Math.round(evaluation.r2 * 100));
+        const color = evaluation.r2 >= 0.7 ? '#22C55E' : evaluation.r2 >= 0.4 ? '#F59E0B' : '#EF4444';
+        const label = evaluation.r2 >= 0.7 ? 'High reliability' : evaluation.r2 >= 0.4 ? 'Moderate reliability' : 'Low reliability';
+
+        box.innerHTML = `
+            <p class="text-3xl font-bold mb-1" style="color:${color}">${pct}%</p>
+            <p class="text-xs font-medium mb-2" style="color:${color}">${label}</p>
+            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-3">
+                <div class="h-1.5 rounded-full" style="width:${pct}%; background:${color}"></div>
+            </div>
+            <p class="text-xs text-gray-500">R&sup2; ${evaluation.r2.toFixed(3)} &middot; MAE ${evaluation.mae.toFixed(1)} persons</p>
+            <p class="text-xs text-gray-400 mt-1">Evaluated via leave-one-out cross-validation across ${evaluation.sample_count} historical event(s).</p>`;
+    }
 
     async function loadStatus() {
         const result = await Api.get('/analytics/status');
         const s = result.data;
         const box = document.getElementById('status-content');
+
+        renderConfidence(s.evaluation);
 
         if (! s.can_predict) {
             box.innerHTML = `
@@ -148,27 +262,29 @@
         box.innerHTML = `<p>${s.historical_event_count} completed disaster event(s) available for training.</p>${evalText}`;
     }
 
-    (async () => {
-        try {
-            await loadStatus();
+    function renderLatestStats() {
+        if (allPredictions.length === 0) return;
 
-            const events = await Api.get('/evacuation-events');
-            document.getElementById('evacuation_event_id').insertAdjacentHTML('beforeend',
-                events.data.map((ev) => `<option value="${ev.id}">${ev.name}</option>`).join(''));
+        const latest = allPredictions[0];
+        document.getElementById('latest-stats-row').classList.remove('hidden');
+        document.getElementById('latest-evacuees').textContent = latest.predicted_evacuees ?? '—';
+        document.getElementById('latest-occupancy').textContent = latest.predicted_center_occupancy ?? '—';
+        document.getElementById('latest-cost').textContent = latest.predicted_resources_needed !== null
+            ? `₱${Number(latest.predicted_resources_needed).toLocaleString()}` : '—';
+        document.getElementById('latest-cost-note').textContent = latest.input_payload?.used_default_ratios
+            ? 'Default ratios (no cost history yet)' : 'From historical cost data';
+        document.getElementById('latest-signal').textContent = latest.input_payload?.wind_speed_kph !== undefined
+            ? computeSignalLevel(Number(latest.input_payload.wind_speed_kph)) : '—';
+    }
 
-            await loadPredictions();
-        } catch (error) {
-            showFormErrors(error);
-        }
-    })();
+    function renderPredictionsList() {
+        const query = document.getElementById('history-search').value.trim().toLowerCase();
+        const filtered = allPredictions.filter((p) =>
+            ! query || (p.evacuation_event?.name ?? 'standalone forecast').toLowerCase().includes(query));
 
-    async function loadPredictions() {
-        const result = await Api.get('/predictions');
-        const predictions = result.data.data;
-
-        document.getElementById('predictions-list').innerHTML = predictions.length === 0
-            ? '<p class="text-gray-400 text-sm text-center py-8">No forecasts generated yet.</p>'
-            : predictions.map((p) => `
+        document.getElementById('predictions-list').innerHTML = filtered.length === 0
+            ? '<p class="text-gray-400 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No forecasts match this filter.</p>'
+            : filtered.map((p) => `
                 <div class="bg-white border border-gray-200 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-sm font-medium">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
@@ -183,11 +299,57 @@
                         Input: ${p.input_payload.rainfall_mm}mm rainfall, ${p.input_payload.wind_speed_kph}kph wind &middot;
                         trained on ${p.input_payload.training_event_count} historical event(s)
                         ${p.mae_score !== null ? ` &middot; MAE ${Number(p.mae_score).toFixed(1)}` : ''}
+                        ${p.r2_score !== null ? ` &middot; R&sup2; ${Number(p.r2_score).toFixed(3)}` : ''}
                         ${p.input_payload.used_default_ratios ? ' &middot; <span class="text-amber-600">occupancy/cost used default ratios (no cost history yet)</span>' : ''}
                     </p>
                 </div>
             `).join('');
     }
+
+    async function loadPredictions() {
+        const result = await Api.get('/predictions?per_page=100');
+        allPredictions = result.data.data;
+        renderLatestStats();
+        renderPredictionsList();
+    }
+
+    async function loadActivity() {
+        if (! isAdministrator) {
+            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-400">Visible to administrators only.</p>';
+            return;
+        }
+        try {
+            const result = await Api.get('/system-logs?per_page=200');
+            const recent = result.data.data.filter((l) => l.action === 'prediction.generated').slice(0, 6);
+            document.getElementById('activity-timeline').innerHTML = recent.length ? recent.map((l) => `
+                <div class="flex gap-2.5">
+                    <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-purple-400"></span>
+                    <div class="min-w-0">
+                        <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
+                        <p class="text-gray-400">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
+                    </div>
+                </div>`).join('') : '<p class="text-gray-400">No activity recorded yet.</p>';
+        } catch (error) {
+            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-400">Unavailable.</p>';
+        }
+    }
+
+    document.getElementById('history-search').addEventListener('input', renderPredictionsList);
+
+    (async () => {
+        try {
+            await loadStatus();
+
+            const events = await Api.get('/evacuation-events');
+            document.getElementById('evacuation_event_id').insertAdjacentHTML('beforeend',
+                events.data.map((ev) => `<option value="${ev.id}">${ev.name}</option>`).join(''));
+
+            await loadPredictions();
+            await loadActivity();
+        } catch (error) {
+            showFormErrors(error);
+        }
+    })();
 
     document.getElementById('generate-btn').addEventListener('click', async () => {
         const rainfallInput = document.getElementById('rainfall_mm');
@@ -213,6 +375,7 @@
                 evacuation_event_id: document.getElementById('evacuation_event_id').value || null,
             });
             await loadPredictions();
+            await loadActivity();
         } catch (error) {
             showFormErrors(error);
         } finally {
