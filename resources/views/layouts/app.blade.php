@@ -11,10 +11,15 @@
             theme: {
                 extend: {
                     colors: {
+                        {{-- Matches the sidebar's active-nav-link blue
+                            (#2563EB, set in the .nav-link.active rule below)
+                            exactly, so every primary button/link/active-tab
+                            across the whole app uses the same blue instead
+                            of the previous unrelated shade. --}}
                         brand: {
-                            DEFAULT: '#2F5496',
-                            dark: '#1F3A6E',
-                            light: '#E9EFF9',
+                            DEFAULT: '#2563EB',
+                            dark: '#1D4ED8',
+                            light: '#DBEAFE',
                         },
                     },
                 },
