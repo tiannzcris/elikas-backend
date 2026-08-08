@@ -16,6 +16,10 @@
 /public/build
 /public/hot
 /public/storage
+# Desktop installer -- 123MB, exceeds GitHub's 100MB hard file limit and
+# doesn't belong in source control regardless. Upload directly to the
+# hosting server (WinSCP) instead of committing it.
+/public/downloads/*.exe
 /storage/*.key
 /storage/pail
 /vendor

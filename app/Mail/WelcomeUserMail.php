@@ -23,11 +23,23 @@ class WelcomeUserMail extends Mailable
         public string $email,
         public string $password,
         public string $roleDisplayName,
+        public string $roleName,
     ) {}
 
     public function build()
     {
         return $this->subject('Welcome to E-LIKAS — Your Account Details')
-            ->view('emails.welcome-user');
+            ->view('emails.welcome-user', [
+                // Only barangay officials use the offline desktop
+                // companion -- CSWD/admin accounts only ever use the web
+                // dashboard, so showing them a desktop app download link
+                // would be confusing, not just unnecessary.
+                // Available to every staff role, not just barangay officials --
+                // CSWD/admin staff can also end up doing on-site registration
+                // with no internet (e.g. deployed at an evacuation center
+                // during an actual disaster), so the same offline need applies.
+                'showDesktopDownload' => true,
+                'downloadUrl' => url(config('elikas.desktop_app_download_url')),
+            ]);
     }
 }
