@@ -11,4 +11,10 @@ return [
         'email' => env('ADMIN_SEED_EMAIL'),
         'password' => env('ADMIN_SEED_PASSWORD'),
     ],
+
+    // Passed through url() in WelcomeUserMail, so a relative path here
+    // (the installer lives in public/downloads/, uploaded directly to the
+    // server rather than committed -- see .gitignore) resolves against
+    // APP_URL into a full absolute link in the email.
+    'desktop_app_download_url' => env('DESKTOP_APP_DOWNLOAD_URL', '/downloads/E-LIKAS-Setup.exe'),
 ];
