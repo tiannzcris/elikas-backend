@@ -54,14 +54,14 @@
             <div class="relative flex flex-col h-full" style="z-index: 1;">
             <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
                 {{-- Emblem PNG (1024x1536 confirmed via getimagesize), zoomed
-                    via fixed-pixel background-size/position. Deliberately
-                    generous margin around the estimated badge region (rather
-                    than a tight crop) since exact source coordinates can't
-                    be pixel-measured from here -- a bit of extra dark
-                    surrounding space blending into this circle's own black
-                    background is a safer failure mode than clipping part of
-                    the badge or showing it off-center. --}}
-                <div class="w-20 h-20 rounded-full shrink-0" style="background-image: url('/images/elikas-emblem.png'); background-repeat: no-repeat; background-size: 114px 171px; background-position: -17px -20px; background-color: #000;"></div>
+                    via fixed-pixel background-size/position. mix-blend-mode:
+                    screen makes any of the source file's solid BLACK
+                    background that falls within this crop disappear into
+                    whatever's behind it (the navy sidebar) instead of
+                    showing as a visible black patch -- pure black
+                    contributes nothing under "screen" blending, so exact
+                    crop precision matters far less than it did without it. --}}
+                <div class="w-20 h-20 rounded-full shrink-0" style="background-image: url('/images/elikas-emblem.png'); background-repeat: no-repeat; background-size: 114px 171px; background-position: -17px -20px; mix-blend-mode: screen;"></div>
                 <div class="leading-tight">
                     <p class="text-white font-semibold text-sm">E-LIKAS</p>
                     <p class="text-xs" style="color: #A8C2E8;">CSWDO Ligao City</p>
