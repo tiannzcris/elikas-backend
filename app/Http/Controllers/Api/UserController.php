@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\PasswordChangedMail;
 use App\Mail\WelcomeUserMail;
 use App\Models\Role;
 use App\Models\SystemLog;
@@ -86,6 +87,12 @@ class UserController extends Controller
             unset($validated['role']);
         }
 
+        // Captured before the empty-check below unsets it -- this is the
+        // only point the plaintext value is available, and it's needed
+        // later to put the actual new password in the notification email,
+        // same as WelcomeUserMail does at account creation.
+        $newPassword = empty($validated['password']) ? null : $validated['password'];
+
         // Only touch the password if one was actually provided -- an
         // empty/missing value here should leave the existing password
         // completely alone, not overwrite it with something blank.
@@ -104,9 +111,32 @@ class UserController extends Controller
             ]);
         }
 
+        // Sent AFTER the update already succeeded, and failure here must
+        // never undo or block the actual password change -- same
+        // "degrade gracefully" principle as the WelcomeUserMail send in
+        // store(). $emailSent stays null (not true/false) when no password
+        // was changed at all, so no email was even attempted -- three
+        // distinct states, three distinct response messages below.
+        $emailSent = null;
+        if ($newPassword !== null) {
+            $emailSent = true;
+            try {
+                Mail::to($user->email)->send(new PasswordChangedMail($user->name, $newPassword));
+            } catch (\Throwable $e) {
+                $emailSent = false;
+                Log::warning("Password-changed email failed to send for user {$user->email}: {$e->getMessage()}");
+            }
+        }
+
+        $message = match ($emailSent) {
+            true => 'Account updated successfully. The user was emailed their new password.',
+            false => 'Account updated successfully, but the password-changed email could not be sent -- share the new password with them directly.',
+            default => 'Account updated successfully.',
+        };
+
         return $this->success(
             new UserResource($user->fresh()->load(['role', 'barangay'])),
-            'Account updated successfully.'
+            $message
         );
     }
 }

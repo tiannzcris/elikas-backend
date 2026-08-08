@@ -21,7 +21,13 @@
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1" id="password-label">Password</label>
-                <input type="password" id="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Minimum 8 characters">
+                <div class="flex gap-2">
+                    <input type="password" id="password" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Minimum 8 characters">
+                    <button type="button" id="generate-password-btn"
+                        class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
+                        Generate
+                    </button>
+                </div>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Contact number (optional)</label>
@@ -65,6 +71,20 @@
 
     document.getElementById('role').addEventListener('change', (e) => {
         document.getElementById('barangay-field').classList.toggle('hidden', e.target.value !== 'barangay_official');
+    });
+
+    // Not inside the isEdit branch below -- this button and its input live
+    // in the single form shared by both create and edit modes, so wiring
+    // it once here covers "creating a new account" and "an admin resetting
+    // an existing user's password" identically, with no special-casing.
+    document.getElementById('generate-password-btn').addEventListener('click', () => {
+        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+        const randomValues = crypto.getRandomValues(new Uint32Array(14));
+        const generated = Array.from(randomValues, (v) => charset[v % charset.length]).join('');
+
+        const passwordInput = document.getElementById('password');
+        passwordInput.type = 'text'; // visible, not masked -- the admin just generated it and needs to read/copy it
+        passwordInput.value = generated;
     });
 
     (async () => {
