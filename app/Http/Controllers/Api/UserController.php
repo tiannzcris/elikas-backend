@@ -139,4 +139,78 @@ class UserController extends Controller
             $message
         );
     }
+
+    /**
+     * Permanent deletion -- deliberately much stricter than deactivating.
+     * Refuses outright if the account has ANY related records anywhere in
+     * the system (every table with a foreign key to users, checked here
+     * one by one rather than relying solely on the DB's own
+     * restrictOnDelete constraints, so the admin gets one clear,
+     * itemized reason instead of a raw SQL error). Deactivate is the
+     * correct action for any account that's ever actually done anything;
+     * this is only for genuinely unused accounts (e.g. created by
+     * mistake, never logged in, never touched).
+     */
+    public function destroy(Request $request, User $user)
+    {
+        if ($user->id === $request->user()->id) {
+            return $this->error('You cannot delete your own account while logged in.', 422);
+        }
+
+        $blockers = [];
+
+        $alertCount = $user->alertsSent()->count();
+        if ($alertCount > 0) {
+            $blockers[] = $this->pluralize($alertCount, 'alert sent', 'alerts sent');
+        }
+
+        $reliefCount = $user->reliefDistributions()->count();
+        if ($reliefCount > 0) {
+            $blockers[] = $this->pluralize($reliefCount, 'relief distribution recorded', 'relief distributions recorded');
+        }
+
+        $reportCount = $user->reports()->count();
+        if ($reportCount > 0) {
+            $blockers[] = $this->pluralize($reportCount, 'DROMIC report generated', 'DROMIC reports generated');
+        }
+
+        $forecastCount = $user->weatherForecasts()->count();
+        if ($forecastCount > 0) {
+            $blockers[] = $this->pluralize($forecastCount, 'weather forecast generated', 'weather forecasts generated');
+        }
+
+        $logCount = $user->systemLogs()->count();
+        if ($logCount > 0) {
+            $blockers[] = $this->pluralize($logCount, 'activity log entry', 'activity log entries');
+        }
+
+        if (! empty($blockers)) {
+            return $this->error(
+                'This account has '.implode(', ', $blockers).
+                ' and can\'t be deleted -- use Deactivate instead to preserve the audit trail.',
+                422
+            );
+        }
+
+        $deletedName = $user->name;
+        $deletedEmail = $user->email;
+        $user->delete();
+
+        // Logged under the ADMIN performing the deletion, not the deleted
+        // user (whose own system_logs were just confirmed to be empty
+        // above) -- this is the one record of the deletion itself.
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'user.deleted',
+            'description' => "{$request->user()->name} permanently deleted the account for {$deletedName} ({$deletedEmail}).",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(null, "The account for {$deletedName} was permanently deleted.");
+    }
+
+    private function pluralize(int $count, string $singular, string $plural): string
+    {
+        return $count.' '.($count === 1 ? $singular : $plural);
+    }
 }

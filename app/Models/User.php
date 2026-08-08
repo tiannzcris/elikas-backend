@@ -50,6 +50,16 @@ class User extends Authenticatable
         return $this->hasMany(Alert::class, 'sent_by');
     }
 
+    public function weatherForecasts(): HasMany
+    {
+        return $this->hasMany(WeatherForecast::class, 'generated_by');
+    }
+
+    public function systemLogs(): HasMany
+    {
+        return $this->hasMany(SystemLog::class, 'user_id');
+    }
+
     // Convenience role checks used throughout controllers/policies instead of
     // comparing role_id magic numbers everywhere.
     public function hasRole(string $roleName): bool

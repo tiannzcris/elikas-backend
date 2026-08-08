@@ -125,6 +125,42 @@
             </div>
         </div>
     </div>
+
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+                <div class="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                    <i class="ti ti-alert-triangle text-red-600" style="font-size: 18px;" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800">Delete account</p>
+                    <p class="text-xs text-gray-500">This action is permanent and cannot be undone.</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-3">
+                You are about to permanently delete <strong id="delete-modal-name"></strong>'s account
+                (<span id="delete-modal-email" class="font-mono text-xs"></span>). All login access will be removed immediately.
+            </p>
+
+            <div id="delete-modal-error" class="hidden bg-red-50 text-red-700 text-xs rounded-lg p-3 mb-3"></div>
+
+            <label class="text-xs text-gray-600 block mb-1">
+                Type <strong id="delete-modal-confirm-email"></strong> to confirm
+            </label>
+            <input type="text" id="delete-confirm-input" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4" autocomplete="off">
+
+            <div class="flex justify-end gap-2">
+                <button type="button" id="delete-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="button" id="delete-modal-confirm" disabled
+                    class="text-sm text-white bg-red-600 rounded-lg px-4 py-2 opacity-50 cursor-not-allowed">
+                    Delete permanently
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -159,6 +195,8 @@
     let allUsers = [];
     let allLogs = [];
     let roleChartInstance = null;
+    let pendingDeleteUser = null;
+    const currentUser = Api.getUser();
 
     function lastLoginFor(userId) {
         const login = allLogs.find((l) => l.action === 'user.login' && l.user?.id === userId);
@@ -177,6 +215,72 @@
             showFormErrors(error);
         }
     }
+
+    // Deletion requires typing the exact email address to confirm --
+    // deliberately more friction than a confirm() dialog, so a careless
+    // double-click can't delete the wrong account. Looks up the user from
+    // the already-loaded allUsers array rather than embedding the user
+    // object as inline JSON in the button's onclick attribute, since a
+    // name/email could in principle contain a quote character that would
+    // break the generated HTML.
+    function openDeleteModal(userId) {
+        const user = allUsers.find((u) => u.id === userId);
+        if (! user) return;
+
+        pendingDeleteUser = user;
+        document.getElementById('delete-modal-name').textContent = user.name;
+        document.getElementById('delete-modal-email').textContent = user.email;
+        document.getElementById('delete-modal-confirm-email').textContent = user.email;
+        document.getElementById('delete-confirm-input').value = '';
+        document.getElementById('delete-modal-error').classList.add('hidden');
+        updateDeleteConfirmButtonState();
+
+        document.getElementById('delete-modal').classList.remove('hidden');
+        document.getElementById('delete-modal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        pendingDeleteUser = null;
+        document.getElementById('delete-modal').classList.add('hidden');
+        document.getElementById('delete-modal').classList.remove('flex');
+    }
+
+    function updateDeleteConfirmButtonState() {
+        const typed = document.getElementById('delete-confirm-input').value;
+        const button = document.getElementById('delete-modal-confirm');
+        const matches = pendingDeleteUser && typed === pendingDeleteUser.email;
+
+        button.disabled = ! matches;
+        button.classList.toggle('opacity-50', ! matches);
+        button.classList.toggle('cursor-not-allowed', ! matches);
+    }
+
+    document.getElementById('delete-confirm-input').addEventListener('input', updateDeleteConfirmButtonState);
+    document.getElementById('delete-modal-cancel').addEventListener('click', closeDeleteModal);
+
+    document.getElementById('delete-modal-confirm').addEventListener('click', async () => {
+        if (! pendingDeleteUser) return;
+
+        const button = document.getElementById('delete-modal-confirm');
+        button.disabled = true;
+        button.textContent = 'Deleting...';
+
+        try {
+            await Api.request(`/users/${pendingDeleteUser.id}`, { method: 'DELETE' });
+            closeDeleteModal();
+            loadUsers();
+        } catch (error) {
+            // Shows the backend's exact reason inline in the modal (e.g.
+            // "This account has 3 alerts sent... use Deactivate instead")
+            // rather than a generic error, so the admin understands why
+            // and what to do next without leaving the modal.
+            const errorBox = document.getElementById('delete-modal-error');
+            errorBox.textContent = error.message;
+            errorBox.classList.remove('hidden');
+            button.textContent = 'Delete permanently';
+            updateDeleteConfirmButtonState();
+        }
+    });
 
     function renderTable() {
         const query = document.getElementById('search-input').value.trim().toLowerCase();
@@ -229,11 +333,17 @@
                                 <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg ${statusColors[u.status] ?? ''}">${u.status}</span></td>
                                 <td class="px-4 py-3 text-gray-500">${lastLogin ? new Date(lastLogin).toLocaleString() : 'Never'}</td>
                                 <td class="px-4 py-3">
-                                    <div class="flex gap-3">
+                                    <div class="flex items-center gap-3">
                                         <a href="/users/${u.id}/edit" class="text-xs text-brand hover:underline">Edit</a>
                                         <button onclick="toggleStatus(${u.id}, '${u.status}')" class="text-xs ${u.status === 'active' ? 'text-red-500' : 'text-green-600'} hover:underline">
                                             ${u.status === 'active' ? 'Deactivate' : 'Reactivate'}
                                         </button>
+                                        ${currentUser && u.id === currentUser.id ? '' : `
+                                            <button onclick="openDeleteModal(${u.id})"
+                                                class="text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded px-2 py-1 flex items-center gap-1">
+                                                <i class="ti ti-trash" style="font-size: 12px;" aria-hidden="true"></i> Delete
+                                            </button>
+                                        `}
                                     </div>
                                 </td>
                             </tr>`;
