@@ -110,6 +110,62 @@
                 </div>
             </div>
 
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-md bg-teal-50 flex items-center justify-center shrink-0">
+                        <i class="ti ti-chart-histogram text-teal-600" style="font-size: 15px;" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-medium">Rainfall / wind forecast (SARIMA)</p>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">
+                    A separate, real time-series model trained on imported historical PAGASA weather
+                    readings -- unlike the single rainfall/wind forecast above, this detects
+                    seasonal patterns across many past days. Requires weather data to be imported
+                    first (see <code class="bg-gray-100 px-1 rounded">php artisan weather:import</code>).
+                </p>
+
+                <div id="sarima-empty-state" class="hidden text-center py-8 text-sm text-gray-400">
+                    No weather history imported yet. Import PAGASA data (or run
+                    <code class="bg-gray-100 px-1 rounded">php artisan weather:import ... --sample</code>
+                    for test data) before a forecast can be generated.
+                </div>
+
+                <div id="sarima-form-wrap">
+                    <div class="grid grid-cols-3 gap-4 mb-3">
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Metric</label>
+                            <select id="sarima-metric" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option value="rainfall_mm">Rainfall (mm)</option>
+                                <option value="wind_speed_kph">Wind speed (kph)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1">Horizon (periods)</label>
+                            <input type="number" id="sarima-horizon" value="14" min="1" max="60" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <button id="sarima-generate-btn" class="w-full bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2">
+                                Generate forecast
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sarima-sample-banner" class="hidden bg-amber-50 text-amber-700 text-xs rounded-lg p-3 mb-3 flex gap-2">
+                    <i class="ti ti-alert-triangle shrink-0" style="font-size: 14px;" aria-hidden="true"></i>
+                    <span>This forecast is based on SAMPLE/TEST weather data, not real PAGASA records -- for pipeline testing only. Do not use for actual planning decisions.</span>
+                </div>
+
+                <div id="sarima-unavailable-banner" class="hidden bg-gray-50 text-gray-500 text-xs rounded-lg p-3 mb-3"></div>
+
+                <div id="sarima-chart-wrap" class="hidden">
+                    <div style="position: relative; width: 100%; height: 240px;">
+                        <canvas id="sarimaChart" role="img" aria-label="Line chart of historical and forecasted weather readings"></canvas>
+                    </div>
+                    <p id="sarima-diagnostics" class="text-xs text-gray-400 mt-2"></p>
+                </div>
+            </div>
+
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <p class="text-sm font-medium text-gray-700">Forecast history</p>
@@ -187,8 +243,12 @@
     let accuracyChartInstance = null;
     let allPredictions = [];
     let allCenters = [];
+    let sarimaChartInstance = null;
     const user = Api.getUser();
     const isAdministrator = user && user.role === 'administrator';
+    // Same access level as generating a linear-regression forecast --
+    // barangay officials can view but not generate.
+    const canGenerateForecasts = user && user.role !== 'barangay_official';
 
     // Rule-based recommendations derived from the latest forecast's own
     // numbers plus current center capacity -- deterministic thresholds,
@@ -446,6 +506,137 @@
         }
     }
 
+    const METRIC_LABELS = { rainfall_mm: 'Rainfall (mm)', wind_speed_kph: 'Wind speed (kph)' };
+
+    // Renders a single WeatherForecastResource-shaped object (or null to
+    // reset back to an empty chart). Fetches the historical readings for
+    // the same metric separately, since /weather-forecasts only stores the
+    // forecast points themselves, not the training data behind them.
+    async function renderSarimaForecast(forecastRow) {
+        document.getElementById('sarima-sample-banner').classList.toggle('hidden', ! forecastRow?.is_sample_based);
+
+        if (! forecastRow) {
+            document.getElementById('sarima-chart-wrap').classList.add('hidden');
+            return;
+        }
+
+        let historical = [];
+        try {
+            const readingsResult = await Api.get('/weather-readings?per_page=200');
+            historical = readingsResult.data.data
+                .filter((r) => r[forecastRow.metric] !== null)
+                .sort((a, b) => a.reading_date.localeCompare(b.reading_date));
+        } catch (error) {
+            // Chart still renders with just the forecast half if this fails.
+        }
+
+        document.getElementById('sarima-chart-wrap').classList.remove('hidden');
+
+        const historicalLabels = historical.map((r) => r.reading_date);
+        const historicalValues = historical.map((r) => r[forecastRow.metric]);
+        const forecastLabels = forecastRow.forecast_points.map((p) => p.date);
+        const forecastValues = forecastRow.forecast_points.map((p) => p.predicted);
+        const lowerCi = forecastRow.forecast_points.map((p) => p.lower_ci);
+        const upperCi = forecastRow.forecast_points.map((p) => p.upper_ci);
+
+        const labels = [...historicalLabels, ...forecastLabels];
+        // Padded with nulls so each dataset only draws over its own half of
+        // the shared label axis -- Chart.js skips null points by default.
+        const historicalPadded = [...historicalValues, ...forecastLabels.map(() => null)];
+        const forecastPadded = [...historicalLabels.map(() => null), ...forecastValues];
+        const lowerPadded = [...historicalLabels.map(() => null), ...lowerCi];
+        const upperPadded = [...historicalLabels.map(() => null), ...upperCi];
+
+        if (sarimaChartInstance) sarimaChartInstance.destroy();
+        sarimaChartInstance = new Chart(document.getElementById('sarimaChart'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Historical', data: historicalPadded,
+                        borderColor: '#2563eb', backgroundColor: '#2563eb', pointRadius: 0, tension: 0.3,
+                    },
+                    {
+                        label: 'Forecast', data: forecastPadded,
+                        borderColor: '#f97316', backgroundColor: '#f97316', borderDash: [5, 5], pointRadius: 2, tension: 0.3,
+                    },
+                    {
+                        label: 'Upper bound', data: upperPadded,
+                        borderColor: 'transparent', backgroundColor: 'rgba(249,115,22,0.12)', pointRadius: 0, fill: '+1',
+                    },
+                    {
+                        label: 'Lower bound', data: lowerPadded,
+                        borderColor: 'transparent', backgroundColor: 'rgba(249,115,22,0.12)', pointRadius: 0, fill: false,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'bottom', labels: { filter: (item) => item.text !== 'Upper bound' && item.text !== 'Lower bound' } } },
+                scales: { y: { beginAtZero: true, grid: { color: '#e1e0d9' } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } } },
+            },
+        });
+
+        const d = forecastRow.diagnostics;
+        document.getElementById('sarima-diagnostics').textContent = d
+            ? `${d.model ?? ''} · AIC ${d.aic} · n=${d.n_observations} observations`.trim()
+            : '';
+    }
+
+    async function loadSarima() {
+        if (! canGenerateForecasts) {
+            document.getElementById('sarima-form-wrap').classList.add('hidden');
+        }
+
+        try {
+            const readingsResult = await Api.get('/weather-readings?per_page=1');
+            const hasReadings = (readingsResult.data.meta?.total ?? readingsResult.data.data.length) > 0;
+
+            document.getElementById('sarima-empty-state').classList.toggle('hidden', hasReadings);
+            document.getElementById('sarima-form-wrap').classList.toggle('hidden', ! hasReadings || ! canGenerateForecasts);
+
+            if (! hasReadings) return;
+
+            const forecastsResult = await Api.get('/weather-forecasts?per_page=1');
+            await renderSarimaForecast(forecastsResult.data.data[0] ?? null);
+        } catch (error) {
+            document.getElementById('sarima-empty-state').classList.remove('hidden');
+            document.getElementById('sarima-empty-state').textContent = 'Could not load weather data.';
+        }
+    }
+
+    document.getElementById('sarima-generate-btn')?.addEventListener('click', async () => {
+        const button = document.getElementById('sarima-generate-btn');
+        const metric = document.getElementById('sarima-metric').value;
+        const horizon = Number(document.getElementById('sarima-horizon').value) || 14;
+
+        document.getElementById('sarima-unavailable-banner').classList.add('hidden');
+        button.disabled = true;
+        button.textContent = 'Generating...';
+
+        try {
+            const result = await Api.post('/weather-forecasts', { metric, horizon });
+            await renderSarimaForecast(result.data);
+        } catch (error) {
+            if (error.status === 503) {
+                // SARIMA service not configured/unreachable -- an expected
+                // state before the Python microservice is deployed on the
+                // VPS, not a bug. Shown inline rather than via the generic
+                // form-errors box, since it's specific to this one card.
+                document.getElementById('sarima-unavailable-banner').textContent = error.message;
+                document.getElementById('sarima-unavailable-banner').classList.remove('hidden');
+            } else {
+                showFormErrors(error);
+            }
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Generate forecast';
+        }
+    });
+
     document.getElementById('history-search').addEventListener('input', renderPredictionsList);
 
     (async () => {
@@ -461,6 +652,7 @@
 
             await loadPredictions();
             await loadActivity();
+            await loadSarima();
         } catch (error) {
             showFormErrors(error);
         }

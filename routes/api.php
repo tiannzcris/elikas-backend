@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SystemLogController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WeatherForecastController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -100,6 +101,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/analytics/status', [PredictiveAnalyticsController::class, 'status']);
             Route::get('/predictions', [PredictiveAnalyticsController::class, 'index']);
 
+            // Step 8: SARIMA weather forecasting -- a separate, parallel
+            // capability from the linear-regression predictions above (real
+            // time-series data from PAGASA imports, not one row per
+            // disaster event). Same view/generate split as predictions.
+            Route::get('/weather-readings', [WeatherForecastController::class, 'readings']);
+            Route::get('/weather-forecasts', [WeatherForecastController::class, 'index']);
+
             // Unlike DROMIC Region V (city-wide, admin/CSWD only), the EC
             // Information Board is scoped to a single center -- reasonably
             // a barangay-level concern, matching Chapter 1's promise of
@@ -127,6 +135,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/reports/dromic-region-v', [ReportController::class, 'generateDromicRegionV']);
 
             Route::post('/predictions', [PredictiveAnalyticsController::class, 'store']);
+
+            Route::post('/weather-forecasts', [WeatherForecastController::class, 'store']);
         });
 
         // Administrator-only: account creation/management is deliberately

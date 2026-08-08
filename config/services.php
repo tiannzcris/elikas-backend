@@ -39,4 +39,15 @@ return [
     'sender_name' => env('SEMAPHORE_SENDER_NAME', 'ELIKAS'),
     ],*/
 
+    // sarima-service/ -- a separate Python/FastAPI process for SARIMA/
+    // SARIMAX weather forecasting, deployed independently on the VPS.
+    // Left uncommented (unlike semaphore above) so an unset/blank
+    // SARIMA_SERVICE_URL degrades gracefully via SarimaForecastService's
+    // own "not_configured" check, rather than never being read at all.
+    'sarima' => [
+        'url' => env('SARIMA_SERVICE_URL'),
+        'token' => env('SARIMA_SERVICE_TOKEN'),
+        'timeout' => env('SARIMA_SERVICE_TIMEOUT', 30),
+    ],
+
 ];

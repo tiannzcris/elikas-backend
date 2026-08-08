@@ -1,0 +1,15 @@
+[Unit]
+Description=E-LIKAS SARIMA forecasting microservice
+After=network.target
+
+[Service]
+# Create a dedicated non-root user first: sudo useradd -r -s /usr/sbin/nologin elikas
+User=elikas
+WorkingDirectory=/opt/elikas-sarima
+Environment="SARIMA_SERVICE_TOKEN=REPLACE_WITH_A_LONG_RANDOM_SECRET"
+ExecStart=/opt/elikas-sarima/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8090
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
