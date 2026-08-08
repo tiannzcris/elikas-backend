@@ -53,18 +53,15 @@
 
             <div class="relative flex flex-col h-full" style="z-index: 1;">
             <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
-                {{-- Badge built from the icon font already loaded on every
-                    page (Tabler), not the emblem PNG -- the source photo's
-                    solid black background never cropped cleanly across
-                    attempts, so this sidesteps that entirely with something
-                    guaranteed crisp and properly transparent at any size. --}}
-                <div class="w-11 h-11 rounded-full flex items-center justify-center relative shrink-0"
-                    style="background: radial-gradient(circle at 35% 30%, #3B82F6, #1D4ED8 70%);">
-                    <i class="ti ti-home text-white" style="font-size: 20px;" aria-hidden="true"></i>
-                    <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center border-2" style="border-color: #1F3A6E;">
-                        <i class="ti ti-check text-white" style="font-size: 9px;" aria-hidden="true"></i>
-                    </span>
-                </div>
+                {{-- Emblem PNG (1024x1536 confirmed via getimagesize), zoomed
+                    via fixed-pixel background-size/position. Deliberately
+                    generous margin around the estimated badge region (rather
+                    than a tight crop) since exact source coordinates can't
+                    be pixel-measured from here -- a bit of extra dark
+                    surrounding space blending into this circle's own black
+                    background is a safer failure mode than clipping part of
+                    the badge or showing it off-center. --}}
+                <div class="w-20 h-20 rounded-full shrink-0" style="background-image: url('/images/elikas-emblem.png'); background-repeat: no-repeat; background-size: 114px 171px; background-position: -17px -20px; background-color: #000;"></div>
                 <div class="leading-tight">
                     <p class="text-white font-semibold text-sm">E-LIKAS</p>
                     <p class="text-xs" style="color: #A8C2E8;">CSWDO Ligao City</p>
