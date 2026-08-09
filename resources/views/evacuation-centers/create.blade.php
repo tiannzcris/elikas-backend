@@ -32,23 +32,26 @@
             </div>
             <div class="col-span-2">
                 <label class="text-sm text-gray-600 block mb-1">Address</label>
-                <input type="text" id="address" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" id="address" required placeholder="e.g. Purok 3, Barangay Bacong, Ligao City"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
-                <input type="number" id="capacity_families" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="number" id="capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
-                <input type="number" id="capacity_persons" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="number" id="capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
-                <input type="text" id="camp_manager_name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" id="camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Camp manager contact</label>
-                <input type="text" id="camp_manager_contact" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" id="camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Status</label>

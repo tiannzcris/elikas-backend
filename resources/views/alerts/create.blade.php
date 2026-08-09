@@ -13,11 +13,16 @@
         <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-4">
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Title</label>
-                <input type="text" id="title" required maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" id="title" required maxlength="200"
+                    placeholder="e.g. Typhoon Warning: Signal #2"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Message</label>
-                <textarea id="message" required maxlength="1000" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <textarea id="message" required maxlength="1000" rows="4"
+                    placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div>

@@ -71,7 +71,7 @@
                     <option value="female">Female</option>
                 </select>
                 <input type="date" class="m-date_of_birth border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <input type="text" placeholder="Contact number" class="m-contact_number border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-600 items-center">
                 <label class="flex items-center gap-1.5"><input type="radio" name="head-${index}" class="m-is_head_of_family"> Head of family</label>

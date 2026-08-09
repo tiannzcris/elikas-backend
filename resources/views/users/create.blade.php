@@ -17,7 +17,8 @@
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Email</label>
-                <input type="email" id="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <p class="text-xs text-gray-400 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1" id="password-label">Password</label>
@@ -31,7 +32,7 @@
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Contact number (optional)</label>
-                <input type="text" id="contact_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" id="contact_number" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Role</label>
