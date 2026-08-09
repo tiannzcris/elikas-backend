@@ -9,10 +9,16 @@
             <h1 class="text-xl font-semibold mb-1">Alerts</h1>
             <p class="text-sm text-gray-500">Advisories sent to the dashboard, barangay officials, and evacuees.</p>
         </div>
-        <a href="/alerts/create" id="send-alert-btn"
+        {{-- Opens the modal below instead of navigating to /alerts/create --
+            that route/page still exists untouched (the topbar's global
+            "Send emergency alert" button still links there directly, and
+            it's the fallback if this page's JS ever fails to load). This
+            is a pilot for one form only; the others aren't being converted
+            yet. --}}
+        <button type="button" id="send-alert-btn"
             class="hidden bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Send an alert
-        </a>
+        </button>
     </div>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
@@ -100,6 +106,94 @@
                 <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="send-alert-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Send an alert</p>
+                    <p class="text-xs text-gray-500">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
+                </div>
+                <button type="button" id="alert-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="alert-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="alert-form" class="flex flex-col gap-4 p-5">
+                <div>
+                    <label class="text-sm text-gray-600 block mb-1">Title</label>
+                    <input type="text" id="alert-title" required maxlength="200"
+                        placeholder="e.g. Typhoon Warning: Signal #2"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-600 block mb-1">Message</label>
+                    <textarea id="alert-message" required maxlength="1000" rows="4"
+                        placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                    <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Urgency</label>
+                        <select id="alert-severity" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="mandatory">Mandatory evacuation</option>
+                            <option value="advisory" selected>Advisory</option>
+                            <option value="info">Info</option>
+                            <option value="all_clear">All clear</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Alert type</label>
+                        <select id="alert-type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="typhoon">Typhoon</option>
+                            <option value="flood">Flood</option>
+                            <option value="volcanic">Volcanic</option>
+                            <option value="earthquake">Earthquake</option>
+                            <option value="general_advisory">General advisory</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Related disaster event (optional)</label>
+                        <select id="alert-evacuation-event" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
+                    <label class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <input type="checkbox" id="alert-notify-officials"> Notify barangay officials by SMS
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                        <input type="checkbox" id="alert-notify-evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
+                    </label>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Limit SMS to one barangay (optional)</label>
+                        <select id="alert-barangay" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">All barangays</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-3">
+                        If SMS isn't configured yet (no Semaphore account), the alert still sends to the live
+                        dashboard — SMS attempts are just logged instead of actually delivered.
+                    </p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="alert-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="alert-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Send alert
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -292,16 +386,26 @@
 
     document.getElementById('type-filter').addEventListener('change', renderAlertsList);
 
-    (async () => {
+    // Named (not an inline IIFE) so it can be called again after a
+    // successful send from the modal, refreshing the list in place instead
+    // of a full page reload.
+    async function loadAlerts() {
         try {
             const result = await Api.get('/alerts?per_page=100');
             allAlerts = result.data.data;
 
             if (allAlerts.length === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('stats-row').classList.add('hidden');
                 return;
             }
 
+            // Explicitly re-hidden here (not just left alone) -- without
+            // this, sending the first-ever alert from the modal would
+            // refresh the list but leave the "No alerts sent yet" empty
+            // state stuck on screen alongside it, since previously this
+            // function only ever ran once per full page load.
+            document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('stats-row').classList.remove('hidden');
             document.getElementById('stat-total').textContent = result.data.meta?.total ?? allAlerts.length;
 
@@ -321,6 +425,95 @@
         } catch (error) {
             showFormErrors(error);
         }
-    })();
+    }
+
+    loadAlerts();
+
+    // --- Send-alert modal -------------------------------------------------
+    // Pilot: only this one create form is a modal for now. /alerts/create
+    // still exists untouched as a real page (the topbar's global "Send
+    // emergency alert" button still links straight there).
+
+    async function openAlertModal() {
+        document.getElementById('alert-modal-errors').classList.add('hidden');
+        document.getElementById('alert-form').reset();
+        document.getElementById('send-alert-modal').classList.remove('hidden');
+        document.getElementById('send-alert-modal').classList.add('flex');
+
+        try {
+            const [events, barangays] = await Promise.all([
+                Api.get('/evacuation-events'),
+                Api.get('/barangays'),
+            ]);
+            document.getElementById('alert-evacuation-event').innerHTML =
+                '<option value="">None</option>' +
+                events.data.map((ev) => `<option value="${ev.id}">${ev.name}</option>`).join('');
+            document.getElementById('alert-barangay').innerHTML =
+                '<option value="">All barangays</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+        } catch (error) {
+            // Dropdowns just stay at their default single option if this
+            // fails -- the rest of the form is still usable.
+        }
+    }
+
+    function closeAlertModal() {
+        document.getElementById('send-alert-modal').classList.add('hidden');
+        document.getElementById('send-alert-modal').classList.remove('flex');
+    }
+
+    document.getElementById('send-alert-btn').addEventListener('click', openAlertModal);
+    document.getElementById('alert-modal-close').addEventListener('click', closeAlertModal);
+    document.getElementById('alert-modal-cancel').addEventListener('click', closeAlertModal);
+
+    // Clicking the dimmed overlay itself (not the white card sitting on
+    // top of it) closes the modal -- checking e.target against the
+    // outermost element specifically, so clicks inside the form never
+    // bubble into an accidental close.
+    document.getElementById('send-alert-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'send-alert-modal') closeAlertModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('send-alert-modal').classList.contains('hidden')) {
+            closeAlertModal();
+        }
+    });
+
+    document.getElementById('alert-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            title: document.getElementById('alert-title').value,
+            message: document.getElementById('alert-message').value,
+            alert_type: document.getElementById('alert-type').value,
+            severity: document.getElementById('alert-severity').value,
+            evacuation_event_id: document.getElementById('alert-evacuation-event').value || null,
+            notify_barangay_officials: document.getElementById('alert-notify-officials').checked,
+            notify_evacuees: document.getElementById('alert-notify-evacuees').checked,
+            barangay_id: document.getElementById('alert-barangay').value || null,
+        };
+
+        const button = document.getElementById('alert-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Sending...';
+
+        try {
+            await Api.post('/alerts', payload);
+            closeAlertModal();
+            await loadAlerts(); // refresh in place, no full page reload
+        } catch (error) {
+            // Shown inside the modal itself (not the page's #form-errors
+            // box, which sits behind the modal and wouldn't be visible)
+            // -- same message/errors-array handling showFormErrors uses.
+            const box = document.getElementById('alert-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Send alert';
+        }
+    });
 </script>
 @endsection
