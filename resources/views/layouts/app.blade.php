@@ -144,7 +144,7 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-4">
-                    <a href="/alerts/create"
+                    <a href="/alerts?compose=1" id="topbar-alert-btn"
                         class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2">
                         <i class="ti ti-bell-ringing" style="font-size: 16px;" aria-hidden="true"></i>
                         Send emergency alert
@@ -248,6 +248,18 @@
             if (e.key === 'Escape') closeSidebar();
         });
         sidebarEl.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', closeSidebar));
+
+        // The alerts list page defines a modal and exposes window.openAlertModal
+        // once it's ready. When we're already sitting on /alerts, open that
+        // modal directly instead of doing a pointless full-page navigation;
+        // from any other page, let the link through so it lands on
+        // /alerts?compose=1 and auto-opens the modal there.
+        document.getElementById('topbar-alert-btn').addEventListener('click', (e) => {
+            if (window.location.pathname === '/alerts' && typeof window.openAlertModal === 'function') {
+                e.preventDefault();
+                window.openAlertModal();
+            }
+        });
 
         // Sidebar status indicator reflects a REAL active event, not a
         // decorative placeholder -- shows the name of whichever disaster

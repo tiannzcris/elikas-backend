@@ -466,6 +466,19 @@
     document.getElementById('alert-modal-close').addEventListener('click', closeAlertModal);
     document.getElementById('alert-modal-cancel').addEventListener('click', closeAlertModal);
 
+    // Exposed globally so the topbar's "Send emergency alert" button
+    // (present on every page, defined in layouts/app.blade.php) can open
+    // this same modal directly when it's already sitting on /alerts,
+    // instead of doing a full navigation + reload.
+    window.openAlertModal = openAlertModal;
+
+    // Landing here via the topbar button from another page navigates to
+    // /alerts?compose=1 -- auto-open the modal once so the click still
+    // feels like one action instead of "go to the list, then click again".
+    if (new URLSearchParams(window.location.search).get('compose') === '1') {
+        openAlertModal();
+    }
+
     // Clicking the dimmed overlay itself (not the white card sitting on
     // top of it) closes the modal -- checking e.target against the
     // outermost element specifically, so clicks inside the form never

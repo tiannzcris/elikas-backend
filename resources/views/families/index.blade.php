@@ -9,10 +9,13 @@
             <h1 class="text-xl font-semibold mb-1">Evacuees</h1>
             <p class="text-sm text-gray-500">List of registered evacuee households and their members.</p>
         </div>
-        <a href="/families/create"
+        {{-- Opens the modal below instead of navigating to /families/create --
+            that route/page still exists untouched as a fallback, following
+            the same pattern established for the alerts page. --}}
+        <button type="button" id="register-family-btn"
             class="shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Register a family
-        </a>
+        </button>
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -98,7 +101,7 @@
                 <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                 <p class="text-sm font-medium text-gray-600 mb-1">No families registered yet</p>
                 <p class="text-sm text-gray-400 mb-4">Registrations will appear here as barangay officials add them.</p>
-                <a href="/families/create" class="text-sm text-brand hover:underline">+ Register the first family</a>
+                <button type="button" id="register-family-empty-btn" class="text-sm text-brand hover:underline">+ Register the first family</button>
             </div>
 
             <div id="table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -149,6 +152,66 @@
                 <p class="text-sm font-semibold text-gray-700 mb-3">Sectoral summary</p>
                 <div id="sectoral-summary" class="grid grid-cols-2 gap-3"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="family-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Register a family</p>
+                    <p class="text-xs text-gray-500">Register every member of an arriving household in one step.</p>
+                </div>
+                <button type="button" id="family-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="family-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="register-form" class="flex flex-col gap-6 p-5">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Barangay</label>
+                        <select id="f-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
+                        <select id="f-evacuation_event_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Displacement type</label>
+                        <select id="f-displacement_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="inside_center">Inside an evacuation center</option>
+                            <option value="outside_center">Outside (evacuated to relatives/other location)</option>
+                        </select>
+                    </div>
+                    <div id="f-center-field">
+                        <label class="text-sm text-gray-600 block mb-1">Evacuation center</label>
+                        <select id="f-evacuation_center_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    </div>
+                    <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
+                        <input type="checkbox" id="f-is_4ps_beneficiary"> Household is a 4Ps beneficiary
+                    </label>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-medium text-gray-700">Household members</h2>
+                        <button type="button" id="f-add-member-btn" class="text-sm text-brand hover:underline">+ Add another member</button>
+                    </div>
+                    <div id="f-members-container" class="flex flex-col gap-4"></div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="family-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="f-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Register family
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -387,15 +450,21 @@
         link.click();
     });
 
-    (async () => {
+    // Named (not an inline IIFE) so it can be called again after a
+    // successful registration from the modal, refreshing the list in place
+    // instead of a full page reload.
+    async function loadFamilies() {
         try {
             const [familiesResult, barangaysResult] = await Promise.all([
                 Api.get('/families?per_page=200'),
                 Api.get('/barangays'),
             ]);
 
-            document.getElementById('barangay-filter').insertAdjacentHTML('beforeend',
-                barangaysResult.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join(''));
+            // Rebuilt (not appended) each call -- otherwise a re-run after
+            // registering a family from the modal would duplicate every
+            // option in the filter dropdown.
+            document.getElementById('barangay-filter').innerHTML = '<option value="">All barangays</option>' +
+                barangaysResult.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
 
             allFamilies = familiesResult.data.data;
             renderStatCards(allFamilies);
@@ -406,6 +475,187 @@
         } catch (error) {
             showFormErrors(error);
         }
-    })();
+    }
+
+    loadFamilies();
+
+    // --- Register-family modal --------------------------------------------
+    // Same pattern established on the alerts page: /families/create still
+    // exists untouched as a fallback page.
+
+    let fMemberCount = 0;
+
+    function fMemberRowHtml(index) {
+        return `
+        <div class="member-row bg-white border border-gray-200 rounded-xl p-4" data-index="${index}">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-sm font-medium text-gray-600">Member ${index + 1}</p>
+                ${index > 0 ? `<button type="button" class="remove-member text-xs text-red-500 hover:underline">Remove</button>` : ''}
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <input type="text" placeholder="First name" class="m-first_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="text" placeholder="Middle name" class="m-middle_name border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" placeholder="Last name" class="m-last_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <select class="m-sex border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                    <option value="">Sex</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <input type="date" class="m-date_of_birth border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-600 items-center">
+                <label class="flex items-center gap-1.5"><input type="radio" name="f-head-${index}" class="m-is_head_of_family"> Head of family</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pwd"> PWD</label>
+                <input type="text" placeholder="PWD type (e.g. visual, mobility)" class="m-pwd_type hidden border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pregnant"> Pregnant</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_lactating"> Lactating</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
+            </div>
+        </div>`;
+    }
+
+    function fAddMemberRow() {
+        document.getElementById('f-members-container').insertAdjacentHTML('beforeend', fMemberRowHtml(fMemberCount));
+        fMemberCount++;
+    }
+
+    document.getElementById('f-add-member-btn').addEventListener('click', fAddMemberRow);
+
+    document.getElementById('f-members-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-member')) {
+            e.target.closest('.member-row').remove();
+        }
+    });
+
+    document.getElementById('f-members-container').addEventListener('change', (e) => {
+        if (e.target.classList.contains('m-is_pwd')) {
+            const pwdTypeInput = e.target.closest('.member-row').querySelector('.m-pwd_type');
+            pwdTypeInput.classList.toggle('hidden', ! e.target.checked);
+            pwdTypeInput.required = e.target.checked;
+        }
+    });
+
+    document.getElementById('f-displacement_type').addEventListener('change', (e) => {
+        document.getElementById('f-center-field').style.display = e.target.value === 'inside_center' ? 'block' : 'none';
+    });
+
+    document.getElementById('f-barangay_id').addEventListener('change', async (e) => {
+        const select = document.getElementById('f-evacuation_center_id');
+        if (! e.target.value) {
+            select.innerHTML = '<option value="">Select barangay first</option>';
+            return;
+        }
+        const centers = await Api.get(`/evacuation-centers?barangay_id=${e.target.value}`);
+        select.innerHTML = '<option value="">Select center</option>' +
+            centers.data.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    });
+
+    async function openFamilyModal() {
+        document.getElementById('family-modal-errors').classList.add('hidden');
+        document.getElementById('register-form').reset();
+        document.getElementById('f-members-container').innerHTML = '';
+        document.getElementById('f-center-field').style.display = 'block';
+        fMemberCount = 0;
+        fAddMemberRow(); // start with one member row (the head of family)
+
+        document.getElementById('family-modal').classList.remove('hidden');
+        document.getElementById('family-modal').classList.add('flex');
+
+        try {
+            const [barangays, events] = await Promise.all([
+                Api.get('/barangays'),
+                Api.get('/evacuation-events'),
+            ]);
+
+            document.getElementById('f-barangay_id').innerHTML =
+                '<option value="">Select barangay</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            // Only open (non-closed) disaster events -- registering a new
+            // evacuee into an already-closed one isn't a valid action.
+            const openEvents = events.data.filter((ev) => ev.status !== 'closed');
+            document.getElementById('f-evacuation_event_id').innerHTML =
+                '<option value="">Select event</option>' +
+                openEvents.map((ev) => `<option value="${ev.id}">${ev.name}</option>`).join('');
+
+            document.getElementById('f-evacuation_center_id').innerHTML = '<option value="">Select barangay first</option>';
+        } catch (error) {
+            // Dropdowns just stay at their default single option if this
+            // fails -- the rest of the form is still usable.
+        }
+    }
+
+    function closeFamilyModal() {
+        document.getElementById('family-modal').classList.add('hidden');
+        document.getElementById('family-modal').classList.remove('flex');
+    }
+
+    document.getElementById('register-family-btn').addEventListener('click', openFamilyModal);
+    document.getElementById('register-family-empty-btn').addEventListener('click', openFamilyModal);
+    document.getElementById('family-modal-close').addEventListener('click', closeFamilyModal);
+    document.getElementById('family-modal-cancel').addEventListener('click', closeFamilyModal);
+
+    document.getElementById('family-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'family-modal') closeFamilyModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('family-modal').classList.contains('hidden')) {
+            closeFamilyModal();
+        }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const members = Array.from(document.querySelectorAll('#f-members-container .member-row')).map((row) => ({
+            first_name: row.querySelector('.m-first_name').value,
+            middle_name: row.querySelector('.m-middle_name').value || null,
+            last_name: row.querySelector('.m-last_name').value,
+            sex: row.querySelector('.m-sex').value,
+            date_of_birth: row.querySelector('.m-date_of_birth').value,
+            contact_number: row.querySelector('.m-contact_number').value || null,
+            is_head_of_family: row.querySelector('.m-is_head_of_family').checked,
+            is_pwd: row.querySelector('.m-is_pwd').checked,
+            pwd_type: row.querySelector('.m-is_pwd').checked ? row.querySelector('.m-pwd_type').value : null,
+            is_pregnant: row.querySelector('.m-is_pregnant').checked,
+            is_lactating: row.querySelector('.m-is_lactating').checked,
+            is_solo_parent: row.querySelector('.m-is_solo_parent').checked,
+            is_indigenous_person: row.querySelector('.m-is_indigenous_person').checked,
+        }));
+
+        const payload = {
+            barangay_id: Number(document.getElementById('f-barangay_id').value),
+            evacuation_event_id: Number(document.getElementById('f-evacuation_event_id').value),
+            displacement_type: document.getElementById('f-displacement_type').value,
+            evacuation_center_id: document.getElementById('f-evacuation_center_id').value
+                ? Number(document.getElementById('f-evacuation_center_id').value)
+                : null,
+            is_4ps_beneficiary: document.getElementById('f-is_4ps_beneficiary').checked,
+            members,
+        };
+
+        const button = document.getElementById('f-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Registering...';
+
+        try {
+            await Api.post('/families/register', payload);
+            closeFamilyModal();
+            await loadFamilies(); // refresh in place, no full page reload
+        } catch (error) {
+            // Shown inside the modal itself (not the page's #form-errors
+            // box, which sits behind the modal and wouldn't be visible).
+            const box = document.getElementById('family-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Register family';
+        }
+    });
 </script>
 @endsection
