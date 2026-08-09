@@ -196,7 +196,13 @@
     let allLogs = [];
     let roleChartInstance = null;
     let pendingDeleteUser = null;
-    const currentUser = Api.getUser();
+    // currentUser is already declared as a global by layouts/app.blade.php's
+    // own inline script, which runs before this one (earlier in the
+    // document, ahead of @yield('scripts')) -- redeclaring it here with
+    // `const` threw "Identifier 'currentUser' has already been declared",
+    // a SyntaxError that silently broke this entire script block, which is
+    // why the whole list/stats/sidebar disappeared. Same bug, same fix as
+    // the one already found on dashboard.blade.php earlier.
 
     function lastLoginFor(userId) {
         const login = allLogs.find((l) => l.action === 'user.login' && l.user?.id === userId);
