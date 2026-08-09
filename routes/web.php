@@ -22,6 +22,15 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
+// A real landing page for the installer, not a direct link straight to the
+// .exe -- Gmail's receiving-side filters silently drop emails containing a
+// direct link to an .exe file (no bounce, no error, nothing in our logs;
+// see WelcomeUserMail). This page is what the welcome email links to
+// instead; the actual installer link lives here, one click away.
+Route::get('/download/desktop-app', function () {
+    return view('download-desktop-app');
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 });

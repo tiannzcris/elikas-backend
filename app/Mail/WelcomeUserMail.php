@@ -39,7 +39,13 @@ class WelcomeUserMail extends Mailable
                 // with no internet (e.g. deployed at an evacuation center
                 // during an actual disaster), so the same offline need applies.
                 'showDesktopDownload' => true,
-                'downloadUrl' => url(config('elikas.desktop_app_download_url')),
+                // Points at a real landing page, NOT the raw .exe path
+                // directly -- Gmail's receiving-side filters silently drop
+                // emails linking straight to an .exe (no bounce, no error,
+                // nothing in our logs; only discovered by comparing against
+                // a plain-text test email that delivered fine). The actual
+                // installer link lives one click away on that page instead.
+                'downloadUrl' => url('/download/desktop-app'),
             ]);
     }
 }
