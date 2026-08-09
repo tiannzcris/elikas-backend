@@ -124,37 +124,42 @@
 
         <div class="flex-1 flex flex-col min-w-0">
             <div class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shrink-0">
-                <div class="flex items-center gap-3 text-xs text-gray-400">
-                    {{-- Only ever visible below the md breakpoint (matches
-                        the sidebar's own md:relative/md:translate-x-0
-                        reset) -- desktop keeps the sidebar permanently
-                        visible with no toggle control shown at all, so
-                        desktop rendering is unchanged from before this. --}}
-                    <button id="sidebar-toggle-btn" class="md:hidden text-gray-500 hover:text-brand -ml-1 mr-1" aria-label="Toggle navigation menu">
+                <div class="flex items-center gap-3 text-xs text-gray-400 min-w-0">
+                    {{-- The toggle button itself stays always-visible on
+                        mobile (md:hidden only hides it on desktop) -- only
+                        the date/location text next to it collapses away
+                        below md, since the button living inside this same
+                        flex container must never disappear along with them. --}}
+                    <button id="sidebar-toggle-btn" class="md:hidden shrink-0 text-gray-500 hover:text-brand -ml-1 mr-1" aria-label="Toggle navigation menu">
                         <i class="ti ti-menu-2" style="font-size: 20px;" aria-hidden="true"></i>
                     </button>
-                    <span class="flex items-center gap-1.5">
+                    <span class="hidden md:flex items-center gap-1.5">
                         <i class="ti ti-calendar" style="font-size: 14px;" aria-hidden="true"></i>
                         <span id="topbar-datetime"></span>
                     </span>
-                    <span class="text-gray-300">&middot;</span>
-                    <span class="flex items-center gap-1.5">
+                    <span class="hidden md:inline text-gray-300">&middot;</span>
+                    <span class="hidden md:flex items-center gap-1.5">
                         <i class="ti ti-map-pin" style="font-size: 14px;" aria-hidden="true"></i>
                         Ligao City, Albay
                     </span>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                    {{-- Icon-only below sm (~640px) -- the full label plus
+                        the avatar/name block on the same row was forcing
+                        this whole bar to wrap onto two or three lines on
+                        phone-width screens; the button still does exactly
+                        the same thing either way, just without the label. --}}
                     <a href="/alerts?compose=1" id="topbar-alert-btn"
-                        class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2">
+                        class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-3 py-2 sm:px-4">
                         <i class="ti ti-bell-ringing" style="font-size: 16px;" aria-hidden="true"></i>
-                        Send emergency alert
+                        <span class="hidden sm:inline">Send emergency alert</span>
                     </a>
                     <div class="relative">
                         <button id="notif-bell" class="relative text-gray-500 hover:text-brand">
                             <i class="ti ti-bell" style="font-size: 18px;" aria-hidden="true"></i>
                             <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] leading-none rounded-full w-4 h-4 flex items-center justify-center">0</span>
                         </button>
-                        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto">
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto">
                             <div class="p-3 border-b border-gray-100 text-xs font-medium text-gray-500">Recent alerts</div>
                             <div id="notif-list" class="divide-y divide-gray-100"></div>
                         </div>
@@ -162,11 +167,11 @@
                     <div class="relative">
                         <button id="user-menu-btn" class="flex items-center gap-2.5">
                             <div id="topbar-avatar" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0" style="background:#2563EB"></div>
-                            <div class="text-left leading-tight">
+                            <div class="hidden sm:block text-left leading-tight">
                                 <p id="topbar-user-name" class="text-sm font-medium text-gray-700"></p>
                                 <p id="topbar-user-role" class="text-xs text-gray-400"></p>
                             </div>
-                            <i class="ti ti-chevron-down text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
+                            <i class="ti ti-chevron-down text-gray-400 hidden sm:inline" style="font-size: 14px;" aria-hidden="true"></i>
                         </button>
                         <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1">
                             <button onclick="Api.clear(); window.location.href = '/login';"
