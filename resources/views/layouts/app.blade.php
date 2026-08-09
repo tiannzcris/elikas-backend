@@ -40,7 +40,21 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div class="flex h-screen overflow-hidden">
-        <aside class="w-56 shrink-0 h-full p-3 flex flex-col relative overflow-hidden" style="background: #1F3A6E;">
+        {{-- Backdrop, mobile only: dims the page behind the sidebar when it's
+            open as an overlay. Clicking it closes the sidebar, same as
+            tapping outside any other dismissible panel in this layout. --}}
+        <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-30 md:hidden"></div>
+
+        {{-- Hidden off-screen by default on mobile (-translate-x-full),
+            slides in as a fixed-position overlay when toggled -- doesn't
+            push page content, matching how the notif/user dropdowns already
+            overlay rather than reflow the layout. md:relative + md:translate-x-0
+            fully restores the original always-visible desktop behavior;
+            md:relative (not md:static) is required, not just cosmetic --
+            this element's children (the watermark image, the status box)
+            are absolutely/relatively positioned against IT, and `static`
+            would stop it from being their containing block on desktop. --}}
+        <aside id="sidebar" class="w-56 shrink-0 h-full p-3 flex flex-col overflow-hidden fixed md:relative inset-y-0 left-0 z-40 -translate-x-full md:translate-x-0 transition-transform duration-200" style="background: #1F3A6E;">
             {{-- Decorative watermark art covering the FULL sidebar height (not
                 just a natural-aspect-ratio slice pinned to the bottom, which
                 left a visible gap on tall viewports) -- object-fit:cover with
@@ -111,6 +125,14 @@
         <div class="flex-1 flex flex-col min-w-0">
             <div class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shrink-0">
                 <div class="flex items-center gap-3 text-xs text-gray-400">
+                    {{-- Only ever visible below the md breakpoint (matches
+                        the sidebar's own md:relative/md:translate-x-0
+                        reset) -- desktop keeps the sidebar permanently
+                        visible with no toggle control shown at all, so
+                        desktop rendering is unchanged from before this. --}}
+                    <button id="sidebar-toggle-btn" class="md:hidden text-gray-500 hover:text-brand -ml-1 mr-1" aria-label="Toggle navigation menu">
+                        <i class="ti ti-menu-2" style="font-size: 20px;" aria-hidden="true"></i>
+                    </button>
                     <span class="flex items-center gap-1.5">
                         <i class="ti ti-calendar" style="font-size: 14px;" aria-hidden="true"></i>
                         <span id="topbar-datetime"></span>
@@ -199,6 +221,33 @@
         }
         updateTopbarClock();
         setInterval(updateTopbarClock, 1000 * 30);
+
+        // Mobile sidebar: hidden off-screen by default (see the -translate-x-full
+        // class on #sidebar), opened as a dimmed overlay by the hamburger
+        // button. Closes on backdrop click, Escape, or picking a nav link --
+        // all no-ops on desktop, since md:translate-x-0 already keeps the
+        // sidebar visible there regardless of this class toggling.
+        const sidebarEl = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+        function openSidebar() {
+            sidebarEl.classList.remove('-translate-x-full');
+            sidebarBackdrop.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            sidebarEl.classList.add('-translate-x-full');
+            sidebarBackdrop.classList.add('hidden');
+        }
+
+        document.getElementById('sidebar-toggle-btn').addEventListener('click', () => {
+            sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
+        sidebarBackdrop.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSidebar();
+        });
+        sidebarEl.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', closeSidebar));
 
         // Sidebar status indicator reflects a REAL active event, not a
         // decorative placeholder -- shows the name of whichever disaster
