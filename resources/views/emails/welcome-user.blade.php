@@ -34,19 +34,13 @@
                 <div style="border-top: 1px solid #E5E7EB; margin-top: 24px; padding-top: 20px;">
                     <p style="font-size: 14px; font-weight: 600; margin: 0 0 6px;">Offline Companion App</p>
                     <p style="font-size: 13px; color: #6B7280; margin: 0 0 12px;">
-                        You can also register families while offline
-                        using our desktop companion app. Install it once on the computer at
-                        your barangay hall -- it works even with no internet connection, and
-                        syncs automatically once you're back online.
+                        You can also register families while offline using our desktop
+                        companion app -- it works with no internet connection at your
+                        barangay hall, and syncs automatically once you're back online.
                     </p>
                     <a href="{{ $downloadUrl }}" style="display: inline-block; background: white; color: #2F5496; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; border: 1px solid #2F5496;">
-                        Download for Windows
+                        Get the desktop app
                     </a>
-                    <p style="font-size: 12px; color: #9CA3AF; margin: 10px 0 0;">
-                        Windows may show a security warning during install since this app
-                        isn't yet digitally signed -- click "More info" then "Run anyway" to
-                        continue. This is expected, not a sign of a problem.
-                    </p>
                 </div>
             @endif
         </div>
