@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Real account management, replacing what previously only existed via
@@ -174,9 +175,15 @@ class UserController extends Controller
             $blockers[] = $this->pluralize($reportCount, 'DROMIC report generated', 'DROMIC reports generated');
         }
 
-        $forecastCount = $user->weatherForecasts()->count();
-        if ($forecastCount > 0) {
-            $blockers[] = $this->pluralize($forecastCount, 'weather forecast generated', 'weather forecasts generated');
+        // weather_forecasts belongs to the SARIMA feature, which is
+        // deliberately not deployed to every environment yet -- skip this
+        // check entirely rather than letting a missing table 500 the whole
+        // delete instead of just reporting "no forecasts, safe to delete".
+        if (Schema::hasTable('weather_forecasts')) {
+            $forecastCount = $user->weatherForecasts()->count();
+            if ($forecastCount > 0) {
+                $blockers[] = $this->pluralize($forecastCount, 'weather forecast generated', 'weather forecasts generated');
+            }
         }
 
         $logCount = $user->systemLogs()->count();
