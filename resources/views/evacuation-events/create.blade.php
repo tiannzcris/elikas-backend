@@ -10,8 +10,8 @@
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
 
     <form id="event-form" class="flex flex-col gap-4 max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-2 gap-4">
-            <div class="col-span-2">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
                 <label class="text-sm text-gray-600 block mb-1">Event name</label>
                 <input type="text" id="name" required placeholder="e.g. Typhoon Rolly 2026" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
@@ -57,7 +57,7 @@
                 <label class="text-sm text-gray-600 block mb-1">End date (optional)</label>
                 <input type="date" id="end_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="text-sm text-gray-600 block mb-1">Description (optional)</label>
                 <textarea id="description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
             </div>

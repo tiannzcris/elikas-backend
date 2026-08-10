@@ -24,7 +24,7 @@
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
                 <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
             </div>
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="text-sm text-gray-600 block mb-1">Urgency</label>
                     <select id="severity" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">

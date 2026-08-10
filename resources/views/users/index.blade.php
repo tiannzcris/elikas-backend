@@ -4,12 +4,12 @@
 @section('nav-users', 'active')
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <div>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">User management</h1>
             <p class="text-sm text-gray-500">Create and manage accounts for CSWD personnel and barangay officials.</p>
         </div>
-        <a href="/users/create" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+        <a href="/users/create" class="shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Add user
         </a>
     </div>
@@ -20,7 +20,7 @@
     </div>
 
     <div id="page-body" class="hidden">
-        <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
                 <div>
                     <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total users</p>

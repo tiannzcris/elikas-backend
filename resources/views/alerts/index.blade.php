@@ -4,8 +4,8 @@
 @section('nav-alerts', 'active')
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <div>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">Alerts</h1>
             <p class="text-sm text-gray-500">Advisories sent to the dashboard, barangay officials, and evacuees.</p>
         </div>
@@ -16,14 +16,14 @@
             is a pilot for one form only; the others aren't being converted
             yet. --}}
         <button type="button" id="send-alert-btn"
-            class="hidden bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Send an alert
         </button>
     </div>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
 
-    <div id="stats-row" class="hidden grid grid-cols-3 gap-4 mb-6">
+    <div id="stats-row" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total alerts</p>
@@ -137,7 +137,7 @@
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
                     <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Urgency</label>
                         <select id="alert-severity" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">

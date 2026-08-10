@@ -71,7 +71,7 @@
                     </div>
                     <p class="text-sm font-medium">Generate a forecast</p>
                 </div>
-                <div class="grid grid-cols-3 gap-4 mb-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                     <div>
                         <label class="text-xs text-gray-600 block mb-1">Forecasted rainfall (mm)</label>
                         <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -131,7 +131,7 @@
                 </div>
 
                 <div id="sarima-form-wrap">
-                    <div class="grid grid-cols-3 gap-4 mb-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                         <div>
                             <label class="text-xs text-gray-600 block mb-1">Metric</label>
                             <select id="sarima-metric" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -167,10 +167,10 @@
             </div>
 
             <div>
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <p class="text-sm font-medium text-gray-700">Forecast history</p>
                     <input id="history-search" type="text" placeholder="Search by event..."
-                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs w-48">
+                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48">
                 </div>
                 <div id="predictions-list" class="flex flex-col gap-2"></div>
             </div>
@@ -461,7 +461,7 @@
                         <p class="text-sm font-medium">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
                         <p class="text-xs text-gray-400">${new Date(p.generated_at).toLocaleString()}</p>
                     </div>
-                    <div class="grid grid-cols-3 gap-3 text-sm mb-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-2">
                         <div><p class="text-xs text-gray-500">Predicted evacuees</p><p class="font-medium">${p.predicted_evacuees}</p></div>
                         <div><p class="text-xs text-gray-500">Predicted center occupancy</p><p class="font-medium">${p.predicted_center_occupancy}</p></div>
                         <div><p class="text-xs text-gray-500">Estimated resource cost</p><p class="font-medium">&#8369;${Number(p.predicted_resources_needed).toLocaleString()}</p></div>

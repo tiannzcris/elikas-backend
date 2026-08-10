@@ -10,7 +10,7 @@
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
 
     <form id="user-form" class="flex flex-col gap-4 max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-2 gap-4">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Full name</label>
                 <input type="text" id="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">

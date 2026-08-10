@@ -15,7 +15,7 @@
                 </div>
                 <span id="center-status" class="text-xs px-2 py-1 rounded-lg"></span>
             </div>
-            <div class="grid grid-cols-3 gap-4 mt-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-sm">
                 <div>
                     <p class="text-xs text-gray-500">Occupancy</p>
                     <p id="center-occupancy" class="font-medium"></p>
@@ -75,13 +75,15 @@
         document.getElementById('facilities-list').innerHTML = facilityTypes.map(([type, label]) => {
             const existing = existingFacilities[type] || { quantity: 0, is_available: true, concerns_and_needs: '' };
             return `
-            <div class="py-3 flex items-center gap-3" data-type="${type}">
-                <span class="text-sm flex-1">${label}</span>
-                <input type="number" min="0" value="${existing.quantity}" class="f-quantity w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                <label class="flex items-center gap-1.5 text-xs text-gray-500 w-20">
-                    <input type="checkbox" class="f-available" ${existing.is_available ? 'checked' : ''}> Available
-                </label>
-                <input type="text" placeholder="Notes" value="${existing.concerns_and_needs ?? ''}" class="f-notes flex-1 border border-gray-300 rounded-lg px-2 py-1 text-xs">
+            <div class="py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3" data-type="${type}">
+                <span class="text-sm sm:flex-1">${label}</span>
+                <div class="flex items-center gap-3">
+                    <input type="number" min="0" value="${existing.quantity}" aria-label="${label} quantity" class="f-quantity w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                    <label class="flex items-center gap-1.5 text-xs text-gray-500 w-20">
+                        <input type="checkbox" class="f-available" ${existing.is_available ? 'checked' : ''}> Available
+                    </label>
+                </div>
+                <input type="text" placeholder="Notes" value="${existing.concerns_and_needs ?? ''}" class="f-notes w-full sm:flex-1 border border-gray-300 rounded-lg px-2 py-1 text-xs">
             </div>`;
         }).join('');
     }

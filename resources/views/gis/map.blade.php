@@ -53,7 +53,12 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div class="lg:col-span-1 flex flex-col gap-4">
+        {{-- order-2 puts the map first on mobile (order-1 below) -- a user
+            opening this page wants to see the map immediately, not scroll
+            past four stacked filter panels to reach it. lg:order-none
+            restores normal source order (controls, then map) at desktop
+            width, where they already sit side by side anyway. --}}
+        <div class="order-2 lg:order-none lg:col-span-1 flex flex-col gap-4">
             <div class="bg-white border border-gray-200 rounded-xl p-4">
                 <label class="flex items-center justify-between mb-2 cursor-pointer">
                     <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Evacuation centers</span>
@@ -148,8 +153,8 @@
             </div>
         </div>
 
-        <div class="lg:col-span-3 flex flex-col gap-2">
-            <div class="bg-white border border-gray-200 rounded-xl p-2 flex items-center justify-between">
+        <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
+            <div class="bg-white border border-gray-200 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2">
                 <p id="map-updated" class="text-xs text-gray-400 pl-1"></p>
                 <div class="flex items-center gap-2">
                     <button id="reset-view-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
@@ -160,7 +165,11 @@
                     </button>
                 </div>
             </div>
-            <div id="map" style="height: 680px; border-radius: 0.75rem;"></div>
+            {{-- 420px on mobile (still a genuinely usable map, not squeezed --
+                comparable to a typical mobile maps app), the original 680px
+                restored from lg up where there's room for it beside the
+                control sidebar. --}}
+            <div id="map" class="rounded-xl h-[420px] lg:h-[680px]"></div>
         </div>
     </div>
 @endsection
@@ -194,6 +203,13 @@
     const drawnItems = new L.FeatureGroup().addTo(map);
     const user = Api.getUser();
     const canManage = user && user.role !== 'barangay_official';
+
+    // The map container's height changes at the lg breakpoint (420px ->
+    // 680px, see the h-[420px] lg:h-[680px] classes) -- Leaflet only
+    // measures its container once at L.map() init and won't notice a
+    // later CSS-driven resize (e.g. rotating a phone, or resizing a
+    // desktop window across the breakpoint) without being told.
+    window.addEventListener('resize', () => map.invalidateSize());
 
     document.getElementById('reset-view-btn').addEventListener('click', () => map.setView(MAP_CENTER, MAP_ZOOM));
 

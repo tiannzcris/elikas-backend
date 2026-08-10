@@ -7,7 +7,7 @@
     <h1 class="text-xl font-semibold mb-1" id="dashboard-greeting">Dashboard</h1>
     <p class="text-sm text-gray-500 mb-6">Here's what's registered so far.</p>
 
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total evacuees</p>
@@ -252,7 +252,7 @@
             }
 
             box.innerHTML = `
-                <div class="grid grid-cols-3 gap-4 mb-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                     <div>
                         <p class="text-xs text-gray-500">Predicted evacuees</p>
                         <p class="text-xl font-bold text-gray-800">${latest.predicted_evacuees}</p>

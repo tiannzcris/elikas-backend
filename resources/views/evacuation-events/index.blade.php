@@ -4,13 +4,13 @@
 @section('nav-events', 'active')
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <div>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">Evacuation events</h1>
             <p class="text-sm text-gray-500">Disaster events tracked by the system -- create one here before registering evacuees under it.</p>
         </div>
         <a href="/evacuation-events/create" id="add-event-btn"
-            class="hidden bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Create event
         </a>
     </div>
@@ -71,10 +71,10 @@
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div id="status-tabs" class="flex items-center gap-2 flex-wrap"></div>
-                <div class="relative">
+                <div class="relative w-full sm:w-auto">
                     <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
                     <input id="search-input" type="text" placeholder="Search by name or type..."
-                        class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-56">
+                        class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
                 </div>
             </div>
 

@@ -170,7 +170,7 @@
             <div id="family-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
 
             <form id="register-form" class="flex flex-col gap-6 p-5">
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                         <select id="f-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
@@ -492,7 +492,7 @@
                 <p class="text-sm font-medium text-gray-600">Member ${index + 1}</p>
                 ${index > 0 ? `<button type="button" class="remove-member text-xs text-red-500 hover:underline">Remove</button>` : ''}
             </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input type="text" placeholder="First name" class="m-first_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
                 <input type="text" placeholder="Middle name" class="m-middle_name border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 <input type="text" placeholder="Last name" class="m-last_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>

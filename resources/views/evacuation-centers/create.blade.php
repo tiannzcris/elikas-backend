@@ -10,8 +10,8 @@
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-3xl"></div>
 
     <form id="center-form" class="flex flex-col gap-4 max-w-3xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-2 gap-4">
-            <div class="col-span-2">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
                 <label class="text-sm text-gray-600 block mb-1">Name</label>
                 <input type="text" id="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
@@ -30,7 +30,7 @@
                     <option value="other">Other</option>
                 </select>
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="text-sm text-gray-600 block mb-1">Address</label>
                 <input type="text" id="address" required placeholder="e.g. Purok 3, Barangay Bacong, Ligao City"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">

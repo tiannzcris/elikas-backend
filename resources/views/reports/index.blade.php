@@ -9,7 +9,7 @@
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
 
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div id="region-v-card" class="bg-white border border-gray-200 rounded-xl p-4">
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
@@ -123,11 +123,11 @@
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <p class="text-sm font-medium text-gray-700">Previously generated reports</p>
-                <div class="flex items-center gap-3">
-                    <div class="relative">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:flex-none">
                         <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by event or report type..."
-                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-56">
+                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
                     </div>
                     <select id="type-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         <option value="">All report types</option>

@@ -4,13 +4,13 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <div>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">Evacuation centers</h1>
             <p class="text-sm text-gray-500">Capacity and live occupancy across Ligao City.</p>
         </div>
         <a href="/evacuation-centers/create" id="add-center-btn"
-            class="hidden bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Add evacuation center
         </a>
     </div>
@@ -68,11 +68,11 @@
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div id="filter-tabs" class="flex items-center gap-2 flex-wrap"></div>
-                <div class="flex items-center gap-3">
-                    <div class="relative">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:flex-none">
                         <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by name or barangay..."
-                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-56">
+                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
                     </div>
                     <button id="export-btn" class="flex items-center gap-1.5 text-brand border border-brand/30 rounded-lg px-3 py-2 text-sm hover:bg-brand-light shrink-0">
                         <i class="ti ti-download" style="font-size: 15px;" aria-hidden="true"></i> Export
