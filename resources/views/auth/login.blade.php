@@ -50,6 +50,10 @@
                     Log in
                 </button>
             </form>
+
+            <a href="/privacy" class="block text-center text-xs text-gray-400 hover:text-gray-600 mt-6">
+                Privacy Statement
+            </a>
         </div>
     </div>
 

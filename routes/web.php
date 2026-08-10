@@ -31,6 +31,18 @@ Route::get('/download/desktop-app', function () {
     return view('download-desktop-app');
 });
 
+// Same reasoning as the desktop installer above -- a real landing page for
+// the resident-facing Flutter app's .apk, not a raw file link.
+Route::get('/download/mobile-app', function () {
+    return view('download-mobile-app');
+});
+
+// Needed for the Microsoft SmartScreen dispute form submitted for the
+// desktop installer -- publicly reachable, no auth, static content only.
+Route::get('/privacy', function () {
+    return view('privacy');
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 });

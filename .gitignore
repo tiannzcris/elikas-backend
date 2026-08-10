@@ -20,6 +20,8 @@
 # doesn't belong in source control regardless. Upload directly to the
 # hosting server (WinSCP) instead of committing it.
 /public/downloads/*.exe
+# Resident mobile app installer -- same reasoning as the .exe above.
+/public/downloads/*.apk
 /storage/*.key
 /storage/pail
 /vendor

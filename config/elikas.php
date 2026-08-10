@@ -17,4 +17,8 @@ return [
     // server rather than committed -- see .gitignore) resolves against
     // APP_URL into a full absolute link in the email.
     'desktop_app_download_url' => env('DESKTOP_APP_DOWNLOAD_URL', '/downloads/E-LIKAS-Setup.exe'),
+
+    // Same pattern as the desktop installer above -- the resident-facing
+    // Flutter app's .apk is built and uploaded separately, not committed.
+    'mobile_app_download_url' => env('MOBILE_APP_DOWNLOAD_URL', '/downloads/E-LIKAS-Mobile.apk'),
 ];
