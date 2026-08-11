@@ -82,6 +82,7 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
             </div>
+            <p class="text-xs text-gray-400 mt-2">Contact number is required for whichever member is marked Head of family -- this is the number used for SMS alerts and notifications. Optional for everyone else.</p>
         </div>`;
     }
 
