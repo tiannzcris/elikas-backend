@@ -9,10 +9,13 @@
             <h1 class="text-xl font-semibold mb-1">Evacuation centers</h1>
             <p class="text-sm text-gray-500">Capacity and live occupancy across Ligao City.</p>
         </div>
-        <a href="/evacuation-centers/create" id="add-center-btn"
+        {{-- Opens the modal below instead of navigating to /evacuation-centers/create --
+            that route/page still exists untouched as a fallback, following
+            the same pattern established for the alerts page. --}}
+        <button type="button" id="add-center-btn"
             class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Add evacuation center
-        </a>
+        </button>
     </div>
 
     <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -124,9 +127,99 @@
             </a>
         </div>
     </div>
+
+    <div id="add-center-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Add evacuation center</p>
+                    <p class="text-xs text-gray-500">Click the map to set the exact location.</p>
+                </div>
+                <button type="button" id="center-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="center-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="center-form" class="flex flex-col gap-4 p-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="text-sm text-gray-600 block mb-1">Name</label>
+                        <input type="text" id="center-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Barangay</label>
+                        <select id="center-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Type</label>
+                        <select id="center-type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="school">School</option>
+                            <option value="covered_court">Covered court</option>
+                            <option value="church">Church</option>
+                            <option value="barangay_hall">Barangay hall</option>
+                            <option value="gymnasium">Gymnasium</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="text-sm text-gray-600 block mb-1">Address</label>
+                        <input type="text" id="center-address" required placeholder="e.g. Purok 3, Barangay Bacong, Ligao City"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
+                        <input type="number" id="center-capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
+                        <input type="number" id="center-capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
+                        <input type="text" id="center-camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Camp manager contact</label>
+                        <input type="text" id="center-camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Status</label>
+                        <select id="center-status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="on_standby">On standby</option>
+                            <option value="active">Active</option>
+                            <option value="full">Full</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p class="text-sm text-gray-600 mb-2">
+                        Location <span id="center-coords-display" class="text-gray-400">(click the map to set)</span>
+                    </p>
+                    <div id="center-picker-map" style="height: 300px; border-radius: 0.5rem;"></div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="center-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="center-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Save evacuation center
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
     // Only administrators/CSWD personnel manage centers -- barangay
@@ -351,7 +444,10 @@
         link.click();
     });
 
-    (async () => {
+    // Named (not an inline IIFE) so it can be called again after a
+    // successful save from the modal, refreshing the list in place instead
+    // of a full page reload.
+    async function loadCenters() {
         try {
             const result = await Api.get('/evacuation-centers');
             const centers = result.data;
@@ -359,6 +455,7 @@
             if (centers.length === 0) {
                 document.getElementById('cards').innerHTML =
                     '<p class="text-gray-400 text-sm sm:col-span-2 text-center py-16">No evacuation centers yet.</p>';
+                document.getElementById('stats-row').classList.add('hidden');
                 return;
             }
 
@@ -383,6 +480,150 @@
         } catch (error) {
             showFormErrors(error);
         }
-    })();
+    }
+
+    loadCenters();
+
+    // --- Add-center modal -----------------------------------------------
+    // /evacuation-centers/create still exists untouched as a fallback.
+    //
+    // Leaflet gotcha: the map is created inside a modal that starts
+    // display:none. Leaflet measures its container's size at L.map() time,
+    // so initializing it while hidden (or before the hidden->flex class
+    // swap has actually painted) produces a broken/blank map with tiles
+    // positioned for a 0-size container. Fixed two ways: (1) the map is
+    // only ever constructed the first time the modal opens -- never on
+    // page load, while it's still hidden -- and (2) every open still calls
+    // invalidateSize() after a short delay, since the container's size can
+    // also go stale from a window resize while the modal was closed.
+    const CENTER_MAP_DEFAULT_VIEW = [13.1391, 123.5321];
+    const CENTER_MAP_DEFAULT_ZOOM = 13;
+
+    let centerPickerMap = null;
+    let centerMarker = null;
+    let selectedLat = null;
+    let selectedLng = null;
+
+    function initCenterPickerMap() {
+        if (centerPickerMap) return;
+
+        centerPickerMap = L.map('center-picker-map').setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(centerPickerMap);
+
+        centerPickerMap.on('click', (e) => {
+            selectedLat = e.latlng.lat;
+            selectedLng = e.latlng.lng;
+
+            if (centerMarker) {
+                centerMarker.setLatLng(e.latlng);
+            } else {
+                centerMarker = L.marker(e.latlng).addTo(centerPickerMap);
+            }
+
+            document.getElementById('center-coords-display').textContent =
+                `(${selectedLat.toFixed(6)}, ${selectedLng.toFixed(6)})`;
+            document.getElementById('center-coords-display').classList.remove('text-gray-400');
+        });
+    }
+
+    async function openCenterModal() {
+        document.getElementById('center-modal-errors').classList.add('hidden');
+        document.getElementById('center-form').reset();
+
+        selectedLat = null;
+        selectedLng = null;
+        document.getElementById('center-coords-display').textContent = '(click the map to set)';
+        document.getElementById('center-coords-display').classList.add('text-gray-400');
+
+        document.getElementById('add-center-modal').classList.remove('hidden');
+        document.getElementById('add-center-modal').classList.add('flex');
+
+        initCenterPickerMap();
+        if (centerMarker) {
+            centerPickerMap.removeLayer(centerMarker);
+            centerMarker = null;
+        }
+
+        // 100ms: long enough for the hidden->flex class swap to actually
+        // paint before Leaflet remeasures the container. setView() resets
+        // any panning left over from a previous open.
+        setTimeout(() => {
+            centerPickerMap.invalidateSize();
+            centerPickerMap.setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
+        }, 100);
+
+        try {
+            const barangays = await Api.get('/barangays');
+            document.getElementById('center-barangay_id').innerHTML =
+                '<option value="">Select barangay</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+        } catch (error) {
+            // Dropdown just stays at its default single option if this fails.
+        }
+    }
+
+    function closeCenterModal() {
+        document.getElementById('add-center-modal').classList.add('hidden');
+        document.getElementById('add-center-modal').classList.remove('flex');
+    }
+
+    document.getElementById('add-center-btn').addEventListener('click', openCenterModal);
+    document.getElementById('center-modal-close').addEventListener('click', closeCenterModal);
+    document.getElementById('center-modal-cancel').addEventListener('click', closeCenterModal);
+
+    document.getElementById('add-center-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'add-center-modal') closeCenterModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('add-center-modal').classList.contains('hidden')) {
+            closeCenterModal();
+        }
+    });
+
+    document.getElementById('center-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (selectedLat === null) {
+            const box = document.getElementById('center-modal-errors');
+            box.innerHTML = '<p>Click the map to set the evacuation center\'s location before saving.</p>';
+            box.classList.remove('hidden');
+            return;
+        }
+
+        const payload = {
+            barangay_id: Number(document.getElementById('center-barangay_id').value),
+            name: document.getElementById('center-name').value,
+            type: document.getElementById('center-type').value,
+            address: document.getElementById('center-address').value,
+            latitude: selectedLat,
+            longitude: selectedLng,
+            capacity_families: document.getElementById('center-capacity_families').value || null,
+            capacity_persons: document.getElementById('center-capacity_persons').value || null,
+            camp_manager_name: document.getElementById('center-camp_manager_name').value || null,
+            camp_manager_contact: document.getElementById('center-camp_manager_contact').value || null,
+            status: document.getElementById('center-status').value,
+        };
+
+        const button = document.getElementById('center-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Saving...';
+
+        try {
+            await Api.post('/evacuation-centers', payload);
+            closeCenterModal();
+            await loadCenters(); // refresh in place, no full page reload
+        } catch (error) {
+            const box = document.getElementById('center-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Save evacuation center';
+        }
+    });
 </script>
 @endsection
