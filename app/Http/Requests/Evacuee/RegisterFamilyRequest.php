@@ -32,13 +32,13 @@ class RegisterFamilyRequest extends FormRequest
             'members.*.sex' => ['required', 'in:male,female'],
             'members.*.date_of_birth' => ['required', 'date', 'before_or_equal:today'],
             'members.*.civil_status' => ['nullable', 'in:single,married,widowed,separated,divorced'],
-            // Accepts the two formats Filipino users naturally type:
-            // 09XXXXXXXXX (11 digits, most common) or +639XXXXXXXXX
-            // (international). Semaphore's API itself accepts the local
-            // 09-prefixed format directly and normalizes it internally, so
-            // no conversion is needed before sending -- this regex is
-            // purely about catching genuinely malformed input at entry.
-            'members.*.contact_number' => ['nullable', 'string', 'regex:/^(09|\+639)\d{9}$/'],
+            // Required for every member now (not just the head of
+            // family) -- if a member genuinely has no personal phone
+            // (e.g. a child, or an elderly member without one), staff
+            // are expected to reuse the head of family's number rather
+            // than leave this blank, so every registered person has a
+            // usable contact point on file.
+            'members.*.contact_number' => ['required', 'string', 'regex:/^(09|\+639)\d{9}$/'],
             'members.*.is_pwd' => ['boolean'],
             'members.*.pwd_type' => ['nullable', 'required_if:members.*.is_pwd,true', 'string', 'max:100'],
             'members.*.is_pregnant' => ['boolean'],
@@ -54,12 +54,6 @@ class RegisterFamilyRequest extends FormRequest
      * Exactly one member must be flagged as head of family -- Family's
      * head_of_family_evacuee_id needs exactly one value to point to, and
      * DROMIC's family-count logic assumes one head per household.
-     *
-     * The head of family's contact_number specifically (not every
-     * member's) is required -- this is the number actually used for SMS
-     * alerts and the welcome message, so it needs to be reliably present,
-     * but requiring it from every individual member would add friction to
-     * registration without adding real reachability.
      */
     public function withValidator(Validator $validator): void
     {
@@ -71,16 +65,6 @@ class RegisterFamilyRequest extends FormRequest
                 $validator->errors()->add(
                     'members',
                     "Exactly one member must be marked is_head_of_family (found {$headCount})."
-                );
-
-                return;
-            }
-
-            $headIndex = collect($members)->search(fn ($m) => ! empty($m['is_head_of_family']));
-            if (empty($members[$headIndex]['contact_number'] ?? null)) {
-                $validator->errors()->add(
-                    "members.{$headIndex}.contact_number",
-                    'The head of family\'s contact number is required, since this is used for SMS alerts and notifications.'
                 );
             }
         });

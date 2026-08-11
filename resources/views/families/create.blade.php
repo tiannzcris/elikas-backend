@@ -71,7 +71,10 @@
                     <option value="female">Female</option>
                 </select>
                 <input type="date" class="m-date_of_birth border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <div>
+                    <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                    <button type="button" class="same-as-head-btn text-xs text-brand hover:underline mt-1">Same as head of family</button>
+                </div>
             </div>
             <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-600 items-center">
                 <label class="flex items-center gap-1.5"><input type="radio" name="head-${index}" class="m-is_head_of_family"> Head of family</label>
@@ -82,7 +85,7 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
             </div>
-            <p class="text-xs text-gray-400 mt-2">Contact number is required for whichever member is marked Head of family -- this is the number used for SMS alerts and notifications. Optional for everyone else.</p>
+            <p class="text-xs text-gray-400 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the household's number.</p>
         </div>`;
     }
 
@@ -98,6 +101,17 @@
         if (e.target.classList.contains('remove-member')) {
             e.target.closest('.member-row').remove();
         }
+
+        // Copies the head of family's own contact number into whichever
+        // row's button was clicked -- contact_number is required for every
+        // member now, and not every member (a child, an elderly relative)
+        // realistically has their own phone.
+        if (e.target.classList.contains('same-as-head-btn')) {
+            const headRow = document.querySelector('#members-container .m-is_head_of_family:checked')?.closest('.member-row');
+            if (! headRow) return;
+            const headNumber = headRow.querySelector('.m-contact_number').value;
+            e.target.closest('.member-row').querySelector('.m-contact_number').value = headNumber;
+        }
     });
 
     // The backend requires pwd_type whenever is_pwd is checked (see
@@ -109,6 +123,15 @@
             const pwdTypeInput = e.target.closest('.member-row').querySelector('.m-pwd_type');
             pwdTypeInput.classList.toggle('hidden', ! e.target.checked);
             pwdTypeInput.required = e.target.checked;
+        }
+
+        // The head of family's own row doesn't need a "same as head"
+        // shortcut for its own number -- shown on every other row instead.
+        if (e.target.classList.contains('m-is_head_of_family')) {
+            document.querySelectorAll('#members-container .same-as-head-btn').forEach((btn) => {
+                btn.classList.remove('hidden');
+            });
+            e.target.closest('.member-row').querySelector('.same-as-head-btn').classList.add('hidden');
         }
     });
 
