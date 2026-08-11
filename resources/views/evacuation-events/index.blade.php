@@ -9,10 +9,15 @@
             <h1 class="text-xl font-semibold mb-1">Evacuation events</h1>
             <p class="text-sm text-gray-500">Disaster events tracked by the system -- create one here before registering evacuees under it.</p>
         </div>
-        <a href="/evacuation-events/create" id="add-event-btn"
+        {{-- Opens the modal below instead of navigating to /evacuation-events/create --
+            that route/page still exists untouched (also still reused for
+            editing an existing event, which stays a full page for now --
+            only the create flow moved to a modal), following the same
+            pattern established for the alerts page. --}}
+        <button type="button" id="add-event-btn"
             class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Create event
-        </a>
+        </button>
     </div>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
@@ -101,6 +106,86 @@
                 <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="create-event-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Create a disaster event</p>
+                    <p class="text-xs text-gray-500">This becomes selectable for evacuee registration, reports, alerts, and predictions.</p>
+                </div>
+                <button type="button" id="event-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="event-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="event-form" class="flex flex-col gap-4 p-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="text-sm text-gray-600 block mb-1">Event name</label>
+                        <input type="text" id="ev-name" required placeholder="e.g. Typhoon Rolly 2026" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Event type</label>
+                        <select id="ev-event_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="typhoon">Typhoon</option>
+                            <option value="flood">Flood</option>
+                            <option value="volcanic_eruption">Volcanic eruption</option>
+                            <option value="earthquake">Earthquake</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Status</label>
+                        <select id="ev-status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="monitoring">Monitoring</option>
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Typhoon category / alert level (optional)</label>
+                        <input type="text" id="ev-typhoon_category" placeholder="e.g. Signal No. 2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Alert level (optional)</label>
+                        <input type="text" id="ev-alert_level" placeholder="e.g. Alert Level 3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Rainfall, mm (optional)</label>
+                        <input type="number" step="0.1" id="ev-rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Max wind speed, kph (optional)</label>
+                        <input type="number" step="0.1" id="ev-max_wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Start date</label>
+                        <input type="date" id="ev-start_date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">End date (optional)</label>
+                        <input type="date" id="ev-end_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="text-sm text-gray-600 block mb-1">Description (optional)</label>
+                        <textarea id="ev-description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="event-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="event-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Create event
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -396,5 +481,71 @@
     document.getElementById('search-input').addEventListener('input', renderEventsList);
 
     loadEvents();
+
+    // --- Create-event modal -------------------------------------------
+    // /evacuation-events/create still exists untouched as a fallback (and
+    // is still reused for editing an existing event -- only the create
+    // flow moved to a modal here).
+
+    function openEventModal() {
+        document.getElementById('event-modal-errors').classList.add('hidden');
+        document.getElementById('event-form').reset();
+        document.getElementById('create-event-modal').classList.remove('hidden');
+        document.getElementById('create-event-modal').classList.add('flex');
+    }
+
+    function closeEventModal() {
+        document.getElementById('create-event-modal').classList.add('hidden');
+        document.getElementById('create-event-modal').classList.remove('flex');
+    }
+
+    document.getElementById('add-event-btn').addEventListener('click', openEventModal);
+    document.getElementById('event-modal-close').addEventListener('click', closeEventModal);
+    document.getElementById('event-modal-cancel').addEventListener('click', closeEventModal);
+
+    document.getElementById('create-event-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'create-event-modal') closeEventModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('create-event-modal').classList.contains('hidden')) {
+            closeEventModal();
+        }
+    });
+
+    document.getElementById('event-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            name: document.getElementById('ev-name').value,
+            event_type: document.getElementById('ev-event_type').value,
+            status: document.getElementById('ev-status').value,
+            typhoon_category: document.getElementById('ev-typhoon_category').value || null,
+            alert_level: document.getElementById('ev-alert_level').value || null,
+            rainfall_mm: document.getElementById('ev-rainfall_mm').value || null,
+            max_wind_speed_kph: document.getElementById('ev-max_wind_speed_kph').value || null,
+            start_date: document.getElementById('ev-start_date').value,
+            end_date: document.getElementById('ev-end_date').value || null,
+            description: document.getElementById('ev-description').value || null,
+        };
+
+        const button = document.getElementById('event-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Creating...';
+
+        try {
+            await Api.post('/evacuation-events', payload);
+            closeEventModal();
+            await loadEvents(); // refresh in place, no full page reload
+        } catch (error) {
+            const box = document.getElementById('event-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Create event';
+        }
+    });
 </script>
 @endsection

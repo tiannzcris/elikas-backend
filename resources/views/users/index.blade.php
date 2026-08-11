@@ -9,9 +9,16 @@
             <h1 class="text-xl font-semibold mb-1">User management</h1>
             <p class="text-sm text-gray-500">Create and manage accounts for CSWD personnel and barangay officials.</p>
         </div>
-        <a href="/users/create" class="shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+        {{-- Opens the modal below (blank, add mode) instead of navigating to
+            /users/create -- that route/page still exists untouched as a
+            fallback, following the same pattern established for the
+            alerts page. Each row's "Edit" action below opens the SAME
+            modal, pre-populated, rather than a separate one -- both modes
+            still share one form, same as the /users/create and
+            /users/{id}/edit routes always have. --}}
+        <button type="button" id="add-user-btn" class="shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
             + Add user
-        </a>
+        </button>
     </div>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
@@ -159,6 +166,81 @@
                     Delete permanently
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="user-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800" id="user-modal-title">Add a user</p>
+                    <p class="text-xs text-gray-500">Creates a login that works for both the web dashboard and the offline desktop companion.</p>
+                </div>
+                <button type="button" id="user-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="user-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="user-form" class="flex flex-col gap-4 p-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Full name</label>
+                        <input type="text" id="user-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Email</label>
+                        <input type="email" id="user-email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <p class="text-xs text-gray-400 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1" id="user-password-label">Password</label>
+                        <div class="flex gap-2">
+                            <input type="password" id="user-password" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Minimum 8 characters">
+                            <button type="button" id="user-generate-password-btn"
+                                class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
+                                Generate
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Contact number (optional)</label>
+                        <input type="text" id="user-contact_number" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Role</label>
+                        <select id="user-role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="administrator">Administrator</option>
+                            <option value="cswd_personnel">CSWD Personnel</option>
+                            <option value="barangay_official">Barangay Official</option>
+                        </select>
+                    </div>
+                    <div id="user-barangay-field" class="hidden">
+                        <label class="text-sm text-gray-600 block mb-1">Barangay</label>
+                        <select id="user-barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Select barangay</option>
+                        </select>
+                    </div>
+                    <div id="user-status-field" class="hidden">
+                        <label class="text-sm text-gray-600 block mb-1">Status</label>
+                        <select id="user-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="user-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="user-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Create account
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -340,7 +422,7 @@
                                 <td class="px-4 py-3 text-gray-500">${lastLogin ? new Date(lastLogin).toLocaleString() : 'Never'}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
-                                        <a href="/users/${u.id}/edit" class="text-xs text-brand hover:underline">Edit</a>
+                                        <button onclick="openUserModal(${u.id})" class="text-xs text-brand hover:underline">Edit</button>
                                         <button onclick="toggleStatus(${u.id}, '${u.status}')" class="text-xs ${u.status === 'active' ? 'text-red-500' : 'text-green-600'} hover:underline">
                                             ${u.status === 'active' ? 'Deactivate' : 'Reactivate'}
                                         </button>
@@ -470,5 +552,158 @@
     document.getElementById('status-filter').addEventListener('change', renderTable);
 
     loadUsers();
+
+    // --- Add/Edit user modal ----------------------------------------------
+    // /users/create and /users/{id}/edit both still exist untouched as
+    // fallbacks. Both modes share this one modal/form, same as they always
+    // shared one Blade file -- editingUserId (null = add, a real id = edit)
+    // replaces the isEdit-from-URL check that page used.
+
+    let editingUserId = null;
+
+    document.getElementById('user-role').addEventListener('change', (e) => {
+        document.getElementById('user-barangay-field').classList.toggle('hidden', e.target.value !== 'barangay_official');
+    });
+
+    // Shared by both modes identically -- "generate a password for a new
+    // account" and "an admin resetting an existing user's password" are
+    // the same action on the same field.
+    document.getElementById('user-generate-password-btn').addEventListener('click', () => {
+        const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+        const randomValues = crypto.getRandomValues(new Uint32Array(14));
+        const generated = Array.from(randomValues, (v) => charset[v % charset.length]).join('');
+
+        const passwordInput = document.getElementById('user-password');
+        passwordInput.type = 'text'; // visible, not masked -- the admin just generated it and needs to read/copy it
+        passwordInput.value = generated;
+    });
+
+    async function openUserModal(userId = null) {
+        editingUserId = userId;
+
+        document.getElementById('user-modal-errors').classList.add('hidden');
+        document.getElementById('user-form').reset();
+        document.getElementById('user-password').type = 'password';
+        document.getElementById('user-barangay-field').classList.add('hidden');
+
+        document.getElementById('user-modal').classList.remove('hidden');
+        document.getElementById('user-modal').classList.add('flex');
+
+        try {
+            const barangays = await Api.get('/barangays');
+            document.getElementById('user-barangay_id').innerHTML =
+                '<option value="">Select barangay</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            if (editingUserId === null) {
+                document.getElementById('user-modal-title').textContent = 'Add a user';
+                document.getElementById('user-submit-btn').textContent = 'Create account';
+                document.getElementById('user-password-label').textContent = 'Password';
+                document.getElementById('user-password').placeholder = 'Minimum 8 characters';
+                document.getElementById('user-email').disabled = false;
+                document.getElementById('user-status-field').classList.add('hidden');
+                return;
+            }
+
+            // Looked up from the already-loaded allUsers array (same as
+            // openDeleteModal already does) rather than a fresh API call --
+            // the list on this page is already the full, current data.
+            const user = allUsers.find((u) => u.id === editingUserId);
+            if (! user) throw new Error('User not found.');
+
+            document.getElementById('user-modal-title').textContent = 'Edit user';
+            document.getElementById('user-submit-btn').textContent = 'Save changes';
+            document.getElementById('user-password-label').textContent = 'New password (optional)';
+            document.getElementById('user-password').placeholder = 'Leave blank to keep current password';
+            document.getElementById('user-status-field').classList.remove('hidden');
+
+            document.getElementById('user-name').value = user.name;
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-email').disabled = true; // email isn't editable after creation
+            document.getElementById('user-contact_number').value = user.contact_number ?? '';
+            document.getElementById('user-role').value = user.role;
+            document.getElementById('user-status').value = user.status;
+            if (user.role === 'barangay_official') {
+                document.getElementById('user-barangay-field').classList.remove('hidden');
+                document.getElementById('user-barangay_id').value = user.barangay?.id ?? '';
+            }
+        } catch (error) {
+            const box = document.getElementById('user-modal-errors');
+            box.innerHTML = `<p>${error.message}</p>`;
+            box.classList.remove('hidden');
+        }
+    }
+
+    function closeUserModal() {
+        editingUserId = null;
+        document.getElementById('user-modal').classList.add('hidden');
+        document.getElementById('user-modal').classList.remove('flex');
+    }
+
+    document.getElementById('add-user-btn').addEventListener('click', () => openUserModal(null));
+    document.getElementById('user-modal-close').addEventListener('click', closeUserModal);
+    document.getElementById('user-modal-cancel').addEventListener('click', closeUserModal);
+
+    document.getElementById('user-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'user-modal') closeUserModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('user-modal').classList.contains('hidden')) {
+            closeUserModal();
+        }
+    });
+
+    document.getElementById('user-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const isEdit = editingUserId !== null;
+
+        const payload = {
+            name: document.getElementById('user-name').value,
+            contact_number: document.getElementById('user-contact_number').value || null,
+            role: document.getElementById('user-role').value,
+            barangay_id: document.getElementById('user-role').value === 'barangay_official'
+                ? (document.getElementById('user-barangay_id').value || null) : null,
+        };
+
+        const password = document.getElementById('user-password').value;
+        if (password) payload.password = password;
+
+        if (isEdit) {
+            payload.status = document.getElementById('user-status').value;
+        } else {
+            payload.email = document.getElementById('user-email').value;
+            if (! password) {
+                const box = document.getElementById('user-modal-errors');
+                box.innerHTML = '<p>Password is required when creating a new account.</p>';
+                box.classList.remove('hidden');
+                return;
+            }
+        }
+
+        const button = document.getElementById('user-submit-btn');
+        button.disabled = true;
+        button.textContent = isEdit ? 'Saving...' : 'Creating...';
+
+        try {
+            if (isEdit) {
+                await Api.request(`/users/${editingUserId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+            } else {
+                const result = await Api.post('/users', payload);
+                alert(result.message);
+            }
+            closeUserModal();
+            await loadUsers(); // refresh in place, no full page reload
+        } catch (error) {
+            const box = document.getElementById('user-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = isEdit ? 'Save changes' : 'Create account';
+        }
+    });
 </script>
 @endsection
