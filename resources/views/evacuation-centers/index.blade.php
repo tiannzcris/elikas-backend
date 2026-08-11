@@ -132,7 +132,7 @@
         <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between p-5 border-b border-gray-100">
                 <div>
-                    <p class="font-semibold text-gray-800">Add evacuation center</p>
+                    <p class="font-semibold text-gray-800" id="center-modal-title">Add evacuation center</p>
                     <p class="text-xs text-gray-500">Click the map to set the exact location.</p>
                 </div>
                 <button type="button" id="center-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
@@ -223,9 +223,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
     // Only administrators/CSWD personnel manage centers -- barangay
-    // officials can view but the "Add" button isn't relevant to them.
+    // officials can view but the "Add"/"Edit" actions aren't relevant to
+    // them, and would just 403 against the role-restricted routes anyway.
     const user = Api.getUser();
-    if (user && user.role !== 'barangay_official') {
+    const canManageCenters = user && user.role !== 'barangay_official';
+    if (canManageCenters) {
         document.getElementById('add-center-btn').classList.remove('hidden');
     }
 
@@ -312,32 +314,39 @@
                 const facilitiesAvailable = facilities.filter((f) => f.is_available).length;
 
                 return `
-                <a href="/evacuation-centers/${c.id}" class="bg-white border border-gray-200 rounded-xl p-4 block hover:border-brand">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex items-start gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                                <i class="ti ti-building text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="bg-white border border-gray-200 rounded-xl p-4 hover:border-brand">
+                    <a href="/evacuation-centers/${c.id}" class="block">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                    <i class="ti ti-building text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-sm">${c.name}</p>
+                                    <p class="text-xs text-gray-500">${c.barangay?.name ?? '—'} · ${TYPE_LABELS[c.type] ?? c.type}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="font-medium text-sm">${c.name}</p>
-                                <p class="text-xs text-gray-500">${c.barangay?.name ?? '—'} · ${TYPE_LABELS[c.type] ?? c.type}</p>
+                            <span class="text-xs px-2 py-1 rounded-lg shrink-0 ${statusColors[c.status] ?? ''}">${c.status.replace('_', ' ')}</span>
+                        </div>
+                        ${c.capacity_persons ? `
+                            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>Occupancy</span><span>${c.current_occupancy} / ${c.capacity_persons}</span>
                             </div>
+                            <div class="h-1.5 bg-gray-100 rounded-full mb-3">
+                                <div class="h-1.5 ${barColor} rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
+                            </div>
+                        ` : '<p class="text-xs text-gray-400 mb-3">No capacity set</p>'}
+                        <div class="flex items-center gap-1.5 text-xs text-gray-400 pt-2 border-t border-gray-100">
+                            <i class="ti ti-clipboard-check" style="font-size: 13px;" aria-hidden="true"></i>
+                            ${facilities.length ? `${facilitiesAvailable}/${facilities.length} facilities available` : 'No facility checklist recorded'}
                         </div>
-                        <span class="text-xs px-2 py-1 rounded-lg shrink-0 ${statusColors[c.status] ?? ''}">${c.status.replace('_', ' ')}</span>
-                    </div>
-                    ${c.capacity_persons ? `
-                        <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span>Occupancy</span><span>${c.current_occupancy} / ${c.capacity_persons}</span>
+                    </a>
+                    ${canManageCenters ? `
+                        <div class="flex justify-end mt-2 pt-2 border-t border-gray-100">
+                            <button type="button" class="edit-center-btn text-xs text-brand hover:underline" data-id="${c.id}">Edit</button>
                         </div>
-                        <div class="h-1.5 bg-gray-100 rounded-full mb-3">
-                            <div class="h-1.5 ${barColor} rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
-                        </div>
-                    ` : '<p class="text-xs text-gray-400 mb-3">No capacity set</p>'}
-                    <div class="flex items-center gap-1.5 text-xs text-gray-400 pt-2 border-t border-gray-100">
-                        <i class="ti ti-clipboard-check" style="font-size: 13px;" aria-hidden="true"></i>
-                        ${facilities.length ? `${facilitiesAvailable}/${facilities.length} facilities available` : 'No facility checklist recorded'}
-                    </div>
-                </a>`;
+                    ` : ''}
+                </div>`;
             }).join('');
     }
 
@@ -503,6 +512,7 @@
     let centerMarker = null;
     let selectedLat = null;
     let selectedLng = null;
+    let editingCenterId = null;
 
     function initCenterPickerMap() {
         if (centerPickerMap) return;
@@ -528,7 +538,9 @@
         });
     }
 
-    async function openCenterModal() {
+    async function openCenterModal(centerId = null) {
+        editingCenterId = centerId;
+
         document.getElementById('center-modal-errors').classList.add('hidden');
         document.getElementById('center-form').reset();
 
@@ -546,14 +558,6 @@
             centerMarker = null;
         }
 
-        // 100ms: long enough for the hidden->flex class swap to actually
-        // paint before Leaflet remeasures the container. setView() resets
-        // any panning left over from a previous open.
-        setTimeout(() => {
-            centerPickerMap.invalidateSize();
-            centerPickerMap.setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
-        }, 100);
-
         try {
             const barangays = await Api.get('/barangays');
             document.getElementById('center-barangay_id').innerHTML =
@@ -562,16 +566,79 @@
         } catch (error) {
             // Dropdown just stays at its default single option if this fails.
         }
+
+        if (editingCenterId === null) {
+            document.getElementById('center-modal-title').textContent = 'Add evacuation center';
+            document.getElementById('center-submit-btn').textContent = 'Save evacuation center';
+
+            // 100ms: long enough for the hidden->flex class swap to
+            // actually paint before Leaflet remeasures the container.
+            setTimeout(() => {
+                centerPickerMap.invalidateSize();
+                centerPickerMap.setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
+            }, 100);
+            return;
+        }
+
+        document.getElementById('center-modal-title').textContent = 'Edit evacuation center';
+        document.getElementById('center-submit-btn').textContent = 'Save changes';
+
+        try {
+            const result = await Api.get(`/evacuation-centers/${editingCenterId}`);
+            const center = result.data;
+
+            document.getElementById('center-name').value = center.name;
+            document.getElementById('center-barangay_id').value = center.barangay?.id ?? '';
+            document.getElementById('center-type').value = center.type;
+            document.getElementById('center-address').value = center.address;
+            document.getElementById('center-capacity_families').value = center.capacity_families ?? '';
+            document.getElementById('center-capacity_persons').value = center.capacity_persons ?? '';
+            document.getElementById('center-camp_manager_name').value = center.camp_manager_name ?? '';
+            document.getElementById('center-camp_manager_contact').value = center.camp_manager_contact ?? '';
+            document.getElementById('center-status').value = center.status;
+
+            // Marker placement happens together with invalidateSize() in
+            // the same delayed callback -- placing it any earlier risks
+            // Leaflet projecting it against the container's still-wrong
+            // (hidden) size. Shows the center's EXISTING location with a
+            // marker already placed, instead of starting blank.
+            setTimeout(() => {
+                centerPickerMap.invalidateSize();
+                centerPickerMap.setView([center.latitude, center.longitude], 16);
+
+                selectedLat = center.latitude;
+                selectedLng = center.longitude;
+                centerMarker = L.marker([center.latitude, center.longitude]).addTo(centerPickerMap);
+
+                document.getElementById('center-coords-display').textContent =
+                    `(${center.latitude.toFixed(6)}, ${center.longitude.toFixed(6)})`;
+                document.getElementById('center-coords-display').classList.remove('text-gray-400');
+            }, 100);
+        } catch (error) {
+            const box = document.getElementById('center-modal-errors');
+            box.innerHTML = `<p>${error.message}</p>`;
+            box.classList.remove('hidden');
+        }
     }
 
     function closeCenterModal() {
+        editingCenterId = null;
         document.getElementById('add-center-modal').classList.add('hidden');
         document.getElementById('add-center-modal').classList.remove('flex');
     }
 
-    document.getElementById('add-center-btn').addEventListener('click', openCenterModal);
+    // Explicit no-arg wrapper -- addEventListener would otherwise pass the
+    // click Event itself as openCenterModal's centerId argument.
+    document.getElementById('add-center-btn').addEventListener('click', () => openCenterModal(null));
     document.getElementById('center-modal-close').addEventListener('click', closeCenterModal);
     document.getElementById('center-modal-cancel').addEventListener('click', closeCenterModal);
+
+    // Delegated -- cards are re-rendered on every loadCenters()/filter/search.
+    document.getElementById('cards').addEventListener('click', (e) => {
+        if (e.target.classList.contains('edit-center-btn')) {
+            openCenterModal(Number(e.target.dataset.id));
+        }
+    });
 
     document.getElementById('add-center-modal').addEventListener('click', (e) => {
         if (e.target.id === 'add-center-modal') closeCenterModal();
@@ -607,12 +674,17 @@
             status: document.getElementById('center-status').value,
         };
 
+        const isEdit = editingCenterId !== null;
         const button = document.getElementById('center-submit-btn');
         button.disabled = true;
         button.textContent = 'Saving...';
 
         try {
-            await Api.post('/evacuation-centers', payload);
+            if (isEdit) {
+                await Api.request(`/evacuation-centers/${editingCenterId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+            } else {
+                await Api.post('/evacuation-centers', payload);
+            }
             closeCenterModal();
             await loadCenters(); // refresh in place, no full page reload
         } catch (error) {
@@ -622,7 +694,7 @@
             box.classList.remove('hidden');
         } finally {
             button.disabled = false;
-            button.textContent = 'Save evacuation center';
+            button.textContent = isEdit ? 'Save changes' : 'Save evacuation center';
         }
     });
 </script>

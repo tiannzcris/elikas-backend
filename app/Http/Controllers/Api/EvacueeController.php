@@ -116,6 +116,8 @@ class EvacueeController extends Controller
             'middle_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['sometimes', 'string', 'max:100'],
             'suffix' => ['nullable', 'string', 'max:10'],
+            'date_of_birth' => ['sometimes', 'date', 'before_or_equal:today'],
+            'sex' => ['sometimes', 'in:male,female'],
             'civil_status' => ['nullable', 'in:single,married,widowed,separated,divorced'],
             'contact_number' => ['nullable', 'string', 'max:20'],
             'is_pwd' => ['sometimes', 'boolean'],
@@ -164,5 +166,68 @@ class EvacueeController extends Controller
         ]);
 
         return $this->success(new EvacueeResource($evacuee->fresh(['evacuationRecords'])), 'Evacuee checked out successfully.');
+    }
+
+    /**
+     * Permanently removes a single member from a family. Three outcomes,
+     * depending on whether this evacuee is the head of family and whether
+     * anyone else is left:
+     *
+     * - Not the head: just delete them. The head and family record are
+     *   untouched.
+     * - The head, with other members still registered: blocked outright --
+     *   a family can't be left with zero heads (Family.head_of_family_evacuee_id
+     *   would otherwise just go null via its FK's nullOnDelete, silently
+     *   leaving an orphaned household with no one accountable for it).
+     * - The head, and the only remaining member: nothing left to keep, so
+     *   the whole Family record is deleted instead of just this evacuee --
+     *   cascades (evacuees.family_id, evacuation_records.evacuee_id are
+     *   both cascadeOnDelete) clean up the evacuee and their evacuation
+     *   records as part of that same delete.
+     */
+    public function destroy(Request $request, Evacuee $evacuee)
+    {
+        if (! $this->userMayAccessBarangay($request->user(), $evacuee->barangay_id)) {
+            return $this->error('You may not modify evacuees outside your barangay.', 403);
+        }
+
+        $family = $evacuee->family;
+        $isHead = $family->head_of_family_evacuee_id === $evacuee->id;
+        $hasOtherMembers = $family->members()->where('id', '!=', $evacuee->id)->exists();
+        $evacueeName = $evacuee->full_name;
+
+        if ($isHead && $hasOtherMembers) {
+            return $this->error(
+                'Reassign head of family before removing them -- a family can\'t be left with no head while other members remain.',
+                422
+            );
+        }
+
+        if ($isHead) {
+            // Only remaining member AND the head -- delete the whole
+            // family rather than leave an empty, headless household behind.
+            $familyId = $family->id;
+            $family->delete();
+
+            SystemLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'family.deleted',
+                'description' => "{$request->user()->name} removed {$evacueeName}, the last remaining member of family #{$familyId} -- the family record was deleted with them.",
+                'ip_address' => $request->ip(),
+            ]);
+
+            return $this->success(null, "{$evacueeName} was removed. They were the only remaining member, so the family record was removed too.");
+        }
+
+        $evacuee->delete();
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'evacuee.removed',
+            'description' => "{$request->user()->name} removed {$evacueeName} from family #{$family->id}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(null, "{$evacueeName} was removed successfully.");
     }
 }

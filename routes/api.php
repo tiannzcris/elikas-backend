@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/evacuees', [EvacueeController::class, 'index']);
             Route::patch('/evacuees/{evacuee}', [EvacueeController::class, 'update']);
             Route::post('/evacuees/{evacuee}/check-out', [EvacueeController::class, 'checkOut']);
+            Route::delete('/evacuees/{evacuee}', [EvacueeController::class, 'destroy']);
 
             // Minimal lookup endpoints so the registration form has data to
             // populate its dropdowns with.

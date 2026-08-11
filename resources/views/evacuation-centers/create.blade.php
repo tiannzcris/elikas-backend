@@ -4,7 +4,7 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1">Add evacuation center</h1>
+    <h1 class="text-xl font-semibold mb-1" id="page-title">Add evacuation center</h1>
     <p class="text-sm text-gray-500 mb-6">Click the map to set the exact location.</p>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-3xl"></div>
@@ -82,7 +82,18 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Ligao City, Albay -- reasonable default center/zoom until the user clicks.
+    // Detects edit mode from the URL itself (/evacuation-centers/{id}/edit)
+    // rather than needing a separate view file -- same pattern already
+    // used by users/create.blade.php and evacuation-events/create.blade.php.
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const isEdit = pathParts.includes('edit');
+    const centerId = isEdit ? pathParts[1] : null;
+
+    // Ligao City, Albay -- reasonable default center/zoom until the user
+    // clicks (or until the existing center's coordinates are loaded below,
+    // in edit mode). This map is never inside a hidden container on this
+    // page (unlike the modal version on the index page), so there's no
+    // invalidateSize() gotcha to work around here.
     const map = L.map('picker-map').setView([13.1391, 123.5321], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
@@ -92,28 +103,54 @@
     let selectedLat = null;
     let selectedLng = null;
 
-    map.on('click', (e) => {
-        selectedLat = e.latlng.lat;
-        selectedLng = e.latlng.lng;
+    function setMarker(lat, lng) {
+        selectedLat = lat;
+        selectedLng = lng;
 
+        const latlng = [lat, lng];
         if (marker) {
-            marker.setLatLng(e.latlng);
+            marker.setLatLng(latlng);
         } else {
-            marker = L.marker(e.latlng).addTo(map);
+            marker = L.marker(latlng).addTo(map);
         }
 
         document.getElementById('coords-display').textContent =
             `(${selectedLat.toFixed(6)}, ${selectedLng.toFixed(6)})`;
         document.getElementById('coords-display').classList.remove('text-gray-400');
-    });
+    }
 
-    // Populate barangay dropdown, same lookup endpoint the registration form uses.
+    map.on('click', (e) => setMarker(e.latlng.lat, e.latlng.lng));
+
     (async () => {
         try {
             const barangays = await Api.get('/barangays');
             document.getElementById('barangay_id').innerHTML =
                 '<option value="">Select barangay</option>' +
                 barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            if (isEdit) {
+                document.getElementById('page-title').textContent = 'Edit evacuation center';
+                document.getElementById('submit-btn').textContent = 'Save changes';
+
+                const result = await Api.get(`/evacuation-centers/${centerId}`);
+                const center = result.data;
+
+                document.getElementById('name').value = center.name;
+                document.getElementById('barangay_id').value = center.barangay?.id ?? '';
+                document.getElementById('type').value = center.type;
+                document.getElementById('address').value = center.address;
+                document.getElementById('capacity_families').value = center.capacity_families ?? '';
+                document.getElementById('capacity_persons').value = center.capacity_persons ?? '';
+                document.getElementById('camp_manager_name').value = center.camp_manager_name ?? '';
+                document.getElementById('camp_manager_contact').value = center.camp_manager_contact ?? '';
+                document.getElementById('status').value = center.status;
+
+                // Shows the center's EXISTING location with a marker
+                // already placed, instead of starting blank -- map view
+                // is centered on it too, not left at the citywide default.
+                map.setView([center.latitude, center.longitude], 16);
+                setMarker(center.latitude, center.longitude);
+            }
         } catch (error) {
             showFormErrors(error);
         }
@@ -146,12 +183,16 @@
         button.textContent = 'Saving...';
 
         try {
-            await Api.post('/evacuation-centers', payload);
+            if (isEdit) {
+                await Api.request(`/evacuation-centers/${centerId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+            } else {
+                await Api.post('/evacuation-centers', payload);
+            }
             window.location.href = '/evacuation-centers';
         } catch (error) {
             showFormErrors(error);
             button.disabled = false;
-            button.textContent = 'Save evacuation center';
+            button.textContent = isEdit ? 'Save changes' : 'Save evacuation center';
         }
     });
 </script>

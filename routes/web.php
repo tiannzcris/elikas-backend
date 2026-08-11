@@ -79,6 +79,10 @@ Route::get('/evacuation-centers/create', function () {
     return view('evacuation-centers.create');
 });
 
+Route::get('/evacuation-centers/{id}/edit', function (string $id) {
+    return view('evacuation-centers.create');
+})->where('id', '[0-9]+');
+
 Route::get('/evacuation-centers/{id}', function (string $id) {
     return view('evacuation-centers.show');
 })->where('id', '[0-9]+');
