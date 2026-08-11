@@ -41,6 +41,7 @@
                     <option value="cswd_personnel">CSWD Personnel</option>
                     <option value="barangay_official">Barangay Official</option>
                 </select>
+                <p id="role-locked-note" class="hidden text-xs text-gray-400 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
             </div>
             <div id="barangay-field" class="hidden">
                 <label class="text-sm text-gray-600 block mb-1">Barangay</label>
@@ -115,6 +116,16 @@
                     document.getElementById('barangay-field').classList.remove('hidden');
                     document.getElementById('barangay_id').value = user.barangay?.id ?? '';
                 }
+
+                // Role and barangay are set once at account creation and
+                // never changeable afterward (UpdateUserRequest doesn't
+                // even validate them anymore, so a submission couldn't
+                // change them either way -- this just makes that visible
+                // instead of letting the admin fill in a value that would
+                // silently be ignored).
+                document.getElementById('role').disabled = true;
+                document.getElementById('barangay_id').disabled = true;
+                document.getElementById('role-locked-note').classList.remove('hidden');
             }
         } catch (error) {
             showFormErrors(error);
@@ -127,17 +138,20 @@
         const payload = {
             name: document.getElementById('name').value,
             contact_number: document.getElementById('contact_number').value || null,
-            role: document.getElementById('role').value,
-            barangay_id: document.getElementById('role').value === 'barangay_official'
-                ? (document.getElementById('barangay_id').value || null) : null,
         };
 
         const password = document.getElementById('password').value;
         if (password) payload.password = password;
 
         if (isEdit) {
+            // role/barangay_id deliberately omitted -- UpdateUserRequest no
+            // longer validates either, so sending the (disabled, unchanged)
+            // select values here would just be silently ignored server-side.
             payload.status = document.getElementById('status').value;
         } else {
+            payload.role = document.getElementById('role').value;
+            payload.barangay_id = document.getElementById('role').value === 'barangay_official'
+                ? (document.getElementById('barangay_id').value || null) : null;
             payload.email = document.getElementById('email').value;
             if (! password) {
                 showFormErrors({ message: 'Password is required when creating a new account.' });
