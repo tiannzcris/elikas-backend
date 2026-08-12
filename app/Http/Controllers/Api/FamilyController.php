@@ -29,9 +29,13 @@ class FamilyController extends Controller
     {
         $validated = $request->validated();
 
-        if (! $this->userMayAccessBarangay($request->user(), (int) $validated['barangay_id'])) {
-            return $this->error('You may only register evacuees for your own barangay.', 403);
-        }
+        // Deliberately NOT restricted to the registering staff member's own
+        // barangay -- an evacuee's home barangay can genuinely differ from
+        // whichever barangay's center/staff happens to be registering them
+        // (e.g. displaced to a center outside their own barangay). Viewing
+        // an existing family's details (show(), below) still stays
+        // restricted to a barangay official's own barangay -- that's a
+        // separate, unrelated scope question from who they can register.
 
         $family = DB::transaction(function () use ($validated, $request) {
             $family = Family::create([

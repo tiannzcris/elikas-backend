@@ -16,8 +16,11 @@
                 <input type="text" id="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Email</label>
-                <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                    Email
+                    <i id="email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                </label>
+                <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
                 <p class="text-xs text-gray-400 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
             </div>
             <div>
@@ -35,8 +38,11 @@
                 <input type="text" id="contact_number" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Role</label>
-                <select id="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                    Role
+                    <i id="role-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                </label>
+                <select id="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
                     <option value="administrator">Administrator</option>
                     <option value="cswd_personnel">CSWD Personnel</option>
                     <option value="barangay_official">Barangay Official</option>
@@ -44,8 +50,11 @@
                 <p id="role-locked-note" class="hidden text-xs text-gray-400 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
             </div>
             <div id="barangay-field" class="hidden">
-                <label class="text-sm text-gray-600 block mb-1">Barangay</label>
-                <select id="barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                    Barangay
+                    <i id="barangay-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                </label>
+                <select id="barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
                     <option value="">Select barangay</option>
                 </select>
             </div>
@@ -109,6 +118,7 @@
                 document.getElementById('name').value = user.name;
                 document.getElementById('email').value = user.email;
                 document.getElementById('email').disabled = true; // email isn't editable after creation
+                document.getElementById('email-lock-icon').classList.remove('hidden');
                 document.getElementById('contact_number').value = user.contact_number ?? '';
                 document.getElementById('role').value = user.role;
                 document.getElementById('status').value = user.status;
@@ -126,6 +136,8 @@
                 document.getElementById('role').disabled = true;
                 document.getElementById('barangay_id').disabled = true;
                 document.getElementById('role-locked-note').classList.remove('hidden');
+                document.getElementById('role-lock-icon').classList.remove('hidden');
+                document.getElementById('barangay-lock-icon').classList.remove('hidden');
             }
         } catch (error) {
             showFormErrors(error);

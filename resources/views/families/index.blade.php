@@ -174,7 +174,6 @@
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                         <select id="f-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
-                        <p id="f-barangay-locked-note" class="hidden text-xs text-gray-400 mt-1">Locked to your assigned barangay.</p>
                     </div>
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
@@ -564,26 +563,16 @@
         document.getElementById('f-center-field').style.display = e.target.value === 'inside_center' ? 'block' : 'none';
     });
 
-    // Named `user`, not `currentUser` -- layouts/app.blade.php already
-    // declares a GLOBAL `const currentUser` ahead of this script;
-    // redeclaring that exact name would throw a SyntaxError that silently
-    // breaks this entire script block (already hit this twice elsewhere).
-    const user = Api.getUser();
-
-    async function loadCentersForFamilyBarangay(barangayId) {
+    document.getElementById('f-barangay_id').addEventListener('change', async (e) => {
         const select = document.getElementById('f-evacuation_center_id');
-        if (! barangayId) {
+        if (! e.target.value) {
             select.innerHTML = '<option value="">Select barangay first</option>';
             return;
         }
-        const centers = await Api.get(`/evacuation-centers?barangay_id=${barangayId}`);
+        const centers = await Api.get(`/evacuation-centers?barangay_id=${e.target.value}`);
         select.innerHTML = '<option value="">Select center</option>' +
             centers.data.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-
-    // No-op for barangay officials -- their select is disabled and
-    // pre-populated directly in openFamilyModal() below.
-    document.getElementById('f-barangay_id').addEventListener('change', (e) => loadCentersForFamilyBarangay(e.target.value));
+    });
 
     async function openFamilyModal() {
         document.getElementById('family-modal-errors').classList.add('hidden');
@@ -602,33 +591,14 @@
                 Api.get('/evacuation-events'),
             ]);
 
-            const barangaySelect = document.getElementById('f-barangay_id');
-
-            // Barangay officials only ever register families within their
-            // own barangay -- FamilyController::store() already rejects
-            // any other barangay_id via userMayAccessBarangay(), so a free
-            // dropdown of every barangay would just offer choices that get
-            // rejected. Locked to a single, pre-selected option instead.
-            if (user && user.role === 'barangay_official') {
-                barangaySelect.innerHTML = user.barangay
-                    ? `<option value="${user.barangay.id}">${user.barangay.name}</option>`
-                    : '<option value="">No barangay assigned to your account</option>';
-                barangaySelect.disabled = true;
-                document.getElementById('f-barangay-locked-note').classList.remove('hidden');
-
-                if (user.barangay) {
-                    await loadCentersForFamilyBarangay(user.barangay.id);
-                } else {
-                    document.getElementById('f-evacuation_center_id').innerHTML = '<option value="">Select barangay first</option>';
-                }
-            } else {
-                barangaySelect.disabled = false;
-                document.getElementById('f-barangay-locked-note').classList.add('hidden');
-                barangaySelect.innerHTML =
-                    '<option value="">Select barangay</option>' +
-                    barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
-                document.getElementById('f-evacuation_center_id').innerHTML = '<option value="">Select barangay first</option>';
-            }
+            // Barangay stays a full, free choice for every role including
+            // barangay officials -- an evacuee's home barangay can
+            // genuinely differ from whichever barangay's staff happens to
+            // be registering them.
+            document.getElementById('f-barangay_id').innerHTML =
+                '<option value="">Select barangay</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+            document.getElementById('f-evacuation_center_id').innerHTML = '<option value="">Select barangay first</option>';
 
             // Only open (non-closed) disaster events -- registering a new
             // evacuee into an already-closed one isn't a valid action.

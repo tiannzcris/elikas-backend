@@ -14,7 +14,6 @@
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                 <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
-                <p id="barangay-locked-note" class="hidden text-xs text-gray-400 mt-1">Locked to your assigned barangay.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
@@ -140,25 +139,11 @@
         document.getElementById('center-field').style.display = e.target.value === 'inside_center' ? 'block' : 'none';
     });
 
-    // The barangay-official's own barangay page-load check -- named `user`,
-    // not `currentUser`, since layouts/app.blade.php already declares a
-    // GLOBAL `const currentUser` ahead of this script; redeclaring that
-    // exact name here would throw a SyntaxError that silently breaks this
-    // entire script block (already hit this twice elsewhere in this app).
-    const user = Api.getUser();
-
-    async function loadCentersForBarangay(barangayId) {
-        const select = document.getElementById('evacuation_center_id');
-        if (! barangayId) {
-            select.innerHTML = '<option value="">Select barangay first</option>';
-            return;
-        }
-        const centers = await Api.get(`/evacuation-centers?barangay_id=${barangayId}`);
-        select.innerHTML = '<option value="">Select center</option>' +
-            centers.data.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-
     // Populate dropdowns from the lookup endpoints added alongside this form.
+    // Barangay stays a full, free choice for every role including barangay
+    // officials -- an evacuee's home barangay can genuinely differ from
+    // whichever barangay's staff happens to be registering them (e.g. they
+    // fled to a center outside their own barangay).
     (async () => {
         try {
             const [barangays, events] = await Promise.all([
@@ -166,30 +151,9 @@
                 Api.get('/evacuation-events'),
             ]);
 
-            // Barangay officials only ever register families within their
-            // own barangay -- FamilyController::store() already rejects
-            // any other barangay_id via userMayAccessBarangay(), so a free
-            // dropdown of every barangay would just offer choices that get
-            // rejected. Locked to a single, pre-selected option instead.
-            const barangaySelect = document.getElementById('barangay_id');
-            if (user && user.role === 'barangay_official') {
-                barangaySelect.innerHTML = user.barangay
-                    ? `<option value="${user.barangay.id}">${user.barangay.name}</option>`
-                    : '<option value="">No barangay assigned to your account</option>';
-                barangaySelect.disabled = true;
-                document.getElementById('barangay-locked-note').classList.remove('hidden');
-
-                // The barangay select can't be interacted with (disabled),
-                // so its 'change' listener below will never fire on its
-                // own -- load the matching centers directly instead.
-                if (user.barangay) {
-                    await loadCentersForBarangay(user.barangay.id);
-                }
-            } else {
-                barangaySelect.innerHTML =
-                    '<option value="">Select barangay</option>' +
-                    barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
-            }
+            document.getElementById('barangay_id').innerHTML =
+                '<option value="">Select barangay</option>' +
+                barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
 
             // Filtered client-side to non-closed events only -- the API
             // itself now returns ALL events (closed ones are needed by the
@@ -206,10 +170,17 @@
         }
     })();
 
-    // Reload evacuation centers whenever the barangay changes -- a no-op
-    // for barangay officials, whose select is disabled and pre-populated
-    // above already.
-    document.getElementById('barangay_id').addEventListener('change', (e) => loadCentersForBarangay(e.target.value));
+    // Reload evacuation centers whenever the barangay changes.
+    document.getElementById('barangay_id').addEventListener('change', async (e) => {
+        const select = document.getElementById('evacuation_center_id');
+        if (! e.target.value) {
+            select.innerHTML = '<option value="">Select barangay first</option>';
+            return;
+        }
+        const centers = await Api.get(`/evacuation-centers?barangay_id=${e.target.value}`);
+        select.innerHTML = '<option value="">Select center</option>' +
+            centers.data.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    });
 
     document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
