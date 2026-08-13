@@ -29,7 +29,7 @@
                 E-LIKAS automatically once the connection returns.
             </p>
 
-            <a href="{{ url(config('elikas.desktop_app_download_url')) }}"
+            <a href="{{ url(config('elikas.desktop_app_download_url', '/downloads/E-LIKAS-Setup.exe') ?? '/downloads/E-LIKAS-Setup.exe') }}"
                 class="block text-center bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-3 transition-colors shadow-sm">
                 Download for Windows
             </a>

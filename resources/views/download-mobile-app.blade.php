@@ -29,7 +29,7 @@
                 works offline once you've opened it at least once.
             </p>
 
-            <a href="{{ url(config('elikas.mobile_app_download_url')) }}"
+            <a href="{{ url(config('elikas.mobile_app_download_url', '/downloads/E-LIKAS-Mobile.apk') ?? '/downloads/E-LIKAS-Mobile.apk') }}"
                 class="block text-center bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-3 transition-colors shadow-sm">
                 Download for Android
             </a>
