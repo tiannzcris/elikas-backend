@@ -35,20 +35,99 @@
         </div>
     </header>
 
-    <main class="flex-1 flex items-center justify-center px-6 py-20">
-        <div class="text-center max-w-md">
-            <div class="w-14 h-14 rounded-full bg-brand-light flex items-center justify-center mx-auto mb-4">
-                <i class="ti ti-tools text-brand" style="font-size: 24px;" aria-hidden="true"></i>
+    <main class="flex-1">
+        <section class="max-w-6xl mx-auto px-6 py-16 sm:py-20">
+            <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">Contact</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">Contact Us</h1>
+            <div class="w-12 h-1 bg-brand rounded-full mb-5"></div>
+            <p class="text-sm text-gray-600 mb-12 max-w-2xl">
+                For questions about E-LIKAS, evacuation information, or to report an
+                issue with the app, reach out through any of the channels below.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                <div class="lg:col-span-2">
+                    <h2 class="font-bold text-gray-900">City Social Welfare and Development Office (CSWDO)</h2>
+                    <p class="text-sm text-gray-500 mb-6">Ligao City, Albay</p>
+
+                    <div class="space-y-5">
+                        <div class="flex items-start gap-3">
+                            <i class="ti ti-phone text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Phone</p>
+                                <p class="text-sm text-gray-700">[CSWDO OFFICE PHONE NUMBER]</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="ti ti-mail text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Email</p>
+                                <p class="text-sm text-gray-700">[CSWDO OFFICE EMAIL]</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="ti ti-map-pin text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Office Address</p>
+                                <p class="text-sm text-gray-700">[CSWDO OFFICE ADDRESS]</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="ti ti-clock text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Office Hours</p>
+                                <p class="text-sm text-gray-700">[OFFICE HOURS, e.g. "Monday to Friday, 8:00 AM - 5:00 PM"]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3">
+                    <img src="/images/contact-urgent-emergencies-card.png" alt="For urgent emergencies" class="w-full h-auto object-contain mb-6">
+                    <img src="/images/contact-hotlines-phone-mockup.png" alt="Emergency hotlines in the E-LIKAS mobile app" class="w-full max-w-xs mx-auto h-auto object-contain">
+                </div>
             </div>
-            <h1 class="text-xl font-bold text-gray-900 mb-2">Contact page coming soon</h1>
-            <p class="text-sm text-gray-500">This page is a placeholder while the design for it is finalized.</p>
-        </div>
+        </section>
     </main>
 
-    <footer class="border-t border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
-            <p>E-LIKAS · CSWDO Ligao City</p>
-            <a href="/privacy" class="hover:text-brand">Privacy Statement</a>
+    <footer class="text-white" style="background: #16264D;">
+        <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 gap-10">
+            <div>
+                <div class="flex items-center gap-2.5 mb-3">
+                    <img src="/images/elikas-emblem.png" alt="" class="w-9 h-9 object-contain">
+                    <div class="leading-tight">
+                        <p class="font-extrabold">E-LIKAS</p>
+                        <p class="text-[9px] text-blue-200/70 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                    </div>
+                </div>
+                <p class="text-sm text-blue-100/70 mb-4 max-w-sm">
+                    E-LIKAS is a public service initiative of the City Social Welfare and
+                    Development Office (CSWDO) Ligao City.
+                </p>
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="ti ti-brand-facebook" style="font-size: 15px;" aria-hidden="true"></i>
+                    </span>
+                    <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="ti ti-brand-messenger" style="font-size: 15px;" aria-hidden="true"></i>
+                    </span>
+                    <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="ti ti-world" style="font-size: 15px;" aria-hidden="true"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="flex sm:justify-end items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                    <i class="ti ti-shield-check" style="font-size: 18px;" aria-hidden="true"></i>
+                </div>
+                <p class="text-sm text-blue-100/80">Be prepared. Be informed. Be safe.<br>Together, let's build a safer Ligao City.</p>
+            </div>
+        </div>
+        <div class="border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-blue-200/60">
+                <p>E-LIKAS · CSWDO Ligao City</p>
+                <a href="/privacy" class="hover:text-white">Privacy Statement</a>
+            </div>
         </div>
     </footer>
 
