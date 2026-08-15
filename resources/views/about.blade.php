@@ -9,7 +9,12 @@
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { DEFAULT: '#2F5496', dark: '#1F3A6E', light: '#EAF0FB' } } } } };
     </script>
-    <style>body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }</style>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+        @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        body { animation: page-fade-in 0.3s ease-out; }
+        body.page-fade-out { opacity: 0; transition: opacity 0.2s ease-in; }
+    </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
 
@@ -46,5 +51,24 @@
             <a href="/privacy" class="hover:text-brand">Privacy Statement</a>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+            if (url.pathname === window.location.pathname && url.hash) return;
+
+            e.preventDefault();
+            document.body.classList.add('page-fade-out');
+            setTimeout(() => { window.location.href = link.href; }, 200);
+        });
+
+        window.addEventListener('pageshow', () => {
+            document.body.classList.remove('page-fade-out');
+        });
+    </script>
 </body>
 </html>

@@ -20,6 +20,9 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
         .hidden { display: none; }
+        @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        body { animation: page-fade-in 0.3s ease-out; }
+        body.page-fade-out { opacity: 0; transition: opacity 0.2s ease-in; }
     </style>
 </head>
 <body class="bg-white text-gray-900">
@@ -45,8 +48,8 @@
         <div class="absolute -inset-4" style="background-image: url('/images/ligao-city-hall.jpg'); background-size: cover; background-position: center; filter: blur(2px);"></div>
         <div class="absolute inset-0" style="background: linear-gradient(120deg, rgba(15,28,58,0.94) 40%, rgba(31,58,110,0.72));"></div>
 
-        <div class="relative max-w-7xl mx-auto px-6 py-20 sm:py-28 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
+        <div class="relative max-w-7xl mx-auto px-6 py-20 sm:py-28">
+            <div class="max-w-2xl">
                 <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3">Electronic Ligao Kaligtasan Sistema</p>
                 <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-5">Know where to go, before you need to.</h1>
                 <p class="text-blue-100/80 text-base mb-8 max-w-lg">
@@ -63,10 +66,6 @@
                         <i class="ti ti-info-circle" style="font-size: 16px;" aria-hidden="true"></i> What is E-LIKAS?
                     </button>
                 </div>
-            </div>
-
-            <div class="hidden lg:flex justify-center">
-                <img src="/images/elikas-emblem.png" alt="" class="w-72 h-72 object-contain" style="filter: drop-shadow(0 15px 35px rgba(0,0,0,0.45));">
             </div>
         </div>
     </section>
@@ -222,9 +221,6 @@
                     </span>
                     Back to Home
                 </button>
-                <button type="button" id="about-modal-close-2" class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
-                    <i class="ti ti-x" style="font-size: 16px;" aria-hidden="true"></i>
-                </button>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-6">
@@ -378,7 +374,6 @@
 
         document.getElementById('about-modal-open-btn').addEventListener('click', () => openModal('about-modal'));
         document.getElementById('about-modal-close-1').addEventListener('click', () => closeModal('about-modal'));
-        document.getElementById('about-modal-close-2').addEventListener('click', () => closeModal('about-modal'));
         document.getElementById('about-modal-backdrop').addEventListener('click', () => closeModal('about-modal'));
 
         document.getElementById('mobile-app-btn').addEventListener('click', () => openModal('mobile-app-modal'));
@@ -389,6 +384,26 @@
             if (e.key !== 'Escape') return;
             closeModal('about-modal');
             closeModal('mobile-app-modal');
+        });
+
+        // Fade transition between pages: fade the current page out before
+        // following a normal internal link, and always clear the fade-out
+        // state on load (covers back/forward bfcache restores too).
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+            if (url.pathname === window.location.pathname && url.hash) return;
+
+            e.preventDefault();
+            document.body.classList.add('page-fade-out');
+            setTimeout(() => { window.location.href = link.href; }, 200);
+        });
+
+        window.addEventListener('pageshow', () => {
+            document.body.classList.remove('page-fade-out');
         });
     </script>
 </body>
