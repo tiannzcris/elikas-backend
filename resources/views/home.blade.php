@@ -38,9 +38,6 @@
                 <a href="/about" class="text-gray-600 hover:text-brand">About</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
             </nav>
-            <a href="/login" class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand shrink-0">
-                <i class="ti ti-lock" style="font-size: 14px;" aria-hidden="true"></i> Staff Login
-            </a>
         </div>
     </header>
 
@@ -152,10 +149,9 @@
             </div>
         </div>
 
-        {{-- Second "Staff Login" entry point, distinct from the small
-            header link -- both point at the same /login route, plain
-            href, no modal/intermediate page, per the explicit requirement
-            that this button take staff straight to the real login form. --}}
+        {{-- The one "Staff Login" entry point on this page (the small
+            header link was removed as a duplicate) -- plain href straight
+            to the real /login form, no modal/intermediate page. --}}
         <div class="mt-6 bg-brand-light rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
             <div>
                 <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-1">For CSWDO &amp; barangay staff</p>

@@ -27,9 +27,6 @@
                 <a href="/about" class="text-gray-600 hover:text-brand">About</a>
                 <a href="/contact" class="text-brand border-b-2 border-brand pb-1">Contact</a>
             </nav>
-            <a href="/login" class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand shrink-0">
-                <i class="ti ti-lock" style="font-size: 14px;" aria-hidden="true"></i> Staff Login
-            </a>
         </div>
     </header>
 
