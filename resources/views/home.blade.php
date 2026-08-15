@@ -157,23 +157,6 @@
                 </div>
             </div>
         </div>
-
-        {{-- The one "Staff Login" entry point on this page (the small
-            header link was removed as a duplicate) -- plain href straight
-            to the real /login form, no modal/intermediate page. --}}
-        <div class="mt-6 bg-brand-light rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
-            <div>
-                <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-1">For CSWDO &amp; barangay staff</p>
-                <p class="text-lg font-bold text-gray-900">Manage centers, alerts, and evacuee records.</p>
-            </div>
-            <div class="shrink-0">
-                <a href="/login"
-                    class="inline-flex items-center gap-2 bg-brand-dark hover:bg-brand text-white text-sm font-semibold rounded-lg px-5 py-3">
-                    <i class="ti ti-lock" style="font-size: 16px;" aria-hidden="true"></i> Staff Login
-                </a>
-                <p class="text-xs text-gray-500 mt-2">Secure access for authorized staff.</p>
-            </div>
-        </div>
     </section>
 
     <footer class="text-white" style="background: #16264D;">
