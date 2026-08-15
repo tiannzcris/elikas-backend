@@ -32,7 +32,17 @@
                 <a href="/about" class="text-brand border-b-2 border-brand pb-1">About</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
             </nav>
+            <button type="button" id="mobile-menu-btn" class="sm:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-brand" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+                <i class="ti ti-menu-2" id="mobile-menu-icon" style="font-size: 22px;" aria-hidden="true"></i>
+            </button>
         </div>
+        <nav id="mobile-menu" class="hidden sm:hidden border-t border-gray-100 bg-white">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm font-medium">
+                <a href="/" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Home</a>
+                <a href="/about" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">About</a>
+                <a href="/contact" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Contact</a>
+            </div>
+        </nav>
     </header>
 
     <main class="flex-1">
@@ -147,6 +157,31 @@
     </footer>
 
     <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuIcon = document.getElementById('mobile-menu-icon');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            const opening = mobileMenu.classList.contains('hidden');
+            mobileMenu.classList.toggle('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+            mobileMenuIcon.className = opening ? 'ti ti-x' : 'ti ti-menu-2';
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 640 || mobileMenu.classList.contains('hidden')) return;
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            mobileMenuIcon.className = 'ti ti-menu-2';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape' || mobileMenu.classList.contains('hidden')) return;
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            mobileMenuIcon.className = 'ti ti-menu-2';
+        });
+
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a[href]');
             if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
