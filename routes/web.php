@@ -14,8 +14,19 @@ use Illuminate\Support\Facades\Route;
 | made client-side, using that same token.
 */
 
+// Public marketing homepage -- residents land here first, not the staff
+// login form. Staff reach /login via either of the two "Staff Login"
+// entry points on this page.
 Route::get('/', function () {
-    return redirect('/dashboard');
+    return view('home');
+});
+
+Route::get('/about', function () {
+    return view('about');
+});
+
+Route::get('/contact', function () {
+    return view('contact');
 });
 
 Route::get('/login', function () {
