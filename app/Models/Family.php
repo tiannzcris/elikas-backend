@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Family extends Model
 {
     protected $fillable = [
-        'evacuation_event_id', 'barangay_id', 'head_of_family_evacuee_id', 'is_4ps_beneficiary',
+        'evacuation_event_id', 'barangay_id', 'home_address', 'head_of_family_evacuee_id', 'is_4ps_beneficiary',
     ];
 
     protected $casts = [

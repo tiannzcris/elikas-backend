@@ -8,7 +8,8 @@
 
     <div id="content-wrap" class="hidden mt-4">
         <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
-        <p class="text-sm text-gray-500 mb-6" id="family-subtitle"></p>
+        <p class="text-sm text-gray-500" id="family-subtitle"></p>
+        <p class="text-sm text-gray-500 mb-6 hidden" id="family-address"></p>
 
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100" id="members-list"></div>
     </div>
@@ -129,6 +130,14 @@
                 `${currentFamily.barangay?.name ?? 'Unknown barangay'} — ${currentFamily.head_of_family?.full_name ?? 'Family'}`;
             document.getElementById('family-subtitle').textContent =
                 `${currentFamily.evacuation_event?.name ?? ''} · Registered ${new Date(currentFamily.created_at).toLocaleString()}`;
+
+            const addressEl = document.getElementById('family-address');
+            if (currentFamily.home_address) {
+                addressEl.textContent = `Home address: ${currentFamily.home_address}`;
+                addressEl.classList.remove('hidden');
+            } else {
+                addressEl.classList.add('hidden');
+            }
 
             renderMembers();
             document.getElementById('content-wrap').classList.remove('hidden');

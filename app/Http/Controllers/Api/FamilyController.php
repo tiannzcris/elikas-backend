@@ -41,6 +41,7 @@ class FamilyController extends Controller
             $family = Family::create([
                 'evacuation_event_id' => $validated['evacuation_event_id'],
                 'barangay_id' => $validated['barangay_id'],
+                'home_address' => $validated['home_address'] ?? null,
                 'is_4ps_beneficiary' => $validated['is_4ps_beneficiary'] ?? false,
             ]);
 

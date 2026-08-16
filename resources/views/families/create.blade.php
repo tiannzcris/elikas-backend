@@ -14,6 +14,8 @@
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                 <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <label class="text-sm text-gray-600 block mb-1 mt-3">Street/Sitio Address (optional)</label>
+                <input type="text" id="home_address" placeholder="e.g. Purok 3, Sitio Mabuhay" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
@@ -203,6 +205,7 @@
 
         const payload = {
             barangay_id: Number(document.getElementById('barangay_id').value),
+            home_address: document.getElementById('home_address').value || null,
             evacuation_event_id: Number(document.getElementById('evacuation_event_id').value),
             displacement_type: document.getElementById('displacement_type').value,
             evacuation_center_id: document.getElementById('evacuation_center_id').value

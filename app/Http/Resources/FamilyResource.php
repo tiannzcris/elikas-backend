@@ -19,6 +19,7 @@ class FamilyResource extends JsonResource
                 'id' => $this->barangay->id,
                 'name' => $this->barangay->name,
             ] : null),
+            'home_address' => $this->home_address,
             'head_of_family' => $this->whenLoaded('headOfFamily', fn () => $this->headOfFamily ? [
                 'id' => $this->headOfFamily->id,
                 'full_name' => $this->headOfFamily->full_name,
