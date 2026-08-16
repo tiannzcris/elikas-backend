@@ -110,6 +110,11 @@
                 </div>
             </div>
 
+            {{-- Hidden until real PAGASA weather data is imported (pending data
+                access approval, tracked separately from this UI). Nothing here
+                was deleted -- flip services.sarima.feature_enabled (env
+                SARIMA_FEATURE_ENABLED) back to true to bring this card back. --}}
+            @if(config('services.sarima.feature_enabled'))
             <div class="bg-white border border-gray-200 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-7 h-7 rounded-md bg-teal-50 flex items-center justify-center shrink-0">
@@ -165,6 +170,7 @@
                     <p id="sarima-diagnostics" class="text-xs text-gray-400 mt-2"></p>
                 </div>
             </div>
+            @endif
 
             <div>
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -652,7 +658,14 @@
 
             await loadPredictions();
             await loadActivity();
-            await loadSarima();
+
+            // Card is Blade-gated behind services.sarima.feature_enabled --
+            // when it's off, none of the sarima-* elements loadSarima()
+            // touches exist, so skip the call entirely rather than let it
+            // hit null elements and surface a spurious error banner.
+            if (document.getElementById('sarima-form-wrap')) {
+                await loadSarima();
+            }
         } catch (error) {
             showFormErrors(error);
         }

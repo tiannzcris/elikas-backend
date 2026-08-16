@@ -48,6 +48,13 @@ return [
         'url' => env('SARIMA_SERVICE_URL'),
         'token' => env('SARIMA_SERVICE_TOKEN'),
         'timeout' => env('SARIMA_SERVICE_TIMEOUT', 30),
+        // Separate from 'url' above: this gates whether the SARIMA card
+        // shows in the UI at all, regardless of whether the Python service
+        // is reachable. Off by default -- no real PAGASA weather data has
+        // been imported yet, so there's nothing meaningful to forecast.
+        // Flip to true (env SARIMA_FEATURE_ENABLED=true) once real data
+        // is imported and the feature is ready to show.
+        'feature_enabled' => env('SARIMA_FEATURE_ENABLED', false),
     ],
 
 ];
