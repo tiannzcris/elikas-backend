@@ -8,6 +8,9 @@ use App\Models\EvacuationCenter;
 use App\Models\EvacuationEvent;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
+use App\Models\ReliefDistribution;
+use App\Models\ReliefItem;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
@@ -136,6 +139,68 @@ class DemoDisasterDataSeeder extends Seeder
             'Done. Events created: %d, sample centers created: %d, families created: %d, evacuees created: %d.',
             $totals['events'], $totals['centers'], $totals['families'], $totals['evacuees']
         ));
+
+        $this->seedResourceCosts(array_column($events, 'name'));
+    }
+
+    /**
+     * Gives PredictiveAnalyticsService's historicalAverageCostPerPerson()
+     * real (non-zero) data to average -- without this, "Estimated resource
+     * cost" on Predictive Analytics is accurately ₱0 (no relief/cash data
+     * exists at all) but unhelpfully blank for demo purposes. One
+     * ReliefDistribution row per event: quantity = that event's actual
+     * evacuee count (one food pack per displaced person), unit_cost = a
+     * per-event randomized ₱400-800 cost-per-person -- so total_cost
+     * (a MySQL generated column, quantity * unit_cost) scales with how many
+     * people that event actually displaced, not a flat number reused
+     * across all 5. Idempotent: skipped per-event if relief data already
+     * exists for it.
+     */
+    private function seedResourceCosts(array $eventNames): void
+    {
+        $reliefItem = ReliefItem::where('item_name', 'Family Food Pack (FFP)')->first();
+        $distributedBy = User::first();
+
+        if (! $reliefItem || ! $distributedBy) {
+            $this->command->error('Need a seeded relief item and at least one user -- run migrations/AdminUserSeeder first. Skipping resource cost seeding.');
+
+            return;
+        }
+
+        foreach (EvacuationEvent::whereIn('name', $eventNames)->get() as $event) {
+            if (ReliefDistribution::where('evacuation_event_id', $event->id)->exists()) {
+                $this->command->info("Skipped resource cost (already exists): {$event->name}");
+
+                continue;
+            }
+
+            $evacueeCount = EvacuationRecord::where('evacuation_event_id', $event->id)
+                ->distinct('evacuee_id')->count('evacuee_id');
+
+            if ($evacueeCount === 0) {
+                $this->command->warn("No evacuees found for {$event->name} -- skipping resource cost.");
+
+                continue;
+            }
+
+            $costPerPerson = rand(400, 800);
+
+            ReliefDistribution::create([
+                'evacuation_event_id' => $event->id,
+                'evacuation_center_id' => null,
+                'relief_item_id' => $reliefItem->id,
+                'source' => 'lgu',
+                'quantity' => $evacueeCount,
+                'unit_cost' => $costPerPerson,
+                'distributed_by' => $distributedBy->id,
+                'distributed_at' => $event->start_date,
+            ]);
+
+            $this->command->info(sprintf(
+                'Seeded resource cost for %s: %d evacuees x P%d/person = P%s total.',
+                $event->name, $evacueeCount, $costPerPerson, number_format($evacueeCount * $costPerPerson, 2)
+            ));
+        }
     }
 
     /**
