@@ -73,12 +73,22 @@ class DemoDisasterDataSeeder extends Seeder
             return;
         }
 
+        // barangay_range/families_per_barangay_range are deliberately scaled
+        // to each event's combined rainfall+wind severity -- Durian (highest
+        // severity) gets the widest reach and heaviest per-barangay turnout,
+        // Leon (lowest) the smallest. Rolly and Kristine have nearly
+        // identical combined severity (495) despite a very different
+        // rainfall/wind mix, so their ranges are close but not identical
+        // (Rolly edges slightly higher). Without this, evacuee counts were
+        // independently randomized and gave the regression no real signal
+        // to learn from (see commit history -- this produced a severely
+        // negative R^2 and a degenerate "1 person" prediction).
         $events = [
-            ['name' => 'Typhoon Durian (Reming)', 'start_date' => '2006-11-30', 'end_date' => '2006-12-02', 'rainfall_mm' => 350, 'wind_speed_kph' => 185],
-            ['name' => 'Typhoon Rolly (Goni)', 'start_date' => '2020-11-01', 'end_date' => '2020-11-02', 'rainfall_mm' => 300, 'wind_speed_kph' => 195],
-            ['name' => 'Typhoon Kristine (Trami)', 'start_date' => '2024-10-22', 'end_date' => '2024-10-25', 'rainfall_mm' => 400, 'wind_speed_kph' => 95],
-            ['name' => 'Typhoon Leon (Kong-rey)', 'start_date' => '2024-10-29', 'end_date' => '2024-10-30', 'rainfall_mm' => 120, 'wind_speed_kph' => 75],
-            ['name' => 'Tropical Storm Mitag (Mirasol)', 'start_date' => '2025-09-16', 'end_date' => '2025-09-17', 'rainfall_mm' => 150, 'wind_speed_kph' => 65],
+            ['name' => 'Typhoon Durian (Reming)', 'start_date' => '2006-11-30', 'end_date' => '2006-12-02', 'rainfall_mm' => 350, 'wind_speed_kph' => 185, 'barangay_range' => [14, 16], 'families_per_barangay_range' => [7, 10]],
+            ['name' => 'Typhoon Rolly (Goni)', 'start_date' => '2020-11-01', 'end_date' => '2020-11-02', 'rainfall_mm' => 300, 'wind_speed_kph' => 195, 'barangay_range' => [11, 13], 'families_per_barangay_range' => [6, 9]],
+            ['name' => 'Typhoon Kristine (Trami)', 'start_date' => '2024-10-22', 'end_date' => '2024-10-25', 'rainfall_mm' => 400, 'wind_speed_kph' => 95, 'barangay_range' => [10, 12], 'families_per_barangay_range' => [5, 8]],
+            ['name' => 'Typhoon Leon (Kong-rey)', 'start_date' => '2024-10-29', 'end_date' => '2024-10-30', 'rainfall_mm' => 120, 'wind_speed_kph' => 75, 'barangay_range' => [5, 7], 'families_per_barangay_range' => [2, 4]],
+            ['name' => 'Tropical Storm Mitag (Mirasol)', 'start_date' => '2025-09-16', 'end_date' => '2025-09-17', 'rainfall_mm' => 150, 'wind_speed_kph' => 65, 'barangay_range' => [6, 8], 'families_per_barangay_range' => [3, 5]],
         ];
 
         $totals = ['events' => 0, 'centers' => 0, 'families' => 0, 'evacuees' => 0];
@@ -107,11 +117,14 @@ class DemoDisasterDataSeeder extends Seeder
             $totals['events']++;
             $this->command->info("Created event: {$eventData['name']}");
 
-            $barangayCount = min($barangays->count(), rand(8, 12));
+            [$barangayMin, $barangayMax] = $eventData['barangay_range'];
+            [$familyMin, $familyMax] = $eventData['families_per_barangay_range'];
+
+            $barangayCount = min($barangays->count(), rand($barangayMin, $barangayMax));
             foreach ($barangays->random($barangayCount) as $barangay) {
                 $center = $this->resolveCenterFor($barangay, $totals);
 
-                $familyCount = rand(2, 8);
+                $familyCount = rand($familyMin, $familyMax);
                 for ($i = 0; $i < $familyCount; $i++) {
                     $totals['evacuees'] += $this->createFamily($event, $barangay, $center);
                     $totals['families']++;
