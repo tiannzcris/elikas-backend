@@ -48,6 +48,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/families', [FamilyController::class, 'index']);
             Route::get('/families/{family}', [FamilyController::class, 'show']);
             Route::post('/families/{family}/members', [EvacueeController::class, 'addMember']);
+            Route::patch('/families/{family}/evacuation-center', [FamilyController::class, 'updateEvacuationCenter']);
 
             Route::get('/evacuees', [EvacueeController::class, 'index']);
             Route::patch('/evacuees/{evacuee}', [EvacueeController::class, 'update']);

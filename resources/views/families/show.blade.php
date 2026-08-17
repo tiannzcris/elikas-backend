@@ -9,7 +9,12 @@
     <div id="content-wrap" class="hidden mt-4">
         <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
         <p class="text-sm text-gray-500" id="family-subtitle"></p>
-        <p class="text-sm text-gray-500 mb-6 hidden" id="family-address"></p>
+        <p class="text-sm text-gray-500 hidden" id="family-address"></p>
+
+        <div class="flex items-center justify-between gap-3 mt-2 mb-6">
+            <p class="text-sm text-gray-600" id="family-center">Evacuation center: &mdash;</p>
+            <button type="button" id="change-center-btn" class="text-xs text-brand hover:underline shrink-0">Change evacuation center</button>
+        </div>
 
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100" id="members-list"></div>
     </div>
@@ -77,6 +82,40 @@
             </form>
         </div>
     </div>
+
+    <div id="change-center-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Change evacuation center</p>
+                    <p class="text-xs text-gray-500">Reassigns every currently checked-in member of this family to a new center.</p>
+                </div>
+                <button type="button" id="center-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="center-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="center-form" class="flex flex-col gap-4 p-5">
+                <div>
+                    <label class="text-sm text-gray-600 block mb-1">Evacuation center</label>
+                    <select id="center-select" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Select center</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="center-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="center-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Save changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -138,6 +177,9 @@
             } else {
                 addressEl.classList.add('hidden');
             }
+
+            document.getElementById('family-center').textContent =
+                `Evacuation center: ${currentFamily.evacuation_center?.name ?? 'None assigned'}`;
 
             renderMembers();
             document.getElementById('content-wrap').classList.remove('hidden');
@@ -280,6 +322,71 @@
             await loadFamily(); // refresh in place, no full page reload
         } catch (error) {
             const box = document.getElementById('member-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Save changes';
+        }
+    });
+
+    // --- Change-evacuation-center modal -------------------------------------
+
+    async function openCenterModal() {
+        document.getElementById('center-modal-errors').classList.add('hidden');
+
+        const select = document.getElementById('center-select');
+        select.innerHTML = '<option value="">Select center</option>';
+
+        try {
+            const centers = await Api.get('/evacuation-centers');
+            select.innerHTML += centers.data.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+            select.value = currentFamily.evacuation_center?.id ?? '';
+        } catch (error) {
+            closeCenterModal();
+            showFormErrors(error);
+            return;
+        }
+
+        document.getElementById('change-center-modal').classList.remove('hidden');
+        document.getElementById('change-center-modal').classList.add('flex');
+    }
+
+    function closeCenterModal() {
+        document.getElementById('change-center-modal').classList.add('hidden');
+        document.getElementById('change-center-modal').classList.remove('flex');
+    }
+
+    document.getElementById('change-center-btn').addEventListener('click', openCenterModal);
+    document.getElementById('center-modal-close').addEventListener('click', closeCenterModal);
+    document.getElementById('center-modal-cancel').addEventListener('click', closeCenterModal);
+
+    document.getElementById('change-center-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'change-center-modal') closeCenterModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('change-center-modal').classList.contains('hidden')) {
+            closeCenterModal();
+        }
+    });
+
+    document.getElementById('center-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = { evacuation_center_id: Number(document.getElementById('center-select').value) };
+
+        const button = document.getElementById('center-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Saving...';
+
+        try {
+            await Api.request(`/families/${familyId}/evacuation-center`, { method: 'PATCH', body: JSON.stringify(payload) });
+            closeCenterModal();
+            await loadFamily(); // refresh in place, no full page reload
+        } catch (error) {
+            const box = document.getElementById('center-modal-errors');
             const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
             box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
             box.classList.remove('hidden');

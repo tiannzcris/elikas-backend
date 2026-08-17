@@ -156,4 +156,61 @@ class FamilyController extends Controller
             )
         );
     }
+
+    /**
+     * Reassigns which evacuation center this family is checked into --
+     * e.g. their original center filled up, or a placeholder/sample center
+     * is being swapped for a real verified one. evacuation_center_id lives
+     * per-evacuee on evacuation_records (not on Family itself), so this
+     * updates every member's currently-active record (date_out still null)
+     * in one bulk update -- matches the same "whole family, one center"
+     * assumption FamilyController::store() and FamilyResource already make.
+     * Members who already checked out are left untouched.
+     */
+    public function updateEvacuationCenter(Request $request, Family $family)
+    {
+        if (! $this->userMayAccessBarangay($request->user(), $family->barangay_id)) {
+            return $this->error('You may not modify families outside your barangay.', 403);
+        }
+
+        $validated = $request->validate([
+            'evacuation_center_id' => ['required', 'integer', 'exists:evacuation_centers,id'],
+        ]);
+
+        $memberIds = $family->members()->pluck('id');
+
+        $updated = EvacuationRecord::whereIn('evacuee_id', $memberIds)
+            ->whereNull('date_out')
+            ->update([
+                'evacuation_center_id' => $validated['evacuation_center_id'],
+                'displacement_type' => 'inside_center',
+            ]);
+
+        if ($updated === 0) {
+            return $this->error(
+                'This family has no active evacuation records to reassign -- every member has already checked out.',
+                422
+            );
+        }
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'family.evacuation_center_reassigned',
+            'description' => sprintf(
+                '%s reassigned family #%d (%d active member(s)) to evacuation center #%d.',
+                $request->user()->name,
+                $family->id,
+                $updated,
+                $validated['evacuation_center_id']
+            ),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(
+            new FamilyResource(
+                $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
+            ),
+            'Evacuation center updated successfully.'
+        );
+    }
 }
