@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Barangay;
 use App\Models\Evacuee;
 use App\Models\EvacuationCenter;
+use App\Models\EvacuationCenterFacility;
 use App\Models\EvacuationEvent;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
@@ -65,6 +66,23 @@ class DemoDisasterDataSeeder extends Seeder
     ];
 
     private const PWD_TYPES = ['visual', 'mobility', 'hearing', 'intellectual', 'psychosocial'];
+
+    // Matches evacuation_center_facilities.facility_type's enum exactly (19
+    // fixed types) -- verified against the migration, not assumed.
+    private const FACILITY_TYPES = [
+        'latrine_compost_pit', 'latrine_sealed',
+        'toilet_male', 'toilet_female', 'toilet_common',
+        'bathing_area_male', 'bathing_area_female', 'bathing_area_common',
+        'handwashing_facility', 'laundry_space',
+        'women_friendly_space', 'child_friendly_space',
+        'health_facility', 'prayer_room', 'community_kitchen',
+        'livestock_area', 'camp_management_desk', 'info_board', 'storage_area',
+    ];
+
+    private const FACILITY_CONCERN_NOTES = [
+        'Needs repair', 'Awaiting replacement parts', 'Temporarily out of supplies',
+        'Reported damaged during last use', 'Pending maintenance request',
+    ];
 
     public function run(): void
     {
@@ -141,6 +159,48 @@ class DemoDisasterDataSeeder extends Seeder
         ));
 
         $this->seedResourceCosts(array_column($events, 'name'));
+        $this->seedSampleFacilities();
+    }
+
+    /**
+     * Gives each "[SAMPLE] ..." evacuation center a realistic (not
+     * exhaustive) facilities checklist, so its detail page isn't
+     * completely empty. Deliberately varies coverage per center --
+     * 8-14 of the 19 possible types, ~90% marked available -- rather
+     * than every center having all 19 fully stocked, since real sites
+     * genuinely don't. Idempotent per center: a center already carrying
+     * any facility rows is left alone.
+     */
+    private function seedSampleFacilities(): void
+    {
+        $sampleCenters = EvacuationCenter::where('name', 'like', '[SAMPLE]%')->get();
+
+        foreach ($sampleCenters as $center) {
+            if ($center->facilities()->exists()) {
+                $this->command->info("Skipped facilities (already exist): {$center->name}");
+
+                continue;
+            }
+
+            $types = collect(self::FACILITY_TYPES)->shuffle()->take(rand(8, 14));
+
+            foreach ($types as $facilityType) {
+                $isAvailable = rand(1, 100) <= 90;
+
+                EvacuationCenterFacility::create([
+                    'evacuation_center_id' => $center->id,
+                    'facility_type' => $facilityType,
+                    'quantity' => rand(1, 5),
+                    'is_available' => $isAvailable,
+                    'concerns_and_needs' => (! $isAvailable && rand(1, 100) <= 60)
+                        ? self::FACILITY_CONCERN_NOTES[array_rand(self::FACILITY_CONCERN_NOTES)]
+                        : null,
+                    'recorded_at' => now(),
+                ]);
+            }
+
+            $this->command->info("Seeded {$types->count()} facility records for {$center->name}");
+        }
     }
 
     /**
