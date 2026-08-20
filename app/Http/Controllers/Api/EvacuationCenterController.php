@@ -9,6 +9,7 @@ use App\Http\Resources\EvacuationCenterResource;
 use App\Models\EvacuationCenter;
 use App\Models\EvacuationCenterFacility;
 use App\Models\SystemLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -41,7 +42,7 @@ class EvacuationCenterController extends Controller
     public function show(EvacuationCenter $evacuationCenter)
     {
         return $this->success(
-            new EvacuationCenterResource($evacuationCenter->load(['barangay', 'facilities']))
+            new EvacuationCenterResource($evacuationCenter->load(['barangay', 'facilities', 'creator']))
         );
     }
 
@@ -74,7 +75,7 @@ class EvacuationCenterController extends Controller
         });
 
         return $this->success(
-            new EvacuationCenterResource($center->fresh(['barangay', 'facilities'])),
+            new EvacuationCenterResource($center->fresh(['barangay', 'facilities', 'creator'])),
             'Evacuation center created successfully.',
             201
         );
@@ -103,7 +104,7 @@ class EvacuationCenterController extends Controller
         $evacuationCenter->update($validated);
 
         return $this->success(
-            new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities'])),
+            new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities', 'creator'])),
             'Evacuation center updated successfully.'
         );
     }
@@ -180,8 +181,67 @@ class EvacuationCenterController extends Controller
         }
 
         return $this->success(
-            new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities'])),
+            new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities', 'creator'])),
             'Facilities updated successfully.'
+        );
+    }
+
+    /**
+     * Lightweight lookup for the "Assign to barangay official" dropdown --
+     * active barangay_official accounts for THIS center's own barangay
+     * only, matching assignOwner()'s own validation below so the dropdown
+     * never offers a choice the backend would reject anyway.
+     */
+    public function eligibleOwners(EvacuationCenter $evacuationCenter)
+    {
+        $officials = User::where('barangay_id', $evacuationCenter->barangay_id)
+            ->where('status', 'active')
+            ->whereHas('role', fn ($query) => $query->where('name', 'barangay_official'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return $this->success($officials);
+    }
+
+    /**
+     * Hands an existing center off to a specific barangay official for
+     * them to maintain going forward -- most commonly a seeder-created or
+     * admin-created "[SAMPLE] ..." placeholder that a barangay official
+     * can currently view but never edit, simply because they didn't
+     * technically create it. Administrator/CSWD only (route-level); the
+     * target user must themselves be an active barangay_official for THIS
+     * center's own barangay, not just any barangay official -- checked
+     * here rather than as a static validation rule, since it depends on
+     * the route-bound center, not just the request body.
+     */
+    public function assignOwner(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $newOwner = User::findOrFail($validated['user_id']);
+
+        if (! $newOwner->isBarangayOfficial()) {
+            return $this->error('Ownership can only be assigned to a barangay official account.', 422);
+        }
+
+        if ($newOwner->barangay_id !== $evacuationCenter->barangay_id) {
+            return $this->error("{$newOwner->name} is a barangay official for a different barangay than this center.", 422);
+        }
+
+        $evacuationCenter->update(['created_by' => $newOwner->id]);
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'evacuation_center.owner_assigned',
+            'description' => "{$request->user()->name} assigned evacuation center '{$evacuationCenter->name}' to {$newOwner->name} for ongoing maintenance.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(
+            new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities', 'creator'])),
+            "Evacuation center assigned to {$newOwner->name}."
         );
     }
 }

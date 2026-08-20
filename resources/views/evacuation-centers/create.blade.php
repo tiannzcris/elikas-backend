@@ -72,6 +72,29 @@
             <div id="picker-map" style="height: 350px; border-radius: 0.5rem;"></div>
         </div>
 
+        {{-- Edit mode, admin/CSWD only -- lets a "[SAMPLE] ..." or other
+            placeholder center be handed off to a real barangay official so
+            they can maintain it going forward (they can view but not edit
+            a center they didn't technically create). --}}
+        <div id="assign-owner-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
+            <p class="text-sm font-medium text-gray-700 mb-1">Assign to barangay official</p>
+            <p class="text-xs text-gray-500 mb-3">
+                Hands this center off to a specific barangay official for ongoing maintenance.
+                Currently assigned to: <span id="current-owner-label" class="font-medium text-gray-700">&mdash;</span>
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select id="assign-owner-select" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="">Select barangay official</option>
+                </select>
+                <button type="button" id="assign-owner-btn" disabled
+                    class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Assign
+                </button>
+            </div>
+            <p id="assign-owner-empty-note" class="text-xs text-gray-400 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
+            <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
+        </div>
+
         <button type="submit" id="submit-btn"
             class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
             Save evacuation center
@@ -92,6 +115,63 @@
 
     const user = Api.getUser();
     const isBarangayOfficial = user && user.role === 'barangay_official';
+
+    // --- Assign-owner card (admin/CSWD, edit mode only) --------------------
+
+    async function loadAssignOwnerCard(center) {
+        document.getElementById('assign-owner-card').classList.remove('hidden');
+        document.getElementById('current-owner-label').textContent = center.creator?.name ?? 'Not yet assigned';
+
+        try {
+            const result = await Api.get(`/evacuation-centers/${centerId}/eligible-owners`);
+            const officials = result.data;
+
+            if (officials.length === 0) {
+                document.getElementById('assign-owner-empty-note').classList.remove('hidden');
+                document.getElementById('assign-owner-select').classList.add('hidden');
+                document.getElementById('assign-owner-btn').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('assign-owner-select').innerHTML =
+                '<option value="">Select barangay official</option>' +
+                officials.map((o) => `<option value="${o.id}">${o.name} (${o.email})</option>`).join('');
+        } catch (error) {
+            // Card stays visible with just the current-owner label if this fails.
+        }
+    }
+
+    document.getElementById('assign-owner-select').addEventListener('change', (e) => {
+        document.getElementById('assign-owner-btn').disabled = ! e.target.value;
+    });
+
+    document.getElementById('assign-owner-btn').addEventListener('click', async () => {
+        const select = document.getElementById('assign-owner-select');
+        const userId = Number(select.value);
+        if (! userId) return;
+
+        const button = document.getElementById('assign-owner-btn');
+        button.disabled = true;
+        button.textContent = 'Assigning...';
+
+        try {
+            const result = await Api.request(`/evacuation-centers/${centerId}/assign-owner`, {
+                method: 'PATCH',
+                body: JSON.stringify({ user_id: userId }),
+            });
+
+            document.getElementById('current-owner-label').textContent = result.data.creator?.name ?? 'Not yet assigned';
+
+            const note = document.getElementById('assign-owner-success-note');
+            note.textContent = result.message;
+            note.classList.remove('hidden');
+        } catch (error) {
+            showFormErrors(error);
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Assign';
+        }
+    });
 
     // Ligao City, Albay -- reasonable default center/zoom until the user
     // clicks (or until the existing center's coordinates are loaded below,
@@ -158,6 +238,13 @@
                 document.getElementById('camp_manager_name').value = center.camp_manager_name ?? '';
                 document.getElementById('camp_manager_contact').value = center.camp_manager_contact ?? '';
                 document.getElementById('status').value = center.status;
+
+                // Assign-owner card: admin/CSWD only, edit mode only --
+                // barangay officials never see this (they can't call the
+                // assign-owner endpoint anyway, it's role-restricted).
+                if (! isBarangayOfficial) {
+                    await loadAssignOwnerCard(center);
+                }
 
                 // Shows the center's EXISTING location with a marker
                 // already placed, instead of starting blank -- map view

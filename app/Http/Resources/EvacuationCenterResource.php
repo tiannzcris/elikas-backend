@@ -12,6 +12,10 @@ class EvacuationCenterResource extends JsonResource
         return [
             'id' => $this->id,
             'created_by' => $this->created_by,
+            'creator' => $this->whenLoaded('creator', fn () => $this->creator ? [
+                'id' => $this->creator->id,
+                'name' => $this->creator->name,
+            ] : null),
             'barangay' => $this->whenLoaded('barangay', fn () => $this->barangay ? [
                 'id' => $this->barangay->id,
                 'name' => $this->barangay->name,

@@ -141,6 +141,16 @@ Route::prefix('v1')->group(function () {
 
             Route::put('/evacuation-centers/{evacuationCenter}/facilities', [EvacuationCenterController::class, 'updateFacilities']);
 
+            // Hands a seeder-created or admin-created placeholder center
+            // (e.g. "[SAMPLE] ...") off to a specific barangay official for
+            // ongoing maintenance -- addresses a center a barangay official
+            // can view but never edit, simply because they didn't
+            // technically create it. Administrator/CSWD only; the
+            // controller further validates the target user is an active
+            // barangay_official for THIS center's own barangay.
+            Route::get('/evacuation-centers/{evacuationCenter}/eligible-owners', [EvacuationCenterController::class, 'eligibleOwners']);
+            Route::patch('/evacuation-centers/{evacuationCenter}/assign-owner', [EvacuationCenterController::class, 'assignOwner']);
+
             Route::post('/hazard-areas', [HazardProneAreaController::class, 'store']);
             Route::delete('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'destroy']);
 
