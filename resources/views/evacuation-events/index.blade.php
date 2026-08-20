@@ -147,19 +147,19 @@
                             <option value="closed">Closed</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="text-sm text-gray-600 block mb-1">Typhoon category / alert level (optional)</label>
+                    <div id="field-ev-typhoon_category">
+                        <label class="text-sm text-gray-600 block mb-1">Typhoon category (optional)</label>
                         <input type="text" id="ev-typhoon_category" placeholder="e.g. Signal No. 2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
-                    <div>
+                    <div id="field-ev-alert_level">
                         <label class="text-sm text-gray-600 block mb-1">Alert level (optional)</label>
                         <input type="text" id="ev-alert_level" placeholder="e.g. Alert Level 3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
-                    <div>
+                    <div id="field-ev-rainfall_mm">
                         <label class="text-sm text-gray-600 block mb-1">Rainfall, mm (optional)</label>
                         <input type="number" step="0.1" id="ev-rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
-                    <div>
+                    <div id="field-ev-max_wind_speed_kph">
                         <label class="text-sm text-gray-600 block mb-1">Max wind speed, kph (optional)</label>
                         <input type="number" step="0.1" id="ev-max_wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
@@ -487,9 +487,37 @@
     // is still reused for editing an existing event -- only the create
     // flow moved to a modal here).
 
+    // Same type-to-field mapping and clear-on-hide behavior as
+    // evacuation-events/create.blade.php's updateTypeFields() -- this
+    // modal is a separate, duplicate form (not the standalone create/edit
+    // page), so it needs its own copy scoped to the ev- prefixed IDs.
+    const EVENT_TYPE_FIELDS = {
+        typhoon: ['ev-typhoon_category', 'ev-max_wind_speed_kph', 'ev-rainfall_mm'],
+        flood: ['ev-rainfall_mm'],
+        volcanic_eruption: ['ev-alert_level'],
+        earthquake: [],
+        other: [],
+    };
+    const ALL_EVENT_TYPE_SPECIFIC_FIELDS = ['ev-typhoon_category', 'ev-alert_level', 'ev-rainfall_mm', 'ev-max_wind_speed_kph'];
+
+    function updateEventTypeFields() {
+        const visible = EVENT_TYPE_FIELDS[document.getElementById('ev-event_type').value] || [];
+
+        ALL_EVENT_TYPE_SPECIFIC_FIELDS.forEach((field) => {
+            const isVisible = visible.includes(field);
+            document.getElementById(`field-${field}`).style.display = isVisible ? 'block' : 'none';
+            if (! isVisible) {
+                document.getElementById(field).value = '';
+            }
+        });
+    }
+
+    document.getElementById('ev-event_type').addEventListener('change', updateEventTypeFields);
+
     function openEventModal() {
         document.getElementById('event-modal-errors').classList.add('hidden');
         document.getElementById('event-form').reset();
+        updateEventTypeFields(); // after reset(), so it matches the now-default "Typhoon" selection
         document.getElementById('create-event-modal').classList.remove('hidden');
         document.getElementById('create-event-modal').classList.add('flex');
     }
