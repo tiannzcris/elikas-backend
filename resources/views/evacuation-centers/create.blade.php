@@ -179,9 +179,17 @@
     // page (unlike the modal version on the index page), so there's no
     // invalidateSize() gotcha to work around here.
     const map = L.map('picker-map').setView([13.1391, 123.5321], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    // Street (default) and satellite base layers -- satellite makes
+    // buildings/houses visible, which street tiles alone don't, for
+    // accurately placing the marker.
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+    });
+    L.control.layers({ 'Street': streetLayer, 'Satellite': satelliteLayer }).addTo(map);
 
     let marker = null;
     let selectedLat = null;

@@ -184,9 +184,17 @@
     const MAP_ZOOM = 13;
 
     const map = L.map('map').setView(MAP_CENTER, MAP_ZOOM);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    // Street (default) and satellite base layers, toggleable via Leaflet's
+    // built-in layer control -- satellite makes buildings/houses visible,
+    // which street tiles alone don't, for accurately placing markers.
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+    });
+    L.control.layers({ 'Street': streetLayer, 'Satellite': satelliteLayer }).addTo(map);
 
     const hazardColors = {
         flood: '#2563eb', landslide: '#ea580c', lahar: '#ea580c',

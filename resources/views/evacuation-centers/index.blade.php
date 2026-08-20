@@ -554,9 +554,17 @@
         if (centerPickerMap) return;
 
         centerPickerMap = L.map('center-picker-map').setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+        // Street (default) and satellite base layers -- satellite makes
+        // buildings/houses visible, which street tiles alone don't, for
+        // accurately placing the marker.
+        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
         }).addTo(centerPickerMap);
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+        });
+        L.control.layers({ 'Street': streetLayer, 'Satellite': satelliteLayer }).addTo(centerPickerMap);
 
         centerPickerMap.on('click', (e) => {
             selectedLat = e.latlng.lat;
