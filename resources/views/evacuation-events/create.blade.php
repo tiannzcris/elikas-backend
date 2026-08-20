@@ -33,19 +33,19 @@
                     <option value="closed">Closed</option>
                 </select>
             </div>
-            <div>
-                <label class="text-sm text-gray-600 block mb-1">Typhoon category / alert level (optional)</label>
+            <div id="field-typhoon_category">
+                <label class="text-sm text-gray-600 block mb-1">Typhoon category (optional)</label>
                 <input type="text" id="typhoon_category" placeholder="e.g. Signal No. 2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
-            <div>
+            <div id="field-alert_level">
                 <label class="text-sm text-gray-600 block mb-1">Alert level (optional)</label>
                 <input type="text" id="alert_level" placeholder="e.g. Alert Level 3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
-            <div>
+            <div id="field-rainfall_mm">
                 <label class="text-sm text-gray-600 block mb-1">Rainfall, mm (optional)</label>
                 <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
-            <div>
+            <div id="field-max_wind_speed_kph">
                 <label class="text-sm text-gray-600 block mb-1">Max wind speed, kph (optional)</label>
                 <input type="number" step="0.1" id="max_wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
@@ -78,6 +78,39 @@
     const isEdit = pathParts.includes('edit');
     const eventId = isEdit ? pathParts[1] : null;
 
+    // Which of the 4 type-specific fields apply to each event_type -- per
+    // the migration, a flood isn't measured by wind speed or PAGASA
+    // typhoon signal categories (rainfall still applies), a volcanic
+    // eruption only has an alert level, and earthquake/other don't use
+    // any of these fields at all.
+    const TYPE_FIELDS = {
+        typhoon: ['typhoon_category', 'max_wind_speed_kph', 'rainfall_mm'],
+        flood: ['rainfall_mm'],
+        volcanic_eruption: ['alert_level'],
+        earthquake: [],
+        other: [],
+    };
+    const ALL_TYPE_SPECIFIC_FIELDS = ['typhoon_category', 'alert_level', 'rainfall_mm', 'max_wind_speed_kph'];
+
+    // Shows/hides each type-specific field's wrapper based on the current
+    // event_type selection, and clears the value of any field that just
+    // became irrelevant -- so switching types (or loading an edit form for
+    // an event whose type changed since it was created) never leaves a
+    // stale value sitting in a hidden field ready to be silently submitted.
+    function updateTypeFields() {
+        const visible = TYPE_FIELDS[document.getElementById('event_type').value] || [];
+
+        ALL_TYPE_SPECIFIC_FIELDS.forEach((field) => {
+            const isVisible = visible.includes(field);
+            document.getElementById(`field-${field}`).style.display = isVisible ? 'block' : 'none';
+            if (! isVisible) {
+                document.getElementById(field).value = '';
+            }
+        });
+    }
+
+    document.getElementById('event_type').addEventListener('change', updateTypeFields);
+
     if (isEdit) {
         document.getElementById('page-title').textContent = 'Edit disaster event';
         document.getElementById('submit-btn').textContent = 'Save changes';
@@ -96,10 +129,19 @@
                 document.getElementById('start_date').value = e.start_date;
                 document.getElementById('end_date').value = e.end_date ?? '';
                 document.getElementById('description').value = e.description ?? '';
+
+                // After prefill, not before -- this clears out any
+                // type-specific value that's irrelevant to the loaded
+                // event's actual type (e.g. legacy data, or the type was
+                // changed since the event was created) rather than
+                // leaving it sitting in a hidden field.
+                updateTypeFields();
             } catch (error) {
                 showFormErrors(error);
             }
         })();
+    } else {
+        updateTypeFields(); // matches the default-selected "Typhoon" option
     }
 
     document.getElementById('event-form').addEventListener('submit', async (e) => {
