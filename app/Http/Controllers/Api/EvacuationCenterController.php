@@ -12,6 +12,7 @@ use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class EvacuationCenterController extends Controller
@@ -61,6 +62,14 @@ class EvacuationCenterController extends Controller
 
         $validated['created_by'] = $user->id;
 
+        // 'photo' is the uploaded file itself, not a DB column -- pulled
+        // out and stored separately, with the resulting relative path
+        // saved to photo_path instead.
+        unset($validated['photo']);
+        if ($request->hasFile('photo')) {
+            $validated['photo_path'] = $request->file('photo')->store('evacuation-centers', 'public');
+        }
+
         $center = DB::transaction(function () use ($validated, $request) {
             $center = EvacuationCenter::create($validated);
 
@@ -99,6 +108,20 @@ class EvacuationCenterController extends Controller
         // reassign a center to a different barangay.
         if ($user->isBarangayOfficial()) {
             $validated['barangay_id'] = $user->barangay_id;
+        }
+
+        // 'photo' is the uploaded file itself, not a DB column. Only
+        // touched when a NEW file is actually sent -- no 'photo' in the
+        // request just leaves the existing photo_path alone, same pattern
+        // as UpdateUserRequest's "blank password means keep the current
+        // one". Replacing an existing photo deletes the old file so
+        // storage doesn't accumulate orphaned uploads nothing references.
+        unset($validated['photo']);
+        if ($request->hasFile('photo')) {
+            if ($evacuationCenter->photo_path) {
+                Storage::disk('public')->delete($evacuationCenter->photo_path);
+            }
+            $validated['photo_path'] = $request->file('photo')->store('evacuation-centers', 'public');
         }
 
         $evacuationCenter->update($validated);

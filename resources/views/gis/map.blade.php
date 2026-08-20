@@ -332,7 +332,14 @@
             }),
             onEachFeature: (feature, layer) => {
                 const p = feature.properties;
+                // 180x120 thumbnail when a photo's been uploaded, a
+                // neutral placeholder icon (never a broken image) when not.
+                const popupPhoto = p.photo_url
+                    ? `<img src="${p.photo_url}" alt="${p.name}" style="width:180px;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block;">`
+                    : `<div style="width:180px;height:120px;background:#f3f4f6;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:#9ca3af;"><i class="ti ti-building" style="font-size:32px;" aria-hidden="true"></i></div>`;
+
                 layer.bindPopup(`
+                    ${popupPhoto}
                     <strong>${p.name}</strong><br>
                     ${p.barangay ?? ''} · ${p.status.replace('_', ' ')}<br>
                     ${p.capacity_persons ? `Occupancy: ${p.current_occupancy} / ${p.capacity_persons}` : 'No capacity set'}<br>

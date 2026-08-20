@@ -8,6 +8,12 @@
 
     <div id="content-wrap" class="hidden mt-4 max-w-3xl">
         <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+            <div class="mb-4">
+                <img id="center-photo" src="" alt="" class="hidden w-full h-64 object-cover rounded-lg">
+                <div id="center-photo-placeholder" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
+                    <i class="ti ti-building" style="font-size: 48px;" aria-hidden="true"></i>
+                </div>
+            </div>
             <div class="flex items-start justify-between">
                 <div>
                     <h1 class="text-xl font-semibold" id="center-name"></h1>
@@ -101,6 +107,13 @@
                 c.capacity_persons ? `${c.current_occupancy} / ${c.capacity_persons} persons` : 'No capacity set';
             document.getElementById('center-manager').textContent = c.camp_manager_name || '—';
             document.getElementById('center-contact').textContent = c.camp_manager_contact || '—';
+
+            if (c.photo_url) {
+                document.getElementById('center-photo').src = c.photo_url;
+                document.getElementById('center-photo').alt = c.name;
+                document.getElementById('center-photo').classList.remove('hidden');
+                document.getElementById('center-photo-placeholder').classList.add('hidden');
+            }
 
             (c.facilities || []).forEach((f) => { existingFacilities[f.facility_type] = f; });
             renderFacilitiesList();

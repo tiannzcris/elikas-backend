@@ -36,6 +36,8 @@ class EvacuationCenterResource extends JsonResource
             'camp_manager_name' => $this->camp_manager_name,
             'camp_manager_contact' => $this->camp_manager_contact,
             'status' => $this->status,
+            'photo_path' => $this->photo_path,
+            'photo_url' => $this->photo_url,
             'facilities' => EvacuationCenterFacilityResource::collection($this->whenLoaded('facilities')),
         ];
     }

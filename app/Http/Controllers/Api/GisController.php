@@ -40,6 +40,7 @@ class GisController extends Controller
                         'capacity_persons' => $center->capacity_persons,
                         'current_occupancy' => $center->currentOccupancy(),
                         'occupancy_percent' => $center->occupancyPercent(),
+                        'photo_url' => $center->photo_url,
                     ],
                 ];
             })->values();

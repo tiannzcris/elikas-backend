@@ -53,9 +53,15 @@ const Api = {
     },
 
     async request(path, options = {}) {
+        // FormData (file uploads) needs the browser to set its own
+        // Content-Type with the correct multipart boundary -- forcing
+        // application/json here would send a body the boundary doesn't
+        // match, and the server would fail to parse it at all.
+        const isFormData = options.body instanceof FormData;
+
         const headers = {
             Accept: 'application/json',
-            'Content-Type': 'application/json',
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
             ...options.headers,
         };
 

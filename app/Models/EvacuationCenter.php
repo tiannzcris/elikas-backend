@@ -6,19 +6,32 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EvacuationCenter extends Model
 {
     protected $fillable = [
         'barangay_id', 'name', 'type', 'address', 'latitude', 'longitude',
         'capacity_families', 'capacity_persons', 'camp_manager_name',
-        'camp_manager_contact', 'status', 'created_by',
+        'camp_manager_contact', 'status', 'created_by', 'photo_path',
     ];
 
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
     ];
+
+    /**
+     * photo_path stores a relative disk path (e.g.
+     * "evacuation-centers/abc123.jpg"), not a full URL -- this builds the
+     * actual browser-usable URL from it on demand, via the 'public' disk's
+     * symlink (php artisan storage:link), so nothing here breaks if
+     * APP_URL ever changes.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? Storage::disk('public')->url($this->photo_path) : null;
+    }
 
     public function barangay(): BelongsTo
     {

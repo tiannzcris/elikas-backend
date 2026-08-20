@@ -66,6 +66,19 @@
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <label class="text-sm text-gray-600 block mb-2">Photo (optional)</label>
+            <div class="flex items-center gap-4">
+                <div id="photo-preview-wrap" class="hidden shrink-0">
+                    <img id="photo-preview" src="" alt="Center photo preview" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
+                </div>
+                <div class="flex-1">
+                    <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-light file:text-brand file:text-sm file:font-medium hover:file:bg-blue-100">
+                    <p class="text-xs text-gray-400 mt-1">JPG, PNG, etc. Max 5MB.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
             <p class="text-sm text-gray-600 mb-2">
                 Location (optional) <span id="coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
             </p>
@@ -213,6 +226,18 @@
 
     map.on('click', (e) => setMarker(e.latlng.lat, e.latlng.lng));
 
+    // Live preview of a newly-picked file -- replaces whatever was shown
+    // before (the existing photo in edit mode, or nothing), independent
+    // of whether that file actually gets uploaded until the form is
+    // submitted.
+    document.getElementById('photo').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (! file) return;
+
+        document.getElementById('photo-preview').src = URL.createObjectURL(file);
+        document.getElementById('photo-preview-wrap').classList.remove('hidden');
+    });
+
     (async () => {
         try {
             const barangays = await Api.get('/barangays');
@@ -247,6 +272,11 @@
                 document.getElementById('camp_manager_contact').value = center.camp_manager_contact ?? '';
                 document.getElementById('status').value = center.status;
 
+                if (center.photo_url) {
+                    document.getElementById('photo-preview').src = center.photo_url;
+                    document.getElementById('photo-preview-wrap').classList.remove('hidden');
+                }
+
                 // Assign-owner card: admin/CSWD only, edit mode only --
                 // barangay officials never see this (they can't call the
                 // assign-owner endpoint anyway, it's role-restricted).
@@ -273,33 +303,41 @@
     document.getElementById('center-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Location is optional -- a center can be saved with no map
-        // location set yet (see the "No location set" badge on the
-        // centers list) and given one later.
-        const payload = {
-            barangay_id: Number(document.getElementById('barangay_id').value),
-            name: document.getElementById('name').value,
-            type: document.getElementById('type').value,
-            address: document.getElementById('address').value,
-            latitude: selectedLat,
-            longitude: selectedLng,
-            capacity_families: document.getElementById('capacity_families').value || null,
-            capacity_persons: document.getElementById('capacity_persons').value || null,
-            camp_manager_name: document.getElementById('camp_manager_name').value || null,
-            camp_manager_contact: document.getElementById('camp_manager_contact').value || null,
-            status: document.getElementById('status').value,
-        };
+        // FormData (not JSON) since an optional photo file may be
+        // attached -- built the same way whether or not one actually is,
+        // to avoid two separate submission code paths. Location is
+        // optional too: latitude/longitude are simply omitted when no map
+        // location has been set (see the "No location set" badge on the
+        // centers list) rather than sent as null, which FormData can't
+        // represent anyway.
+        const formData = new FormData();
+        formData.append('barangay_id', document.getElementById('barangay_id').value);
+        formData.append('name', document.getElementById('name').value);
+        formData.append('type', document.getElementById('type').value);
+        formData.append('address', document.getElementById('address').value);
+        if (selectedLat !== null) formData.append('latitude', selectedLat);
+        if (selectedLng !== null) formData.append('longitude', selectedLng);
+        formData.append('capacity_families', document.getElementById('capacity_families').value);
+        formData.append('capacity_persons', document.getElementById('capacity_persons').value);
+        formData.append('camp_manager_name', document.getElementById('camp_manager_name').value);
+        formData.append('camp_manager_contact', document.getElementById('camp_manager_contact').value);
+        formData.append('status', document.getElementById('status').value);
+
+        const photoFile = document.getElementById('photo').files[0];
+        if (photoFile) formData.append('photo', photoFile);
+
+        // Always POST, never a real PATCH -- PHP doesn't reliably parse a
+        // multipart/form-data body on anything but POST. _method=PATCH is
+        // Laravel's standard method-spoofing convention for exactly this.
+        if (isEdit) formData.append('_method', 'PATCH');
 
         const button = document.getElementById('submit-btn');
         button.disabled = true;
         button.textContent = 'Saving...';
 
         try {
-            if (isEdit) {
-                await Api.request(`/evacuation-centers/${centerId}`, { method: 'PATCH', body: JSON.stringify(payload) });
-            } else {
-                await Api.post('/evacuation-centers', payload);
-            }
+            const url = isEdit ? `/evacuation-centers/${centerId}` : '/evacuation-centers';
+            await Api.request(url, { method: 'POST', body: formData });
             window.location.href = '/evacuation-centers';
         } catch (error) {
             showFormErrors(error);
