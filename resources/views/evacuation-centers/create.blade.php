@@ -67,7 +67,7 @@
 
         <div class="bg-white border border-gray-200 rounded-xl p-4">
             <p class="text-sm text-gray-600 mb-2">
-                Location <span id="coords-display" class="text-gray-400">(click the map to set)</span>
+                Location (optional) <span id="coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
             </p>
             <div id="picker-map" style="height: 350px; border-radius: 0.5rem;"></div>
         </div>
@@ -255,10 +255,15 @@
                 }
 
                 // Shows the center's EXISTING location with a marker
-                // already placed, instead of starting blank -- map view
-                // is centered on it too, not left at the citywide default.
-                map.setView([center.latitude, center.longitude], 16);
-                setMarker(center.latitude, center.longitude);
+                // already placed, instead of starting blank -- map view is
+                // centered on it too, not left at the citywide default.
+                // Location is optional, though -- a center that's never
+                // had one set yet just leaves the map at its default,
+                // unmarked, view.
+                if (center.latitude !== null && center.longitude !== null) {
+                    map.setView([center.latitude, center.longitude], 16);
+                    setMarker(center.latitude, center.longitude);
+                }
             }
         } catch (error) {
             showFormErrors(error);
@@ -268,11 +273,9 @@
     document.getElementById('center-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (selectedLat === null) {
-            showFormErrors({ message: 'Click the map to set the evacuation center\'s location before saving.' });
-            return;
-        }
-
+        // Location is optional -- a center can be saved with no map
+        // location set yet (see the "No location set" badge on the
+        // centers list) and given one later.
         const payload = {
             barangay_id: Number(document.getElementById('barangay_id').value),
             name: document.getElementById('name').value,

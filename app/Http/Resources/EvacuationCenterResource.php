@@ -23,8 +23,12 @@ class EvacuationCenterResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'address' => $this->address,
-            'latitude' => (float) $this->latitude,
-            'longitude' => (float) $this->longitude,
+            // Not every center has a confirmed map location yet -- real
+            // null, not force-cast to 0.0, so "no location set" (see the
+            // amber badge on the centers list) is never confused with
+            // "actually located at 0,0".
+            'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
+            'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
             'capacity_families' => $this->capacity_families,
             'capacity_persons' => $this->capacity_persons,
             'current_occupancy' => $this->currentOccupancy(),

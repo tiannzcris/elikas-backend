@@ -7,7 +7,6 @@ use App\Http\Resources\AlertResource;
 use App\Models\Alert;
 use App\Models\EvacuationCenter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Every endpoint here is genuinely public -- no Sanctum token, no login,
@@ -29,14 +28,19 @@ class PublicController extends Controller
      */
     public function evacuationCenters()
     {
+        // latitude/longitude are nullable now (not every center has a
+        // confirmed map location yet) -- returned as real null rather than
+        // force-cast to 0.0, so the consuming app can tell "no location
+        // set" apart from "actually located at 0,0" instead of silently
+        // plotting a fake pin in the Gulf of Guinea.
         $centers = EvacuationCenter::with('barangay')->get()->map(fn (EvacuationCenter $c) => [
             'id' => $c->id,
             'name' => $c->name,
             'type' => $c->type,
             'address' => $c->address,
             'barangay' => $c->barangay?->name,
-            'latitude' => (float) $c->latitude,
-            'longitude' => (float) $c->longitude,
+            'latitude' => $c->latitude !== null ? (float) $c->latitude : null,
+            'longitude' => $c->longitude !== null ? (float) $c->longitude : null,
             'capacity_persons' => $c->capacity_persons,
             'current_occupancy' => $c->currentOccupancy(),
             'occupancy_percent' => $c->occupancyPercent(),
@@ -49,8 +53,7 @@ class PublicController extends Controller
     /**
      * Same nearest-center search staff use internally, opened up publicly
      * -- this is the actual "which evacuation center should I go to" query
-     * a resident's app needs, using the spatial index for an efficient
-     * distance search rather than pulling every row into the app.
+     * a resident's app needs.
      */
     public function nearestEvacuationCenters(Request $request)
     {
@@ -61,16 +64,7 @@ class PublicController extends Controller
         ]);
 
         $limit = (int) ($validated['limit'] ?? 10);
-        $point = "POINT({$validated['longitude']} {$validated['latitude']})";
-
-        $centers = DB::select("
-            SELECT id, name, type, address, latitude, longitude, capacity_persons, status,
-                   ST_Distance_Sphere(location, ST_GeomFromText(?)) AS distance_meters
-            FROM evacuation_centers
-            WHERE status IN ('active', 'on_standby')
-            ORDER BY distance_meters ASC
-            LIMIT {$limit}
-        ", [$point]);
+        $centers = EvacuationCenter::nearestTo((float) $validated['latitude'], (float) $validated['longitude'], $limit);
 
         return $this->success($centers);
     }

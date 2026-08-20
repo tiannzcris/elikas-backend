@@ -200,7 +200,7 @@
 
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <p class="text-sm text-gray-600 mb-2">
-                        Location <span id="center-coords-display" class="text-gray-400">(click the map to set)</span>
+                        Location (optional) <span id="center-coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
                     </p>
                     <div id="center-picker-map" style="height: 300px; border-radius: 0.5rem;"></div>
                 </div>
@@ -362,7 +362,10 @@
                                     <p class="text-xs text-gray-500">${c.barangay?.name ?? '—'} · ${TYPE_LABELS[c.type] ?? c.type}</p>
                                 </div>
                             </div>
-                            <span class="text-xs px-2 py-1 rounded-lg shrink-0 ${statusColors[c.status] ?? ''}">${c.status.replace('_', ' ')}</span>
+                            <div class="flex flex-col items-end gap-1 shrink-0">
+                                <span class="text-xs px-2 py-1 rounded-lg ${statusColors[c.status] ?? ''}">${c.status.replace('_', ' ')}</span>
+                                ${(c.latitude === null || c.longitude === null) ? '<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700">No location set</span>' : ''}
+                            </div>
                         </div>
                         ${c.capacity_persons ? `
                             <div class="flex justify-between text-xs text-gray-500 mb-1">
@@ -659,7 +662,7 @@
 
         selectedLat = null;
         selectedLng = null;
-        document.getElementById('center-coords-display').textContent = '(click the map to set)';
+        document.getElementById('center-coords-display').textContent = '(click the map to set, or leave unset for now)';
         document.getElementById('center-coords-display').classList.add('text-gray-400');
 
         document.getElementById('add-center-modal').classList.remove('hidden');
@@ -731,9 +734,17 @@
             // the same delayed callback -- placing it any earlier risks
             // Leaflet projecting it against the container's still-wrong
             // (hidden) size. Shows the center's EXISTING location with a
-            // marker already placed, instead of starting blank.
+            // marker already placed, instead of starting blank. Location
+            // is optional though -- a center that's never had one set yet
+            // just leaves the map at its default, unmarked, view.
             setTimeout(() => {
                 centerPickerMap.invalidateSize();
+
+                if (center.latitude === null || center.longitude === null) {
+                    centerPickerMap.setView(CENTER_MAP_DEFAULT_VIEW, CENTER_MAP_DEFAULT_ZOOM);
+                    return;
+                }
+
                 centerPickerMap.setView([center.latitude, center.longitude], 16);
 
                 selectedLat = center.latitude;
@@ -783,13 +794,9 @@
     document.getElementById('center-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (selectedLat === null) {
-            const box = document.getElementById('center-modal-errors');
-            box.innerHTML = '<p>Click the map to set the evacuation center\'s location before saving.</p>';
-            box.classList.remove('hidden');
-            return;
-        }
-
+        // Location is optional -- a center can be saved with no map
+        // location set yet (see the "No location set" badge on the
+        // centers list) and given one later.
         const payload = {
             barangay_id: Number(document.getElementById('center-barangay_id').value),
             name: document.getElementById('center-name').value,

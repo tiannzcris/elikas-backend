@@ -20,32 +20,6 @@ class EvacuationCenter extends Model
         'longitude' => 'decimal:7',
     ];
 
-    /**
-     * Automatically keeps the spatial 'location' column in sync with the
-     * plain latitude/longitude columns, as part of the SAME insert/update
-     * statement Eloquent is already about to run -- not a separate follow-up
-     * step that has to be remembered and called manually. That previous
-     * design broke the moment a EvacuationCenter got created any way other
-     * than through the one controller method that remembered to call it
-     * (e.g. directly via `EvacuationCenter::create()` in tinker), because
-     * 'location' is NOT NULL with no default (required for the spatial
-     * index -- MySQL/MariaDB do not allow spatial indexes on nullable
-     * columns, confirmed across every current version), so the INSERT
-     * itself failed before any follow-up UPDATE could run.
-     *
-     * Setting the attribute to a DB::raw() expression here causes Eloquent
-     * to embed that raw SQL directly into the INSERT/UPDATE it was already
-     * building, rather than needing a second statement at all.
-     */
-    protected static function booted(): void
-    {
-        static::saving(function (EvacuationCenter $center) {
-            if ($center->latitude !== null && $center->longitude !== null) {
-                $center->location = DB::raw("ST_GeomFromText('POINT({$center->longitude} {$center->latitude})')");
-            }
-        });
-    }
-
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class);
@@ -86,5 +60,35 @@ class EvacuationCenter extends Model
         }
 
         return round(($this->currentOccupancy() / $this->capacity_persons) * 100, 1);
+    }
+
+    /**
+     * Haversine great-circle distance over the plain latitude/longitude
+     * columns -- shared by the staff-facing and public nearest-center
+     * endpoints, rather than duplicating this SQL in both controllers.
+     * Replaces the old ST_Distance_Sphere(location, ...) spatial query:
+     * 'location' required NOT NULL, which conflicted with a center's
+     * location being genuinely optional, so it was dropped (see the
+     * migration that removed it). Centers without coordinates are
+     * excluded outright via the IS NOT NULL check, not sorted in with a
+     * meaningless distance. LEAST/GREATEST clamp the acos() argument to
+     * [-1, 1]: floating-point rounding can otherwise push it fractionally
+     * out of that domain for a point very close to (or exactly at) a
+     * center, which would make acos() return NULL.
+     */
+    public static function nearestTo(float $latitude, float $longitude, int $limit): array
+    {
+        return DB::select('
+            SELECT id, name, type, address, latitude, longitude, capacity_persons, status,
+                   (6371000 * ACOS(LEAST(1, GREATEST(-1,
+                       COS(RADIANS(?)) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(?)) +
+                       SIN(RADIANS(?)) * SIN(RADIANS(latitude))
+                   )))) AS distance_meters
+            FROM evacuation_centers
+            WHERE status IN (\'active\', \'on_standby\')
+              AND latitude IS NOT NULL AND longitude IS NOT NULL
+            ORDER BY distance_meters ASC
+            LIMIT ?
+        ', [$latitude, $longitude, $latitude, $limit]);
     }
 }

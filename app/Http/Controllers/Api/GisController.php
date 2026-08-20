@@ -16,26 +16,33 @@ class GisController extends Controller
      */
     public function mapData()
     {
-        $centerFeatures = EvacuationCenter::with('barangay')->get()->map(function (EvacuationCenter $center) {
-            return [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [(float) $center->longitude, (float) $center->latitude],
-                ],
-                'properties' => [
-                    'id' => $center->id,
-                    'kind' => 'evacuation_center',
-                    'name' => $center->name,
-                    'type' => $center->type,
-                    'status' => $center->status,
-                    'barangay' => $center->barangay?->name,
-                    'capacity_persons' => $center->capacity_persons,
-                    'current_occupancy' => $center->currentOccupancy(),
-                    'occupancy_percent' => $center->occupancyPercent(),
-                ],
-            ];
-        })->values();
+        // A GeoJSON Point requires real coordinates -- centers without a
+        // confirmed map location yet (latitude/longitude are nullable) are
+        // excluded here rather than plotted at a fake (0,0) fallback.
+        $centerFeatures = EvacuationCenter::with('barangay')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get()
+            ->map(function (EvacuationCenter $center) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [(float) $center->longitude, (float) $center->latitude],
+                    ],
+                    'properties' => [
+                        'id' => $center->id,
+                        'kind' => 'evacuation_center',
+                        'name' => $center->name,
+                        'type' => $center->type,
+                        'status' => $center->status,
+                        'barangay' => $center->barangay?->name,
+                        'capacity_persons' => $center->capacity_persons,
+                        'current_occupancy' => $center->currentOccupancy(),
+                        'occupancy_percent' => $center->occupancyPercent(),
+                    ],
+                ];
+            })->values();
 
         $hazardFeatures = HazardProneArea::with('mapLayers')->get()
             ->map(function (HazardProneArea $area) {

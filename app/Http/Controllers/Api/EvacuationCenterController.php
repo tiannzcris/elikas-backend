@@ -126,16 +126,7 @@ class EvacuationCenterController extends Controller
         ]);
 
         $limit = (int) ($validated['limit'] ?? 10);
-        $point = "POINT({$validated['longitude']} {$validated['latitude']})";
-
-        $centers = DB::select("
-            SELECT id, name, type, address, latitude, longitude, capacity_persons, status,
-                   ST_Distance_Sphere(location, ST_GeomFromText(?)) AS distance_meters
-            FROM evacuation_centers
-            WHERE status IN ('active', 'on_standby')
-            ORDER BY distance_meters ASC
-            LIMIT {$limit}
-        ", [$point]);
+        $centers = EvacuationCenter::nearestTo((float) $validated['latitude'], (float) $validated['longitude'], $limit);
 
         return $this->success($centers);
     }
