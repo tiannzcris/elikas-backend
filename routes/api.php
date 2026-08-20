@@ -76,6 +76,20 @@ Route::prefix('v1')->group(function () {
             Route::get('/evacuation-centers/nearest', [EvacuationCenterController::class, 'nearest']);
             Route::get('/evacuation-centers/{evacuationCenter}', [EvacuationCenterController::class, 'show']);
 
+            // Creating a center is open to barangay officials too -- CSWDO
+            // verifying every potential site across every barangay
+            // (including distant ones) is a real logistical burden, while
+            // local officials already know their own community's available
+            // sites. Locked to the official's own barangay and scoped so
+            // they may only ever edit centers they created themselves --
+            // both enforced in the controller, not here (a barangay
+            // official editing someone else's center in their OWN barangay
+            // must still be rejected, which plain role middleware can't
+            // express). Facility-checklist updates stay administrator/CSWD
+            // only, below -- not part of this change.
+            Route::post('/evacuation-centers', [EvacuationCenterController::class, 'store']);
+            Route::patch('/evacuation-centers/{evacuationCenter}', [EvacuationCenterController::class, 'update']);
+
             Route::get('/hazard-areas', [HazardProneAreaController::class, 'index']);
             Route::get('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'show']);
 
@@ -125,8 +139,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/evacuation-events', [EvacuationEventController::class, 'store']);
             Route::patch('/evacuation-events/{evacuationEvent}', [EvacuationEventController::class, 'update']);
 
-            Route::post('/evacuation-centers', [EvacuationCenterController::class, 'store']);
-            Route::patch('/evacuation-centers/{evacuationCenter}', [EvacuationCenterController::class, 'update']);
             Route::put('/evacuation-centers/{evacuationCenter}/facilities', [EvacuationCenterController::class, 'updateFacilities']);
 
             Route::post('/hazard-areas', [HazardProneAreaController::class, 'store']);

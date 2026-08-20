@@ -12,7 +12,7 @@ class EvacuationCenter extends Model
     protected $fillable = [
         'barangay_id', 'name', 'type', 'address', 'latitude', 'longitude',
         'capacity_families', 'capacity_persons', 'camp_manager_name',
-        'camp_manager_contact', 'status',
+        'camp_manager_contact', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -49,6 +49,11 @@ class EvacuationCenter extends Model
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function facilities(): HasMany

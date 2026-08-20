@@ -151,6 +151,7 @@
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                         <select id="center-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                        <p id="center-barangay-lock-note" class="text-xs text-gray-400 mt-1 hidden">Locked to your own barangay.</p>
                     </div>
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Type</label>
@@ -222,13 +223,24 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-    // Only administrators/CSWD personnel manage centers -- barangay
-    // officials can view but the "Add"/"Edit" actions aren't relevant to
-    // them, and would just 403 against the role-restricted routes anyway.
+    // Barangay officials can now create centers too (locked to their own
+    // barangay -- see openCenterModal()), so the "Add" button is open to
+    // every role. Editing stays narrower: a barangay official may only
+    // edit centers THEY created themselves (checked per-card in
+    // renderCards() below via c.created_by), while admin/CSWD can edit any
+    // center regardless of creator.
     const user = Api.getUser();
-    const canManageCenters = user && user.role !== 'barangay_official';
+    const isBarangayOfficial = user && user.role === 'barangay_official';
+    const canManageCenters = !! user;
     if (canManageCenters) {
         document.getElementById('add-center-btn').classList.remove('hidden');
+    }
+
+    function canEditCenter(center) {
+        if (! user) return false;
+        if (! isBarangayOfficial) return true;
+
+        return center.created_by === user.id;
     }
 
     const statusColors = {
@@ -341,7 +353,7 @@
                             ${facilities.length ? `${facilitiesAvailable}/${facilities.length} facilities available` : 'No facility checklist recorded'}
                         </div>
                     </a>
-                    ${canManageCenters ? `
+                    ${canEditCenter(c) ? `
                         <div class="flex justify-end mt-2 pt-2 border-t border-gray-100">
                             <button type="button" class="edit-center-btn text-xs text-brand hover:underline" data-id="${c.id}">Edit</button>
                         </div>
@@ -565,6 +577,16 @@
                 barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
         } catch (error) {
             // Dropdown just stays at its default single option if this fails.
+        }
+
+        // A barangay official can't set (or change, via edit) the
+        // barangay away from their own -- locked here client-side to make
+        // that visible, and enforced server-side regardless (the API
+        // never trusts this field for that role).
+        if (isBarangayOfficial) {
+            document.getElementById('center-barangay_id').value = user.barangay?.id ?? '';
+            document.getElementById('center-barangay_id').disabled = true;
+            document.getElementById('center-barangay-lock-note').classList.remove('hidden');
         }
 
         if (editingCenterId === null) {

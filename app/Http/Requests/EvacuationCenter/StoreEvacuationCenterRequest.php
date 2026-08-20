@@ -8,9 +8,11 @@ class StoreEvacuationCenterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Role-restricted at the route level (administrator, cswd_personnel
-        // only) -- evacuation centers are city infrastructure, not something
-        // barangay officials maintain themselves.
+        // Role-restricted at the route level (administrator, cswd_personnel,
+        // barangay_official). barangay_official is further scoped to their
+        // own barangay in the controller -- the client-submitted barangay_id
+        // is never trusted for that role, so no barangay-specific check
+        // belongs here in the request itself.
         return true;
     }
 

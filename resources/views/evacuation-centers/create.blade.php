@@ -18,6 +18,7 @@
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                 <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <p id="barangay-lock-note" class="text-xs text-gray-400 mt-1 hidden">Locked to your own barangay.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Type</label>
@@ -89,6 +90,9 @@
     const isEdit = pathParts.includes('edit');
     const centerId = isEdit ? pathParts[1] : null;
 
+    const user = Api.getUser();
+    const isBarangayOfficial = user && user.role === 'barangay_official';
+
     // Ligao City, Albay -- reasonable default center/zoom until the user
     // clicks (or until the existing center's coordinates are loaded below,
     // in edit mode). This map is never inside a hidden container on this
@@ -127,6 +131,16 @@
             document.getElementById('barangay_id').innerHTML =
                 '<option value="">Select barangay</option>' +
                 barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            // A barangay official can't set (or change, via edit) the
+            // barangay away from their own -- locked here client-side to
+            // make that visible, and enforced server-side regardless (the
+            // API never trusts this field for that role).
+            if (isBarangayOfficial) {
+                document.getElementById('barangay_id').value = user.barangay?.id ?? '';
+                document.getElementById('barangay_id').disabled = true;
+                document.getElementById('barangay-lock-note').classList.remove('hidden');
+            }
 
             if (isEdit) {
                 document.getElementById('page-title').textContent = 'Edit evacuation center';

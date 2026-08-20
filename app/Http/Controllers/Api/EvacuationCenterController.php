@@ -48,6 +48,17 @@ class EvacuationCenterController extends Controller
     public function store(StoreEvacuationCenterRequest $request)
     {
         $validated = $request->validated();
+        $user = $request->user();
+
+        // A barangay official may only ever create a center in their own
+        // barangay -- the client-submitted barangay_id is never trusted for
+        // this role, same principle as AuthorizesBarangayAccess elsewhere.
+        // Administrator/CSWD accounts keep full access to set any barangay.
+        if ($user->isBarangayOfficial()) {
+            $validated['barangay_id'] = $user->barangay_id;
+        }
+
+        $validated['created_by'] = $user->id;
 
         $center = DB::transaction(function () use ($validated, $request) {
             $center = EvacuationCenter::create($validated);
@@ -71,7 +82,23 @@ class EvacuationCenterController extends Controller
 
     public function update(UpdateEvacuationCenterRequest $request, EvacuationCenter $evacuationCenter)
     {
+        $user = $request->user();
+
+        // Administrator/CSWD may edit any center. A barangay official may
+        // only edit centers they themselves created -- checked against the
+        // actual creator, not just a barangay match, since two different
+        // officials could serve the same barangay over time.
+        if ($user->isBarangayOfficial() && $evacuationCenter->created_by !== $user->id) {
+            return $this->error('You may only edit evacuation centers you created yourself.', 403);
+        }
+
         $validated = $request->validated();
+
+        // Same barangay lock as store() -- editing is not a loophole to
+        // reassign a center to a different barangay.
+        if ($user->isBarangayOfficial()) {
+            $validated['barangay_id'] = $user->barangay_id;
+        }
 
         $evacuationCenter->update($validated);
 
