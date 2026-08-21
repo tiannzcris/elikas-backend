@@ -82,6 +82,18 @@
             <p class="text-sm text-gray-600 mb-2">
                 Location (optional) <span id="coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
             </p>
+            <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
+                <div class="flex-1">
+                    <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
+                    <input type="text" id="coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <button type="button" id="coords-paste-btn"
+                    class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-gray-50">
+                    Set
+                </button>
+            </div>
+            <p id="coords-paste-error" class="hidden text-xs text-red-600 mb-2"></p>
             <div id="picker-map" style="height: 350px; border-radius: 0.5rem;"></div>
         </div>
 
@@ -225,6 +237,52 @@
     }
 
     map.on('click', (e) => setMarker(e.latlng.lat, e.latlng.lng));
+
+    // Accepts exactly what Google Maps' right-click "Copy coordinates"
+    // gives you -- "13.139123, 123.532145" -- so a precise location found
+    // externally doesn't have to be eyeballed by clicking the map.
+    function parseCoordinatePaste(text) {
+        const parts = text.split(',').map((s) => s.trim());
+        if (parts.length !== 2) return null;
+
+        const lat = Number(parts[0]);
+        const lng = Number(parts[1]);
+        if (! Number.isFinite(lat) || ! Number.isFinite(lng)) return null;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+        return { lat, lng };
+    }
+
+    function applyPastedCoordinates() {
+        const input = document.getElementById('coords-paste-input');
+        const errorEl = document.getElementById('coords-paste-error');
+        errorEl.classList.add('hidden');
+
+        const parsed = parseCoordinatePaste(input.value);
+        if (! parsed) {
+            errorEl.textContent = 'Enter coordinates as "latitude, longitude", e.g. 13.139123, 123.532145.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        // Same setMarker() the map-click handler uses, so pasted
+        // coordinates get identical visual confirmation (and the user can
+        // still fine-tune by clicking afterward) -- and map.setView() so
+        // the picked point is actually visible, not just marked somewhere
+        // off-screen.
+        map.setView([parsed.lat, parsed.lng], 16);
+        setMarker(parsed.lat, parsed.lng);
+    }
+
+    document.getElementById('coords-paste-btn').addEventListener('click', applyPastedCoordinates);
+    document.getElementById('coords-paste-input').addEventListener('keydown', (e) => {
+        // Prevents Enter from submitting the whole form instead (this
+        // input lives inside the center form) -- pressing Enter here
+        // should just apply the pasted coordinates.
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        applyPastedCoordinates();
+    });
 
     // Live preview of a newly-picked file -- replaces whatever was shown
     // before (the existing photo in edit mode, or nothing), independent

@@ -215,6 +215,18 @@
                     <p class="text-sm text-gray-600 mb-2">
                         Location (optional) <span id="center-coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
                     </p>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
+                            <input type="text" id="center-coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <button type="button" id="center-coords-paste-btn"
+                            class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-white">
+                            Set
+                        </button>
+                    </div>
+                    <p id="center-coords-paste-error" class="hidden text-xs text-red-600 mb-2"></p>
                     <div id="center-picker-map" style="height: 300px; border-radius: 0.5rem;"></div>
                 </div>
 
@@ -566,6 +578,57 @@
     let selectedLng = null;
     let editingCenterId = null;
 
+    // Shared by the map-click handler, the paste-coordinates input, and
+    // edit-mode's existing-location prefill -- one place that actually
+    // moves the marker and updates selectedLat/selectedLng, instead of
+    // three near-identical copies.
+    function setCenterMarker(lat, lng) {
+        selectedLat = lat;
+        selectedLng = lng;
+
+        const latlng = [lat, lng];
+        if (centerMarker) {
+            centerMarker.setLatLng(latlng);
+        } else {
+            centerMarker = L.marker(latlng).addTo(centerPickerMap);
+        }
+
+        document.getElementById('center-coords-display').textContent =
+            `(${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+        document.getElementById('center-coords-display').classList.remove('text-gray-400');
+    }
+
+    // Accepts exactly what Google Maps' right-click "Copy coordinates"
+    // gives you -- "13.139123, 123.532145" -- so a precise location found
+    // externally doesn't have to be eyeballed by clicking the map.
+    function parseCoordinatePaste(text) {
+        const parts = text.split(',').map((s) => s.trim());
+        if (parts.length !== 2) return null;
+
+        const lat = Number(parts[0]);
+        const lng = Number(parts[1]);
+        if (! Number.isFinite(lat) || ! Number.isFinite(lng)) return null;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+        return { lat, lng };
+    }
+
+    function applyPastedCenterCoordinates() {
+        const input = document.getElementById('center-coords-paste-input');
+        const errorEl = document.getElementById('center-coords-paste-error');
+        errorEl.classList.add('hidden');
+
+        const parsed = parseCoordinatePaste(input.value);
+        if (! parsed) {
+            errorEl.textContent = 'Enter coordinates as "latitude, longitude", e.g. 13.139123, 123.532145.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        centerPickerMap.setView([parsed.lat, parsed.lng], 16);
+        setCenterMarker(parsed.lat, parsed.lng);
+    }
+
     function initCenterPickerMap() {
         if (centerPickerMap) return;
 
@@ -582,19 +645,15 @@
         });
         L.control.layers({ 'Street': streetLayer, 'Satellite': satelliteLayer }).addTo(centerPickerMap);
 
-        centerPickerMap.on('click', (e) => {
-            selectedLat = e.latlng.lat;
-            selectedLng = e.latlng.lng;
+        centerPickerMap.on('click', (e) => setCenterMarker(e.latlng.lat, e.latlng.lng));
 
-            if (centerMarker) {
-                centerMarker.setLatLng(e.latlng);
-            } else {
-                centerMarker = L.marker(e.latlng).addTo(centerPickerMap);
-            }
-
-            document.getElementById('center-coords-display').textContent =
-                `(${selectedLat.toFixed(6)}, ${selectedLng.toFixed(6)})`;
-            document.getElementById('center-coords-display').classList.remove('text-gray-400');
+        document.getElementById('center-coords-paste-btn').addEventListener('click', applyPastedCenterCoordinates);
+        document.getElementById('center-coords-paste-input').addEventListener('keydown', (e) => {
+            // Prevents Enter from submitting the whole form instead (this
+            // input lives inside the center form).
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            applyPastedCenterCoordinates();
         });
     }
 
@@ -684,6 +743,7 @@
         selectedLng = null;
         document.getElementById('center-coords-display').textContent = '(click the map to set, or leave unset for now)';
         document.getElementById('center-coords-display').classList.add('text-gray-400');
+        document.getElementById('center-coords-paste-error').classList.add('hidden');
 
         document.getElementById('add-center-modal').classList.remove('hidden');
         document.getElementById('add-center-modal').classList.add('flex');
@@ -771,14 +831,7 @@
                 }
 
                 centerPickerMap.setView([center.latitude, center.longitude], 16);
-
-                selectedLat = center.latitude;
-                selectedLng = center.longitude;
-                centerMarker = L.marker([center.latitude, center.longitude]).addTo(centerPickerMap);
-
-                document.getElementById('center-coords-display').textContent =
-                    `(${center.latitude.toFixed(6)}, ${center.longitude.toFixed(6)})`;
-                document.getElementById('center-coords-display').classList.remove('text-gray-400');
+                setCenterMarker(center.latitude, center.longitude);
             }, 100);
         } catch (error) {
             const box = document.getElementById('center-modal-errors');
