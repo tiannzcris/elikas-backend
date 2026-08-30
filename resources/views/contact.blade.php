@@ -5,15 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact · E-LIKAS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { DEFAULT: '#2F5496', dark: '#1F3A6E', light: '#EAF0FB' } } } } };
     </script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
-        @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
-        body { animation: page-fade-in 0.3s ease-out; }
-        body.page-fade-out { opacity: 0; transition: opacity 0.2s ease-in; }
+
+        /* Page transition: content collapses toward center on the way
+           out, then snaps into place with a slight overshoot -- reads as
+           "suddenly forming" rather than a slow fade. Distinct from AOS's
+           scroll-triggered reveals below, which animate individual
+           sections as they enter the viewport within a page. */
+        @keyframes page-reform {
+            0% { opacity: 0; transform: scale(0.94); }
+            60% { opacity: 1; transform: scale(1.01); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        body { animation: page-reform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: center top; }
+        body.page-collapse { opacity: 0; transform: scale(0.94); transition: opacity 0.25s ease-in, transform 0.25s ease-in; }
+
+        /* Lead paragraph: a slightly larger, lighter-weight treatment for
+           the first paragraph under a heading, distinct from the smaller
+           supporting text under it -- gives desktop readers a size step
+           beyond "everything is text-sm", without changing anything on
+           mobile. */
+        .lead-text { font-size: 1rem; line-height: 1.7; color: #4B5563; }
+        @media (min-width: 1024px) {
+            .lead-text { font-size: 1.125rem; line-height: 1.8; }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
@@ -47,52 +68,54 @@
 
     <main class="flex-1">
         <section class="max-w-6xl mx-auto px-6 py-16 sm:py-20">
-            <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">Contact</p>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">Contact Us</h1>
-            <div class="w-12 h-1 bg-brand rounded-full mb-5"></div>
-            <p class="text-sm text-gray-600 mb-12 max-w-2xl">
-                For questions about E-LIKAS, evacuation information, or to report an
-                issue with the app, reach out through any of the channels below.
-            </p>
+            <div data-aos="fade-up">
+                <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">Contact</p>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3">Contact Us</h1>
+                <div class="w-12 h-1 bg-brand rounded-full mb-5"></div>
+                <p class="lead-text mb-12 max-w-2xl">
+                    For questions about E-LIKAS, evacuation information, or to report an
+                    issue with the app, reach out through any of the channels below.
+                </p>
+            </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
-                <div class="lg:col-span-2">
-                    <h2 class="font-bold text-gray-900">City Social Welfare and Development Office (CSWDO)</h2>
-                    <p class="text-sm text-gray-500 mb-6">Ligao City, Albay</p>
+                <div class="lg:col-span-2" data-aos="fade-right">
+                    <h2 class="font-bold text-gray-900 lg:text-lg">City Social Welfare and Development Office (CSWDO)</h2>
+                    <p class="text-sm lg:text-base text-gray-500 mb-6">Ligao City, Albay</p>
 
                     <div class="space-y-5">
                         <div class="flex items-start gap-3">
                             <i class="ti ti-phone text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Phone</p>
-                                <p class="text-sm text-gray-700">(052) 201 1249</p>
+                                <p class="text-sm lg:text-base text-gray-700">(052) 201 1249</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-mail text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Email</p>
-                                <p class="text-sm text-gray-700">cswdoligao@gmail.com</p>
+                                <p class="text-sm lg:text-base text-gray-700">cswdoligao@gmail.com</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-brand-facebook text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Facebook</p>
-                                <p class="text-sm text-gray-700">CSWDO LIGAO</p>
+                                <p class="text-sm lg:text-base text-gray-700">CSWDO LIGAO</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-map-pin text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Office Address</p>
-                                <p class="text-sm text-gray-700">New City Hall Complex, Maharlika Highway, Binatagan, Ligao City</p>
+                                <p class="text-sm lg:text-base text-gray-700">New City Hall Complex, Maharlika Highway, Binatagan, Ligao City</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-3">
+                <div class="lg:col-span-3" data-aos="fade-left">
                     <img src="/images/contact-urgent-emergencies-card.png" alt="For urgent emergencies" class="w-full h-auto object-contain mb-6">
                     <img src="/images/contact-hotlines-phone-mockup.png" alt="Emergency hotlines in the E-LIKAS mobile app" class="w-full max-w-xs mx-auto h-auto object-contain">
                 </div>
@@ -176,13 +199,18 @@
             if (url.pathname === window.location.pathname && url.hash) return;
 
             e.preventDefault();
-            document.body.classList.add('page-fade-out');
-            setTimeout(() => { window.location.href = link.href; }, 200);
+            document.body.classList.add('page-collapse');
+            setTimeout(() => { window.location.href = link.href; }, 250);
         });
 
         window.addEventListener('pageshow', () => {
-            document.body.classList.remove('page-fade-out');
+            document.body.classList.remove('page-collapse');
         });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({ duration: 600, once: true, offset: 60, easing: 'ease-out-cubic' });
     </script>
 </body>
 </html>

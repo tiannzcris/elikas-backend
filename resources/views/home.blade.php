@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-LIKAS · CSWDO Ligao City</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,9 +21,38 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
         .hidden { display: none; }
-        @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
-        body { animation: page-fade-in 0.3s ease-out; }
-        body.page-fade-out { opacity: 0; transition: opacity 0.2s ease-in; }
+
+        /* Page transition: content collapses toward center on the way
+           out, then snaps into place with a slight overshoot -- reads as
+           "suddenly forming" rather than a slow fade. Distinct from AOS's
+           scroll-triggered reveals below, which animate individual
+           sections as they enter the viewport within a page. */
+        @keyframes page-reform {
+            0% { opacity: 0; transform: scale(0.94); }
+            60% { opacity: 1; transform: scale(1.01); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        body { animation: page-reform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: center top; }
+        body.page-collapse { opacity: 0; transform: scale(0.94); transition: opacity 0.25s ease-in, transform 0.25s ease-in; }
+
+        /* Lead paragraph: a slightly larger, lighter-weight treatment for
+           the first paragraph under a heading, distinct from the smaller
+           supporting text under it -- gives desktop readers a size step
+           beyond "everything is text-sm", without changing anything on
+           mobile (text-base is this project's mobile default already). */
+        .lead-text { font-size: 1rem; line-height: 1.7; color: #4B5563; }
+        @media (min-width: 1024px) {
+            .lead-text { font-size: 1.125rem; line-height: 1.8; }
+        }
+
+        /* Modal open/close: was an instant hidden<->flex snap with no
+           transition at all -- now a short fade+scale, toggled via the
+           .modal-open class added/removed one frame after display
+           actually changes (see openModal()/closeModal()). */
+        .modal-backdrop-anim { opacity: 0; transition: opacity 0.2s ease; }
+        .modal-card-anim { opacity: 0; transform: scale(0.95) translateY(8px); transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-open .modal-backdrop-anim { opacity: 1; }
+        .modal-open .modal-card-anim { opacity: 1; transform: scale(1) translateY(0); }
     </style>
 </head>
 <body class="bg-white text-gray-900">
@@ -60,13 +90,13 @@
 
         <div class="relative max-w-7xl mx-auto px-6 py-20 sm:py-28">
             <div class="max-w-2xl">
-                <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3">Electronic Ligao Kaligtasan Sistema</p>
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-5">Know where to go, before you need to.</h1>
-                <p class="text-blue-100/80 text-base mb-8 max-w-lg">
+                <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3" data-aos="fade-right" data-aos-duration="500">Electronic Ligao Kaligtasan Sistema</p>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5" data-aos="fade-right" data-aos-duration="600" data-aos-delay="100">Know where to go, before you need to.</h1>
+                <p class="text-blue-100/80 text-base lg:text-lg lg:leading-relaxed mb-8 max-w-lg" data-aos="fade-right" data-aos-duration="600" data-aos-delay="200">
                     E-LIKAS helps residents of Ligao City find evacuation centers, track disaster
                     alerts, and stay prepared — with or without an internet connection.
                 </p>
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap gap-3" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
                     <button type="button" id="mobile-app-btn"
                         class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg px-5 py-3">
                         <i class="ti ti-device-mobile" style="font-size: 16px;" aria-hidden="true"></i> Get the Mobile App
@@ -81,19 +111,19 @@
     </section>
 
     <section class="max-w-7xl mx-auto px-6 py-16 sm:py-20">
-        <div class="text-center mb-12 max-w-2xl mx-auto">
+        <div class="text-center mb-12 max-w-2xl mx-auto" data-aos="fade-up">
             <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">What it does</p>
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Built around the two moments that matter most in a disaster.</h2>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Built around the two moments that matter most in a disaster.</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="border border-gray-200 rounded-2xl p-6">
+            <div class="border border-gray-200 rounded-2xl p-6" data-aos="fade-right" data-aos-duration="600">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                         <i class="ti ti-calendar-check text-brand" style="font-size: 20px;" aria-hidden="true"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-gray-900">Before a disaster</p>
+                        <p class="font-bold text-gray-900 lg:text-lg">Before a disaster</p>
                         <p class="text-xs text-brand font-medium">Stay ahead of it.</p>
                     </div>
                 </div>
@@ -101,34 +131,34 @@
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-map-pin text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Hazard maps</p>
-                            <p class="text-xs text-gray-500">View hazard and risk areas in Ligao City.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Hazard maps</p>
+                            <p class="text-xs lg:text-sm text-gray-500">View hazard and risk areas in Ligao City.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-bell text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Real-time alerts</p>
-                            <p class="text-xs text-gray-500">Receive important updates and announcements early.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Real-time alerts</p>
+                            <p class="text-xs lg:text-sm text-gray-500">Receive important updates and announcements early.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-phone text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Emergency hotlines</p>
-                            <p class="text-xs text-gray-500">One tap access to important contacts when you need help.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Emergency hotlines</p>
+                            <p class="text-xs lg:text-sm text-gray-500">One tap access to important contacts when you need help.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="border border-gray-200 rounded-2xl p-6">
+            <div class="border border-gray-200 rounded-2xl p-6" data-aos="fade-left" data-aos-duration="600">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
                         <i class="ti ti-door-exit text-brand" style="font-size: 20px;" aria-hidden="true"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-gray-900">During a disaster</p>
+                        <p class="font-bold text-gray-900 lg:text-lg">During a disaster</p>
                         <p class="text-xs text-brand font-medium">Get to safety.</p>
                     </div>
                 </div>
@@ -136,22 +166,22 @@
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-map-pin-filled text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Find nearest evacuation center</p>
-                            <p class="text-xs text-gray-500">See open evacuation centers near you.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Find nearest evacuation center</p>
+                            <p class="text-xs lg:text-sm text-gray-500">See open evacuation centers near you.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-route text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Get directions</p>
-                            <p class="text-xs text-gray-500">Navigate your way to a safe place.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Get directions</p>
+                            <p class="text-xs lg:text-sm text-gray-500">Navigate your way to a safe place.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 py-3">
                         <i class="ti ti-wifi-off text-brand shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800">Offline access</p>
-                            <p class="text-xs text-gray-500">Access last-loaded information even without an internet connection.</p>
+                            <p class="text-sm lg:text-base font-semibold text-gray-800">Offline access</p>
+                            <p class="text-xs lg:text-sm text-gray-500">Access last-loaded information even without an internet connection.</p>
                         </div>
                     </div>
                 </div>
@@ -204,9 +234,9 @@
         blurred background; closing (X or "Back to Home") returns to this
         same page without navigating away. --}}
     <div id="about-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
-        <div id="about-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div id="about-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-anim"></div>
 
-        <div class="relative bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <div id="about-modal-card" class="relative bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 modal-card-anim">
             <div class="flex items-center justify-between mb-6">
                 <button type="button" id="about-modal-close-1" class="flex items-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-full pl-2 pr-4 py-1.5 hover:bg-gray-50">
                     <span class="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center">
@@ -221,12 +251,12 @@
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">What is E-LIKAS?</h2>
                     <div class="w-12 h-1 bg-brand rounded-full mb-4"></div>
 
-                    <p class="text-sm text-gray-600 mb-4">
+                    <p class="lead-text mb-4">
                         E-LIKAS (Electronic Ligao Kaligtasan Sistema) is a disaster evacuation
                         management system built for the residents and disaster response staff of
                         Ligao City, Albay.
                     </p>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
                         The system connects two sides of disaster response: <strong>residents</strong>,
                         who need <strong>fast, reliable information about where to go and what's
                         happening</strong>, and <strong>CSWDO and barangay staff</strong>, who need to
@@ -321,9 +351,9 @@
         e.g. SMS messages). Shows the download warnings BEFORE the real
         download link, rather than linking straight to the .apk. --}}
     <div id="mobile-app-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
-        <div id="mobile-app-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div id="mobile-app-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-anim"></div>
 
-        <div class="relative bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-8 text-center">
+        <div id="mobile-app-modal-card" class="relative bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-8 text-center modal-card-anim">
             <button type="button" id="mobile-app-modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
                 <i class="ti ti-x" style="font-size: 16px;" aria-hidden="true"></i>
             </button>
@@ -357,12 +387,21 @@
             const el = document.getElementById(id);
             el.classList.remove('hidden');
             el.classList.add('flex');
+            // Double rAF: lets the browser actually paint the "closed"
+            // (opacity:0, scaled-down) state first, so adding modal-open
+            // next frame triggers a real transition instead of jumping
+            // straight to the open state.
+            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('modal-open')));
         }
 
         function closeModal(id) {
             const el = document.getElementById(id);
-            el.classList.add('hidden');
-            el.classList.remove('flex');
+            if (! el.classList.contains('modal-open')) return;
+            el.classList.remove('modal-open');
+            setTimeout(() => {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }, 250);
         }
 
         document.getElementById('about-modal-open-btn').addEventListener('click', () => openModal('about-modal'));
@@ -414,13 +453,18 @@
             if (url.pathname === window.location.pathname && url.hash) return;
 
             e.preventDefault();
-            document.body.classList.add('page-fade-out');
-            setTimeout(() => { window.location.href = link.href; }, 200);
+            document.body.classList.add('page-collapse');
+            setTimeout(() => { window.location.href = link.href; }, 250);
         });
 
         window.addEventListener('pageshow', () => {
-            document.body.classList.remove('page-fade-out');
+            document.body.classList.remove('page-collapse');
         });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({ duration: 600, once: true, offset: 60, easing: 'ease-out-cubic' });
     </script>
 </body>
 </html>
