@@ -46,6 +46,11 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:administrator,cswd_personnel,barangay_official')->group(function () {
             Route::post('/families/register', [FamilyController::class, 'store']);
             Route::get('/families', [FamilyController::class, 'index']);
+            // Must be registered BEFORE '/families/{family}' below, same
+            // reasoning as '/evacuation-centers/nearest' further down --
+            // otherwise Laravel tries to resolve "stats" as a family id
+            // via route-model binding and 404s instead of running this.
+            Route::get('/families/stats', [FamilyController::class, 'stats']);
             Route::get('/families/{family}', [FamilyController::class, 'show']);
             Route::post('/families/{family}/members', [EvacueeController::class, 'addMember']);
             Route::patch('/families/{family}/evacuation-center', [FamilyController::class, 'updateEvacuationCenter']);

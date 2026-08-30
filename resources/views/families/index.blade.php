@@ -23,7 +23,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Households</p>
                 <p id="stat-households" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Families registered</p>
+                <p class="text-xs text-gray-400 italic mt-1">Currently registered, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-home text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -33,7 +33,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total persons</p>
                 <p id="stat-persons" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">All registered members</p>
+                <p class="text-xs text-gray-400 italic mt-1">Currently displaced, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -222,6 +222,13 @@
     let allFamilies = [];
     let sexChartInstance = null;
 
+    // Real, non-truncated totals from /families/stats -- allFamilies (below)
+    // is capped at per_page=200 for the table/breakdown cards, so the true
+    // household/person counts (and "Showing X of Y") are tracked separately
+    // rather than derived from that array's length.
+    let totalHouseholds = 0;
+    let totalPersonsCount = 0;
+
     const AVATAR_COLORS = ['#2563EB', '#16A34A', '#D97706', '#DB2777', '#7C3AED', '#0891B2'];
 
     function avatarFor(name) {
@@ -380,17 +387,26 @@
 
     function renderStatCards(families) {
         const members = allMembers(families);
-        const totalPersons = members.length;
         const children = members.filter((m) => m.age < 18).length;
         const seniors = members.filter((m) => m.age_bracket === 'senior_citizen').length;
         const pwd = members.filter((m) => m.sectoral?.is_pwd).length;
 
-        document.getElementById('stat-households').textContent = families.length;
-        document.getElementById('stat-persons').textContent = totalPersons;
+        // Households/Total persons use the real counts from /families/stats
+        // (totalHouseholds/totalPersonsCount, set in loadFamilies()) rather
+        // than families.length/members.length -- this page's fetched
+        // families array is capped at per_page=200, so those would silently
+        // undercount past 200 with no indication anything was truncated.
+        document.getElementById('stat-households').textContent = totalHouseholds;
+        document.getElementById('stat-persons').textContent = totalPersonsCount;
         document.getElementById('stat-children').textContent = children;
         document.getElementById('stat-seniors').textContent = seniors;
         document.getElementById('stat-pwd').textContent = pwd;
 
+        // Percentages are still computed against this page's own fetched
+        // members (not totalPersonsCount) -- children/seniors/pwd are only
+        // known for the families actually fetched, so the percentage has to
+        // be relative to that same set to stay internally consistent.
+        const totalPersons = members.length;
         const pct = (n) => totalPersons ? `${Math.round(n / totalPersons * 100)}% of total persons` : '&mdash;';
         document.getElementById('stat-children-pct').innerHTML = pct(children);
         document.getElementById('stat-seniors-pct').innerHTML = pct(seniors);
@@ -422,7 +438,7 @@
         });
 
         document.getElementById('showing-count').textContent = filtered.length;
-        document.getElementById('total-count').textContent = allFamilies.length;
+        document.getElementById('total-count').textContent = totalHouseholds;
         renderTable(filtered);
     }
 
@@ -455,9 +471,15 @@
     // instead of a full page reload.
     async function loadFamilies() {
         try {
-            const [familiesResult, barangaysResult] = await Promise.all([
+            // /families/stats returns real, non-paginated counts (and
+            // defaults to CURRENT state only -- non-closed events) --
+            // decoupled from /families?per_page=200's own page size, so the
+            // stat cards below are never silently truncated once total
+            // households pass 200.
+            const [familiesResult, barangaysResult, statsResult] = await Promise.all([
                 Api.get('/families?per_page=200'),
                 Api.get('/barangays'),
+                Api.get('/families/stats'),
             ]);
 
             // Rebuilt (not appended) each call -- otherwise a re-run after
@@ -467,10 +489,12 @@
                 barangaysResult.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
 
             allFamilies = familiesResult.data.data;
+            totalHouseholds = statsResult.data.households;
+            totalPersonsCount = statsResult.data.total_persons;
             renderStatCards(allFamilies);
             renderSidebar(allFamilies);
             document.getElementById('showing-count').textContent = allFamilies.length;
-            document.getElementById('total-count').textContent = allFamilies.length;
+            document.getElementById('total-count').textContent = totalHouseholds;
             renderTable(allFamilies);
         } catch (error) {
             showFormErrors(error);

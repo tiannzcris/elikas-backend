@@ -10,6 +10,7 @@ use App\Models\Evacuee;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
 use App\Models\SystemLog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -114,6 +115,8 @@ class FamilyController extends Controller
      * List families, optionally filtered by barangay or event. Barangay
      * officials only ever see their own barangay's families, regardless of
      * what filter they pass -- enforced here, not just left to the client.
+     * Defaults to CURRENT state only (non-closed events) when no specific
+     * event is requested -- see scopeToRequest().
      */
     public function index(Request $request)
     {
@@ -128,20 +131,34 @@ class FamilyController extends Controller
         $query = Family::query()->withCount('members')
             ->with(['barangay', 'evacuationEvent', 'headOfFamily', 'members.evacuationRecords.evacuationCenter']);
 
-        $user = $request->user();
-        if ($user->isBarangayOfficial()) {
-            $query->where('barangay_id', $user->barangay_id);
-        } elseif ($request->filled('barangay_id')) {
-            $query->where('barangay_id', $request->integer('barangay_id'));
-        }
-
-        if ($request->filled('evacuation_event_id')) {
-            $query->where('evacuation_event_id', $request->integer('evacuation_event_id'));
-        }
+        $this->scopeToRequest($query, $request);
 
         $families = $query->latest()->paginate($request->integer('per_page', 20));
 
         return $this->success(FamilyResource::collection($families)->response()->getData(true));
+    }
+
+    /**
+     * Lightweight aggregate counts for stat cards (Dashboard's "Total
+     * evacuees", the Evacuees page's "Households"/"Total persons") --
+     * computed via direct count queries rather than fetching/paginating
+     * full family records, so these numbers are never silently truncated
+     * by whatever page size the list view underneath happens to use (the
+     * bug that produced 200 households / 709 persons when the real
+     * current-state totals were 15 / 52). Same scoping as index(), so the
+     * cards and the table they sit above always agree with each other.
+     */
+    public function stats(Request $request)
+    {
+        $query = Family::query();
+        $this->scopeToRequest($query, $request);
+
+        $familyIds = $query->pluck('id');
+
+        return $this->success([
+            'households' => $familyIds->count(),
+            'total_persons' => Evacuee::whereIn('family_id', $familyIds)->count(),
+        ]);
     }
 
     public function show(Request $request, Family $family)
@@ -212,5 +229,32 @@ class FamilyController extends Controller
             ),
             'Evacuation center updated successfully.'
         );
+    }
+
+    /**
+     * Shared by index() and stats(). Barangay officials only ever see
+     * their own barangay's families, regardless of what filter they pass.
+     * When no specific evacuation_event_id is requested, defaults to
+     * CURRENT state only (events with status != 'closed') rather than an
+     * all-time count spanning every historical closed event ever seeded
+     * -- an explicit evacuation_event_id (e.g. the evacuation-events
+     * detail page asking for one specific event's families) still always
+     * gets exactly that event, closed or not, since the caller asked for
+     * it by id, not by browsing "what's current".
+     */
+    private function scopeToRequest(Builder $query, Request $request): void
+    {
+        $user = $request->user();
+        if ($user->isBarangayOfficial()) {
+            $query->where('barangay_id', $user->barangay_id);
+        } elseif ($request->filled('barangay_id')) {
+            $query->where('barangay_id', $request->integer('barangay_id'));
+        }
+
+        if ($request->filled('evacuation_event_id')) {
+            $query->where('evacuation_event_id', $request->integer('evacuation_event_id'));
+        } else {
+            $query->whereHas('evacuationEvent', fn (Builder $q) => $q->where('status', '!=', 'closed'));
+        }
     }
 }

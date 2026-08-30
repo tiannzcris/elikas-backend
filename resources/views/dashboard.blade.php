@@ -11,8 +11,8 @@
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total evacuees</p>
-                <p id="stat-families" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Families registered</p>
+                <p id="stat-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
+                <p class="text-xs text-gray-400 italic mt-1">Currently displaced, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -171,10 +171,15 @@
 
     (async () => {
         try {
-            const result = await Api.get('/families?per_page=1');
-            document.getElementById('stat-families').textContent = result.data.meta.total;
+            // /families/stats defaults to CURRENT state only (non-closed
+            // events) and returns real counts via direct queries, not a
+            // paginated array -- total_persons is a genuine evacuee/person
+            // count, not a family/household count (this card previously
+            // showed the family total under a "Total evacuees" label).
+            const result = await Api.get('/families/stats');
+            document.getElementById('stat-evacuees').textContent = result.data.total_persons;
         } catch (error) {
-            document.getElementById('stat-families').textContent = '0';
+            document.getElementById('stat-evacuees').textContent = '0';
         }
     })();
 
