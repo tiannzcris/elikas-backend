@@ -13,18 +13,28 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
 
-        /* Page transition: content collapses toward center on the way
-           out, then snaps into place with a slight overshoot -- reads as
-           "suddenly forming" rather than a slow fade. Distinct from AOS's
-           scroll-triggered reveals below, which animate individual
-           sections as they enter the viewport within a page. */
+        /* Page transition: the destination page still pops into place on
+           load (slight overshoot past 100%, reads as "suddenly forming").
+           The OUTGOING side no longer shrinks/fades the current page to
+           reveal blank white before the real navigation starts -- that
+           was the actual source of the "matagal" complaint (an artificial
+           delay spent staring at an emptying page, on top of the
+           browser's own real page-load time). A slim top loading bar
+           (below) gives instant feedback on click instead. */
         @keyframes page-reform {
             0% { opacity: 0; transform: scale(0.94); }
             60% { opacity: 1; transform: scale(1.01); }
             100% { opacity: 1; transform: scale(1); }
         }
         body { animation: page-reform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: center top; }
-        body.page-collapse { opacity: 0; transform: scale(0.94); transition: opacity 0.25s ease-in, transform 0.25s ease-in; }
+
+        #page-loading-bar {
+            position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+            background: linear-gradient(90deg, #2F5496, #4C7BC9);
+            z-index: 9999;
+            transition: width 0.15s ease-out;
+        }
+        #page-loading-bar.active { width: 70%; }
 
         /* Lead paragraph: a slightly larger, lighter-weight treatment for
            the first paragraph under a heading, distinct from the smaller
@@ -38,6 +48,7 @@
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
+    <div id="page-loading-bar"></div>
 
     <header class="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
@@ -212,12 +223,14 @@
             if (url.pathname === window.location.pathname && url.hash) return;
 
             e.preventDefault();
-            document.body.classList.add('page-collapse');
-            setTimeout(() => { window.location.href = link.href; }, 250);
+            document.getElementById('page-loading-bar').classList.add('active');
+            setTimeout(() => { window.location.href = link.href; }, 120);
         });
 
+        // Resets the bar if the page is restored from bfcache (back/forward)
+        // still showing "active" from before the user navigated away.
         window.addEventListener('pageshow', () => {
-            document.body.classList.remove('page-collapse');
+            document.getElementById('page-loading-bar').classList.remove('active');
         });
     </script>
 
