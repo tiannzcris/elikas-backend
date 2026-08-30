@@ -65,28 +65,28 @@
                             <i class="ti ti-phone text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Phone</p>
-                                <p class="text-sm text-gray-700">[CSWDO OFFICE PHONE NUMBER]</p>
+                                <p class="text-sm text-gray-700">(052) 201 1249</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-mail text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Email</p>
-                                <p class="text-sm text-gray-700">[CSWDO OFFICE EMAIL]</p>
+                                <p class="text-sm text-gray-700">cswdoligao@gmail.com</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="ti ti-brand-facebook text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide">Facebook</p>
+                                <p class="text-sm text-gray-700">CSWDO LIGAO</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-map-pin text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">Office Address</p>
-                                <p class="text-sm text-gray-700">[CSWDO OFFICE ADDRESS]</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <i class="ti ti-clock text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
-                            <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Office Hours</p>
-                                <p class="text-sm text-gray-700">[OFFICE HOURS, e.g. "Monday to Friday, 8:00 AM - 5:00 PM"]</p>
+                                <p class="text-sm text-gray-700">New City Hall Complex, Maharlika Highway, Binatagan, Ligao City</p>
                             </div>
                         </div>
                     </div>
