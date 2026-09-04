@@ -586,9 +586,19 @@
             },
         });
 
+        // diagnostics never actually carries a "model" field -- the Python
+        // service returns one at the top level (e.g. "SARIMAX(1,1,1)x
+        // (1,1,1,7)"), but WeatherForecastService only persists
+        // result['diagnostics'] (aic/n_observations/order/seasonal_order),
+        // so d.model is always undefined. Rebuilt here from order/
+        // seasonal_order instead, which ARE always present -- same format
+        // the Python service itself used to produce that string.
         const d = forecastRow.diagnostics;
+        const modelLabel = d?.order && d?.seasonal_order
+            ? `SARIMAX(${d.order.join(',')})x(${d.seasonal_order.join(',')})`
+            : '';
         document.getElementById('sarima-diagnostics').textContent = d
-            ? `${d.model ?? ''} · AIC ${d.aic} · n=${d.n_observations} observations`.trim()
+            ? `${modelLabel} · AIC ${d.aic} · n=${d.n_observations} observations`.trim()
             : '';
     }
 
