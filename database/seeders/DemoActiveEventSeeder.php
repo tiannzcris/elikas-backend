@@ -21,9 +21,11 @@ use Illuminate\Database\Seeder;
  * ones matching this seeder's own 4 fixed variant names (see VARIANTS).
  *
  * Every family/evacuee/sample evacuation center created here is entirely
- * fabricated test data -- "[SAMPLE] ..." center names make that
- * unmistakable, and contact numbers only ever use the unallocated 0907
- * prefix so a real "Send Alert" action could never reach an actual person.
+ * fabricated test data -- flagged is_seeded = true (see resolveCenterFor())
+ * rather than a "[SAMPLE] ..." name prefix, which was purely cosmetic and
+ * had no real queryable flag behind it. Contact numbers only ever use the
+ * unallocated 0907 prefix so a real "Send Alert" action could never reach
+ * an actual person.
  *
  * Four selectable variants (different name/scale each time, so repeated
  * demo runs don't look identical to anyone who saw an earlier one).
@@ -73,6 +75,21 @@ class DemoActiveEventSeeder extends Seeder
     ];
 
     private const PWD_TYPES = ['visual', 'mobility', 'hearing', 'intellectual', 'psychosocial'];
+
+    // Realistic variety for a newly-seeded center's name/type -- matches
+    // evacuation_center_facilities' actual 'type' enum values (verified
+    // against the migration, not assumed). Picked randomly per new center
+    // instead of every seeded center being an identically-named/typed
+    // "Evacuation Center", now that the "[SAMPLE] " prefix (which used to
+    // make every one look the same anyway) is gone.
+    private const CENTER_TYPE_OPTIONS = [
+        ['type' => 'school', 'suffix' => 'Elementary School'],
+        ['type' => 'school', 'suffix' => 'National High School'],
+        ['type' => 'barangay_hall', 'suffix' => 'Barangay Hall'],
+        ['type' => 'covered_court', 'suffix' => 'Covered Court'],
+        ['type' => 'gymnasium', 'suffix' => 'Multipurpose Gymnasium'],
+        ['type' => 'church', 'suffix' => 'Parish Chapel'],
+    ];
 
     // barangay_range/families_per_barangay_range escalate with severity,
     // same principle as DemoDisasterDataSeeder's historical events -- stays
@@ -182,36 +199,42 @@ class DemoActiveEventSeeder extends Seeder
     }
 
     /**
-     * Reuses a barangay's real evacuation center if one already exists;
-     * otherwise reuses (or creates) its "[SAMPLE] ..." placeholder --
-     * checked by name so this is never duplicated, including against
-     * centers DemoDisasterDataSeeder already created for the same barangay.
+     * Reuses a barangay's real (non-seeded) evacuation center if one
+     * already exists; otherwise reuses (or creates) its is_seeded=true
+     * placeholder -- matched via the flag, not name, since a seeded
+     * center's name is now randomly varied (see CENTER_TYPE_OPTIONS)
+     * rather than a predictable "[SAMPLE] ..." string. This also matches
+     * against centers DemoDisasterDataSeeder already created for the same
+     * barangay, since both seeders use the same is_seeded flag.
      */
     private function resolveCenterFor(Barangay $barangay, array &$totals): EvacuationCenter
     {
-        $existingReal = $barangay->evacuationCenters()->first();
+        $existingReal = $barangay->evacuationCenters()
+            ->where(fn ($q) => $q->where('is_seeded', false)->orWhereNull('is_seeded'))
+            ->first();
         if ($existingReal) {
             return $existingReal;
         }
 
-        $sampleName = "[SAMPLE] {$barangay->name} Evacuation Center";
-        $existingSample = EvacuationCenter::where('name', $sampleName)->first();
-        if ($existingSample) {
-            return $existingSample;
+        $existingSeeded = $barangay->evacuationCenters()->where('is_seeded', true)->first();
+        if ($existingSeeded) {
+            return $existingSeeded;
         }
 
+        $choice = self::CENTER_TYPE_OPTIONS[array_rand(self::CENTER_TYPE_OPTIONS)];
         $capacityPersons = rand(100, 300);
 
         $center = EvacuationCenter::create([
             'barangay_id' => $barangay->id,
-            'name' => $sampleName,
-            'type' => 'other',
+            'name' => "{$barangay->name} {$choice['suffix']}",
+            'type' => $choice['type'],
             'address' => "{$barangay->name}, Ligao City, Albay (sample/placeholder location, not a verified address)",
             'latitude' => self::CITY_CENTER_LAT + $this->smallOffset(),
             'longitude' => self::CITY_CENTER_LNG + $this->smallOffset(),
             'capacity_persons' => $capacityPersons,
             'capacity_families' => (int) round($capacityPersons / 4),
             'status' => 'active',
+            'is_seeded' => true,
         ]);
         $totals['centers']++;
 

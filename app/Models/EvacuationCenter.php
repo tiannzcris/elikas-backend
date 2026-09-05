@@ -13,12 +13,13 @@ class EvacuationCenter extends Model
     protected $fillable = [
         'barangay_id', 'name', 'type', 'address', 'latitude', 'longitude',
         'capacity_families', 'capacity_persons', 'camp_manager_name',
-        'camp_manager_contact', 'status', 'created_by', 'photo_path',
+        'camp_manager_contact', 'status', 'created_by', 'photo_path', 'is_seeded',
     ];
 
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
+        'is_seeded' => 'boolean',
     ];
 
     /**
