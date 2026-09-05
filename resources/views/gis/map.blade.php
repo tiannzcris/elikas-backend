@@ -115,7 +115,7 @@
             </div>
 
             <div id="hazard-form-panel" class="hidden bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-medium mb-3">New hazard zone</p>
+                <p id="hazard-form-heading" class="text-sm font-medium mb-3">New hazard zone</p>
                 <div class="flex flex-col gap-3">
                     <div>
                         <label class="text-xs text-gray-600 block mb-1">Area name</label>
@@ -231,8 +231,61 @@
         }
     });
 
-    // Only administrators/CSWD personnel can draw new hazard zones --
-    // barangay officials get a plain read-only map.
+    // Shared by the "draw a new zone" flow and the "edit an existing zone"
+    // flow below -- both reuse the same #hazard-form-panel, distinguished
+    // by which of these two is set (pendingLayer = drawing a new shape,
+    // editingHazardAreaId = editing an existing one, never both at once).
+    let pendingLayer = null;
+    let editingHazardAreaId = null;
+
+    // Fields are never touched again after a save/cancel otherwise --
+    // without this, a hazard_type picked for one zone would silently sit
+    // "pre-selected" as the apparent default for the next polygon drawn
+    // in the same session, defeating the placeholder/required check
+    // below after the first successful save.
+    function resetHazardForm() {
+        document.getElementById('hz-name').value = '';
+        document.getElementById('hz-type').value = '';
+        document.getElementById('hz-barangay').value = '';
+        document.getElementById('hz-description').value = '';
+    }
+
+    // Opens the same panel used for drawing a NEW zone, pre-filled with an
+    // EXISTING one's current values. editingHazardAreaId (not pendingLayer)
+    // tells hz-save this is a PATCH, not a POST, and that no new shape was
+    // drawn -- the zone's polygon itself is left exactly as it already is;
+    // there's no in-place shape editing yet, only delete-and-redraw for that.
+    function openHazardFormForEdit(feature) {
+        editingHazardAreaId = feature.properties.id;
+        pendingLayer = null;
+        document.getElementById('hazard-form-heading').textContent = 'Edit hazard zone';
+        document.getElementById('hz-name').value = feature.properties.area_name;
+        document.getElementById('hz-type').value = feature.properties.hazard_type;
+        document.getElementById('hz-barangay').value = feature.properties.barangay_id ?? '';
+        document.getElementById('hz-description').value = feature.properties.description ?? '';
+        document.getElementById('hazard-form-panel').classList.remove('hidden');
+        document.getElementById('draw-hint').classList.add('hidden');
+        map.closePopup();
+    }
+
+    async function deleteHazardArea(id, name) {
+        if (! confirm(`Delete hazard zone "${name}"? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await Api.request(`/hazard-areas/${id}`, { method: 'DELETE' });
+            map.closePopup();
+            loadMapData();
+        } catch (error) {
+            showFormErrors(error);
+        }
+    }
+
+    // Only administrators/CSWD personnel can draw, edit, or delete hazard
+    // zones -- barangay officials get a plain read-only map (canManage also
+    // gates the Edit/Delete buttons rendered in renderHazards()'s popups,
+    // further below).
     if (canManage) {
         const drawControl = new L.Control.Draw({
             draw: {
@@ -244,23 +297,11 @@
         map.addControl(drawControl);
         document.getElementById('draw-hint').classList.remove('hidden');
 
-        let pendingLayer = null;
-
-        // Fields are never touched again after a save/cancel otherwise --
-        // without this, a hazard_type picked for one zone would silently
-        // sit "pre-selected" as the apparent default for the next polygon
-        // drawn in the same session, defeating the placeholder/required
-        // check below after the first successful save.
-        function resetHazardForm() {
-            document.getElementById('hz-name').value = '';
-            document.getElementById('hz-type').value = '';
-            document.getElementById('hz-barangay').value = '';
-            document.getElementById('hz-description').value = '';
-        }
-
         map.on(L.Draw.Event.CREATED, (e) => {
+            editingHazardAreaId = null;
             pendingLayer = e.layer;
             drawnItems.addLayer(pendingLayer);
+            document.getElementById('hazard-form-heading').textContent = 'New hazard zone';
             document.getElementById('hazard-form-panel').classList.remove('hidden');
             document.getElementById('draw-hint').classList.add('hidden');
         });
@@ -268,13 +309,14 @@
         document.getElementById('hz-cancel').addEventListener('click', () => {
             if (pendingLayer) drawnItems.removeLayer(pendingLayer);
             pendingLayer = null;
+            editingHazardAreaId = null;
             resetHazardForm();
             document.getElementById('hazard-form-panel').classList.add('hidden');
             document.getElementById('draw-hint').classList.remove('hidden');
         });
 
         document.getElementById('hz-save').addEventListener('click', async () => {
-            if (! pendingLayer) return;
+            if (! pendingLayer && ! editingHazardAreaId) return;
 
             const name = document.getElementById('hz-name').value;
             if (! name) {
@@ -293,16 +335,21 @@
                 hazard_type: hazardType,
                 barangay_id: document.getElementById('hz-barangay').value || null,
                 description: document.getElementById('hz-description').value || null,
-                geojson: pendingLayer.toGeoJSON().geometry,
             };
 
             try {
-                await Api.post('/hazard-areas', payload);
+                if (editingHazardAreaId) {
+                    await Api.patch(`/hazard-areas/${editingHazardAreaId}`, payload);
+                } else {
+                    payload.geojson = pendingLayer.toGeoJSON().geometry;
+                    await Api.post('/hazard-areas', payload);
+                }
                 resetHazardForm();
                 document.getElementById('hazard-form-panel').classList.add('hidden');
                 document.getElementById('draw-hint').classList.remove('hidden');
                 pendingLayer = null;
-                loadMapData(); // refresh so the new zone renders with its proper color/popup, not just the raw drawn shape
+                editingHazardAreaId = null;
+                loadMapData(); // refresh so the change renders with its proper color/popup
             } catch (error) {
                 showFormErrors(error);
             }
@@ -412,11 +459,31 @@
                 weight: 2,
             }),
             onEachFeature: (feature, layer) => {
+                // Edit/Delete only ever shown to admin/CSWD -- barangay
+                // officials get the same read-only popup as before.
+                const manageButtons = canManage ? `
+                    <div class="flex gap-2 mt-2">
+                        <button type="button" class="hazard-edit-btn flex-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-2 py-1">Edit</button>
+                        <button type="button" class="hazard-delete-btn flex-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded px-2 py-1">Delete</button>
+                    </div>` : '';
+
                 layer.bindPopup(`
                     <strong>${feature.properties.area_name}</strong><br>
                     ${feature.properties.hazard_type.replace('_', ' ')}
                     ${feature.properties.description ? '<br>' + feature.properties.description : ''}
+                    ${manageButtons}
                 `);
+
+                // Leaflet rebuilds the popup's DOM content fresh on every
+                // open, so handlers are (re-)bound here rather than once at
+                // bindPopup time, when this content doesn't exist yet.
+                if (canManage) {
+                    layer.on('popupopen', (e) => {
+                        const el = e.popup.getElement();
+                        el.querySelector('.hazard-edit-btn')?.addEventListener('click', () => openHazardFormForEdit(feature));
+                        el.querySelector('.hazard-delete-btn')?.addEventListener('click', () => deleteHazardArea(feature.properties.id, feature.properties.area_name));
+                    });
+                }
             },
         });
         if (showLayer) hazardLayer.addTo(map);

@@ -61,6 +61,7 @@ class GisController extends Controller
                         'kind' => 'hazard_area',
                         'area_name' => $area->area_name,
                         'hazard_type' => $area->hazard_type,
+                        'barangay_id' => $area->barangay_id,
                         'description' => $area->description,
                     ],
                 ];
