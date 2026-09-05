@@ -157,6 +157,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('/evacuation-centers/{evacuationCenter}/assign-owner', [EvacuationCenterController::class, 'assignOwner']);
 
             Route::post('/hazard-areas', [HazardProneAreaController::class, 'store']);
+            Route::patch('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'update']);
             Route::delete('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'destroy']);
 
             Route::post('/alerts', [AlertController::class, 'store']);

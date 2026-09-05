@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\HazardProneArea\StoreHazardProneAreaRequest;
+use App\Http\Requests\HazardProneArea\UpdateHazardProneAreaRequest;
 use App\Http\Resources\HazardProneAreaResource;
 use App\Models\HazardProneArea;
 use App\Models\MapLayer;
@@ -76,6 +77,47 @@ class HazardProneAreaController extends Controller
             new HazardProneAreaResource($hazardArea->fresh(['barangay', 'mapLayers'])),
             'Hazard zone mapped successfully.',
             201
+        );
+    }
+
+    /**
+     * Updates only the descriptive fields (area_name, hazard_type,
+     * barangay_id, description) -- the drawn shape itself
+     * (hazard_prone_areas.geometry and its map_layers.geojson_data) is
+     * left untouched. Editing the shape isn't supported yet; the current
+     * path for that is deleting and redrawing. layer_name/layer_type on
+     * the associated map_layers row are kept in sync with area_name/
+     * hazard_type so that row never silently drifts out of sync with its
+     * parent, matching the same pairing store() sets up at creation.
+     */
+    public function update(UpdateHazardProneAreaRequest $request, HazardProneArea $hazardProneArea)
+    {
+        $validated = $request->validated();
+
+        DB::transaction(function () use ($validated, $hazardProneArea, $request) {
+            $hazardProneArea->update([
+                'barangay_id' => $validated['barangay_id'] ?? null,
+                'area_name' => $validated['area_name'],
+                'hazard_type' => $validated['hazard_type'],
+                'description' => $validated['description'] ?? null,
+            ]);
+
+            $hazardProneArea->mapLayers()->update([
+                'layer_name' => $validated['area_name'],
+                'layer_type' => $validated['hazard_type'],
+            ]);
+
+            SystemLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'hazard_area.updated',
+                'description' => "{$request->user()->name} updated hazard zone '{$validated['area_name']}'.",
+                'ip_address' => $request->ip(),
+            ]);
+        });
+
+        return $this->success(
+            new HazardProneAreaResource($hazardProneArea->fresh(['barangay', 'mapLayers'])),
+            'Hazard zone updated successfully.'
         );
     }
 
