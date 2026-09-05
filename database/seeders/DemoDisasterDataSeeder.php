@@ -43,8 +43,10 @@ use Illuminate\Database\Seeder;
  *
  * Family/evacuee/sample-center data remains necessarily fabricated (no
  * real digitized evacuee records exist for these events in Ligao
- * specifically) -- realistic Filipino names, 0907 phone prefix, and
- * "[SAMPLE] ..." center names make that unmistakable, same as before.
+ * specifically) -- realistic Filipino names, 0907 phone prefix, and an
+ * is_seeded = true flag on every center it creates (see resolveCenterFor())
+ * make that unmistakable. This replaces the old "[SAMPLE] " name prefix,
+ * which was purely cosmetic and had no real queryable flag behind it.
  *
  * Self-healing on every run: unconditionally wipes all 5 current events
  * (plus 2 legacy-only names from an earlier version of this seeder -- see
@@ -118,6 +120,20 @@ class DemoDisasterDataSeeder extends Seeder
     ];
 
     private const PWD_TYPES = ['visual', 'mobility', 'hearing', 'intellectual', 'psychosocial'];
+
+    // Realistic variety for a newly-seeded center's name/type -- matches
+    // evacuation_centers.type's actual enum values (verified against the
+    // migration, not assumed). Picked randomly per new center instead of
+    // every seeded center being an identically-named/typed "Evacuation
+    // Center", now that the "[SAMPLE] " prefix is gone.
+    private const CENTER_TYPE_OPTIONS = [
+        ['type' => 'school', 'suffix' => 'Elementary School'],
+        ['type' => 'school', 'suffix' => 'National High School'],
+        ['type' => 'barangay_hall', 'suffix' => 'Barangay Hall'],
+        ['type' => 'covered_court', 'suffix' => 'Covered Court'],
+        ['type' => 'gymnasium', 'suffix' => 'Multipurpose Gymnasium'],
+        ['type' => 'church', 'suffix' => 'Parish Chapel'],
+    ];
 
     // Matches evacuation_center_facilities.facility_type's enum exactly (19
     // fixed types) -- verified against the migration, not assumed.
@@ -299,8 +315,8 @@ class DemoDisasterDataSeeder extends Seeder
     }
 
     /**
-     * Gives each "[SAMPLE] ..." evacuation center a realistic (not
-     * exhaustive) facilities checklist, so its detail page isn't
+     * Gives each seeded (is_seeded = true) evacuation center a realistic
+     * (not exhaustive) facilities checklist, so its detail page isn't
      * completely empty. Deliberately varies coverage per center --
      * 8-14 of the 19 possible types, ~90% marked available -- rather
      * than every center having all 19 fully stocked, since real sites
@@ -309,7 +325,7 @@ class DemoDisasterDataSeeder extends Seeder
      */
     private function seedSampleFacilities(): void
     {
-        $sampleCenters = EvacuationCenter::where('name', 'like', '[SAMPLE]%')->get();
+        $sampleCenters = EvacuationCenter::where('is_seeded', true)->get();
 
         foreach ($sampleCenters as $center) {
             if ($center->facilities()->exists()) {
@@ -400,35 +416,42 @@ class DemoDisasterDataSeeder extends Seeder
     }
 
     /**
-     * Reuses a barangay's real evacuation center if one already exists;
-     * otherwise reuses (or creates) its "[SAMPLE] ..." placeholder --
-     * checked by name so re-running this seeder never creates a second one.
+     * Reuses a barangay's real (non-seeded) evacuation center if one
+     * already exists; otherwise reuses (or creates) its is_seeded=true
+     * placeholder -- matched via the flag, not name, since a seeded
+     * center's name is now randomly varied (see CENTER_TYPE_OPTIONS)
+     * rather than a predictable "[SAMPLE] ..." string. This also matches
+     * against centers DemoActiveEventSeeder already created for the same
+     * barangay, since both seeders use the same is_seeded flag.
      */
     private function resolveCenterFor(Barangay $barangay, array &$totals): EvacuationCenter
     {
-        $existingReal = $barangay->evacuationCenters()->first();
+        $existingReal = $barangay->evacuationCenters()
+            ->where(fn ($q) => $q->where('is_seeded', false)->orWhereNull('is_seeded'))
+            ->first();
         if ($existingReal) {
             return $existingReal;
         }
 
-        $sampleName = "[SAMPLE] {$barangay->name} Evacuation Center";
-        $existingSample = EvacuationCenter::where('name', $sampleName)->first();
-        if ($existingSample) {
-            return $existingSample;
+        $existingSeeded = $barangay->evacuationCenters()->where('is_seeded', true)->first();
+        if ($existingSeeded) {
+            return $existingSeeded;
         }
 
+        $choice = self::CENTER_TYPE_OPTIONS[array_rand(self::CENTER_TYPE_OPTIONS)];
         $capacityPersons = rand(100, 300);
 
         $center = EvacuationCenter::create([
             'barangay_id' => $barangay->id,
-            'name' => $sampleName,
-            'type' => 'other',
+            'name' => "{$barangay->name} {$choice['suffix']}",
+            'type' => $choice['type'],
             'address' => "{$barangay->name}, Ligao City, Albay (sample/placeholder location, not a verified address)",
             'latitude' => self::CITY_CENTER_LAT + $this->smallOffset(),
             'longitude' => self::CITY_CENTER_LNG + $this->smallOffset(),
             'capacity_persons' => $capacityPersons,
             'capacity_families' => (int) round($capacityPersons / 4),
             'status' => 'active',
+            'is_seeded' => true,
         ]);
         $totals['centers']++;
 
