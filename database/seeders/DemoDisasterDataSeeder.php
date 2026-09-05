@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Alert;
+use App\Models\AnalyticsPrediction;
 use App\Models\Barangay;
 use App\Models\Evacuee;
 use App\Models\EvacuationCenter;
@@ -12,25 +14,43 @@ use App\Models\Family;
 use App\Models\ReliefDistribution;
 use App\Models\ReliefItem;
 use App\Models\User;
+use App\Models\WeatherReading;
 use Illuminate\Database\Seeder;
 
 /**
- * Demo/sample data for exercising the predictive analytics feature before
- * real PAGASA historical weather data is available for Ligao City.
+ * Demo/sample data for exercising the predictive analytics feature.
  *
- * Event names and dates are REAL historical typhoons that affected Albay
- * province. rainfall_mm/max_wind_speed_kph are reasonable but NOT claimed
- * to be precise -- actual PAGASA readings for Ligao City specifically
- * aren't available yet, so these exist to exercise the prediction
- * mechanism itself, not to represent verified historical fact. Every
- * family/evacuee/sample evacuation center created here is entirely
- * fabricated test data -- "[SAMPLE] ..." center names make that
- * unmistakable, and contact numbers only ever use the unallocated 0907
- * prefix so a real "Send Alert" action could never reach an actual person.
+ * Event names and dates are REAL historical typhoons confirmed to have
+ * significantly affected Albay, all falling within the 2020-2024 window
+ * covered by the real imported PAGASA Legazpi station daily readings
+ * (database/samples/Legazpi_Daily_Data.csv, imported via `weather:import`).
+ * rainfall_mm/max_wind_speed_kph are NOT estimates -- they're computed
+ * directly from that real data for each event's exact date range
+ * (SUM of daily rainfall = total accumulated rainfall; MAX of daily wind
+ * speed = peak recorded wind) via computeRealSeverity() below.
  *
- * Safe to re-run: each event is matched by its exact name, and if it
- * already exists the whole block (event + its centers/families/evacuees)
- * is skipped -- running this twice never doubles the data.
+ * IMPORTANT, confirmed by inspecting the real data directly: this
+ * station's WIND_SPEED column is a daily MEAN synoptic observation, not a
+ * storm-peak/gust reading -- it ranges only 0-9 m/s (0-32.4 kph) across
+ * the entire 5-year file, nowhere close to these typhoons' widely-reported
+ * 150+ kph sustained winds at landfall. The computed max_wind_speed_kph
+ * values below are genuinely real and correctly computed from this
+ * station's actual data, but they will look surprisingly low compared to
+ * news reports -- that's an honest property of what this data source
+ * measures, not a computation error.
+ *
+ * Family/evacuee/sample-center data remains necessarily fabricated (no
+ * real digitized evacuee records exist for these events in Ligao
+ * specifically) -- realistic Filipino names, 0907 phone prefix, and
+ * "[SAMPLE] ..." center names make that unmistakable, same as before.
+ *
+ * Self-healing on every run: unconditionally wipes the OLD 5
+ * estimated-value events (by their old fixed names -- see
+ * OLD_EVENT_NAMES_TO_WIPE) before creating the new 5, so a stale
+ * estimated-value event can never linger under the same name as one of
+ * the new real-value ones. After that, each new event is matched by its
+ * own exact name and skipped if it already exists -- re-running this
+ * twice never doubles the new data.
  *
  * NOT part of the default `php artisan db:seed` chain (see
  * DatabaseSeeder) -- this is demo/testing data, not something a real
@@ -42,6 +62,21 @@ class DemoDisasterDataSeeder extends Seeder
     private const CITY_CENTER_LAT = 13.1391;
 
     private const CITY_CENTER_LNG = 123.5321;
+
+    // The only station real weather data has been imported for so far.
+    private const STATION = 'Legazpi';
+
+    // Exact names DemoDisasterDataSeeder used to create with ESTIMATED
+    // rainfall/wind figures -- wiped unconditionally on every run so they
+    // can never coexist with (or block creation of) the new real-value
+    // events below, even where a name is reused (Rolly/Kristine/Leon).
+    private const OLD_EVENT_NAMES_TO_WIPE = [
+        'Typhoon Durian (Reming)',
+        'Typhoon Rolly (Goni)',
+        'Typhoon Kristine (Trami)',
+        'Typhoon Leon (Kong-rey)',
+        'Tropical Storm Mitag (Mirasol)',
+    ];
 
     private const FIRST_NAMES_MALE = [
         'Jose', 'Juan', 'Antonio', 'Pedro', 'Ricardo', 'Eduardo', 'Ramon', 'Rodrigo',
@@ -94,29 +129,47 @@ class DemoDisasterDataSeeder extends Seeder
             return;
         }
 
-        // barangay_range/families_per_barangay_range are deliberately scaled
-        // to each event's combined rainfall+wind severity -- Durian (highest
-        // severity) gets the widest reach and heaviest per-barangay turnout,
-        // Leon (lowest) the smallest. Rolly and Kristine have nearly
-        // identical combined severity (495) despite a very different
-        // rainfall/wind mix, so their ranges are close but not identical
-        // (Rolly edges slightly higher). Without this, evacuee counts were
-        // independently randomized and gave the regression no real signal
-        // to learn from (see commit history -- this produced a severely
-        // negative R^2 and a degenerate "1 person" prediction).
+        $this->wipeOldEstimatedEvents();
+
+        // barangay_range/families_per_barangay_range are scaled to each
+        // event's REAL computed combined rainfall+wind severity (see
+        // computeRealSeverity() below), not an estimate -- ranked by
+        // combined severity, highest to lowest: Kristine (real accumulated
+        // rainfall 483.9mm over its 4-day window is by far the highest of
+        // the 5) > Quinta > Rolly (close to each other) > Bising > Leon
+        // (barely any rain in the real data, 2mm total -- a genuinely mild
+        // event, nothing like the others). This real ranking is very
+        // different from the old estimated-value ordering, since real
+        // daily-mean wind speed barely varies across all 5 (see the class
+        // docblock) -- rainfall totals now do almost all of the
+        // differentiating work.
         $events = [
-            ['name' => 'Typhoon Durian (Reming)', 'start_date' => '2006-11-30', 'end_date' => '2006-12-02', 'rainfall_mm' => 350, 'wind_speed_kph' => 185, 'barangay_range' => [14, 16], 'families_per_barangay_range' => [7, 10]],
-            ['name' => 'Typhoon Rolly (Goni)', 'start_date' => '2020-11-01', 'end_date' => '2020-11-02', 'rainfall_mm' => 300, 'wind_speed_kph' => 195, 'barangay_range' => [11, 13], 'families_per_barangay_range' => [6, 9]],
-            ['name' => 'Typhoon Kristine (Trami)', 'start_date' => '2024-10-22', 'end_date' => '2024-10-25', 'rainfall_mm' => 400, 'wind_speed_kph' => 95, 'barangay_range' => [10, 12], 'families_per_barangay_range' => [5, 8]],
-            ['name' => 'Typhoon Leon (Kong-rey)', 'start_date' => '2024-10-29', 'end_date' => '2024-10-30', 'rainfall_mm' => 120, 'wind_speed_kph' => 75, 'barangay_range' => [5, 7], 'families_per_barangay_range' => [2, 4]],
-            ['name' => 'Tropical Storm Mitag (Mirasol)', 'start_date' => '2025-09-16', 'end_date' => '2025-09-17', 'rainfall_mm' => 150, 'wind_speed_kph' => 65, 'barangay_range' => [6, 8], 'families_per_barangay_range' => [3, 5]],
+            ['name' => 'Typhoon Quinta (Molave)', 'start_date' => '2020-10-24', 'end_date' => '2020-10-26', 'barangay_range' => [11, 13], 'families_per_barangay_range' => [6, 9]],
+            ['name' => 'Typhoon Rolly (Goni)', 'start_date' => '2020-10-31', 'end_date' => '2020-11-02', 'barangay_range' => [10, 12], 'families_per_barangay_range' => [5, 8]],
+            ['name' => 'Typhoon Bising (Surigae)', 'start_date' => '2021-04-18', 'end_date' => '2021-04-20', 'barangay_range' => [7, 9], 'families_per_barangay_range' => [3, 5]],
+            ['name' => 'Typhoon Kristine (Trami)', 'start_date' => '2024-10-22', 'end_date' => '2024-10-25', 'barangay_range' => [14, 16], 'families_per_barangay_range' => [7, 10]],
+            ['name' => 'Typhoon Leon (Kong-rey)', 'start_date' => '2024-10-29', 'end_date' => '2024-10-30', 'barangay_range' => [5, 6], 'families_per_barangay_range' => [2, 3]],
         ];
 
         $totals = ['events' => 0, 'centers' => 0, 'families' => 0, 'evacuees' => 0];
+        $createdEventNames = [];
 
         foreach ($events as $eventData) {
             if (EvacuationEvent::where('name', $eventData['name'])->exists()) {
                 $this->command->info("Skipped (already exists): {$eventData['name']}");
+                $createdEventNames[] = $eventData['name'];
+
+                continue;
+            }
+
+            $severity = $this->computeRealSeverity($eventData['start_date'], $eventData['end_date']);
+
+            if ($severity === null) {
+                $this->command->error(
+                    "No weather_readings found for {$eventData['name']} ({$eventData['start_date']} to ".
+                    "{$eventData['end_date']}, station=".self::STATION.") -- skipping this event entirely. ".
+                    'Import the real PAGASA data first (php artisan weather:import ... --station='.self::STATION.').'
+                );
 
                 continue;
             }
@@ -125,18 +178,28 @@ class DemoDisasterDataSeeder extends Seeder
                 'name' => $eventData['name'],
                 'event_type' => 'typhoon',
                 'typhoon_category' => str_starts_with($eventData['name'], 'Tropical Storm') ? 'Tropical Storm' : 'Typhoon',
-                'max_wind_speed_kph' => $eventData['wind_speed_kph'],
-                'rainfall_mm' => $eventData['rainfall_mm'],
+                'max_wind_speed_kph' => $severity['wind_speed_kph'],
+                'rainfall_mm' => $severity['rainfall_mm'],
                 'start_date' => $eventData['start_date'],
                 'end_date' => $eventData['end_date'],
                 'status' => 'closed',
-                'description' => 'Demo/sample data for testing predictive analytics. This is a real '.
-                    'historical typhoon that affected Albay province -- the rainfall/wind figures are '.
-                    'reasonable approximations for exercising the forecast mechanism, not precise '.
-                    'PAGASA-verified readings for Ligao City specifically.',
+                'description' => sprintf(
+                    'Demo/sample data for testing predictive analytics. This is a real historical typhoon '.
+                    'that significantly affected Albay province. rainfall_mm (%.2f) is the SUM of real daily '.
+                    'PAGASA %s station readings across this event\'s date range; max_wind_speed_kph (%.2f) is '.
+                    'the MAX daily reading across the same range (%d day(s) of real data) -- both computed '.
+                    'from actually imported weather_readings, not estimated. Family/evacuee data below this '.
+                    'event is still fabricated demo data -- no real digitized evacuee records exist for this '.
+                    'event in Ligao specifically.',
+                    $severity['rainfall_mm'], self::STATION, $severity['wind_speed_kph'], $severity['days_found']
+                ),
             ]);
             $totals['events']++;
-            $this->command->info("Created event: {$eventData['name']}");
+            $createdEventNames[] = $eventData['name'];
+            $this->command->info(sprintf(
+                'Created event: %s (rainfall_mm=%.2f, max_wind_speed_kph=%.2f, from %d real day(s) of %s data)',
+                $eventData['name'], $severity['rainfall_mm'], $severity['wind_speed_kph'], $severity['days_found'], self::STATION
+            ));
 
             [$barangayMin, $barangayMax] = $eventData['barangay_range'];
             [$familyMin, $familyMax] = $eventData['families_per_barangay_range'];
@@ -158,8 +221,63 @@ class DemoDisasterDataSeeder extends Seeder
             $totals['events'], $totals['centers'], $totals['families'], $totals['evacuees']
         ));
 
-        $this->seedResourceCosts(array_column($events, 'name'));
+        $this->seedResourceCosts($createdEventNames);
         $this->seedSampleFacilities();
+    }
+
+    /**
+     * Unconditionally removes the OLD 5 estimated-value events (matched by
+     * their exact old names) and everything that hangs off them, every
+     * time this seeder runs -- so a stale estimated-value row can never
+     * survive under (or block re-creation of) a name reused by the new
+     * real-value set (Rolly/Kristine/Leon keep their names; Quinta/Bising
+     * replace Durian/Mitag). families/evacuees/evacuation_records/
+     * prediction_datasets/relief_distributions all cascade automatically
+     * on delete (see the evacuation_events migration); alerts and
+     * analytics_predictions use nullOnDelete instead of cascading, so
+     * those are cleaned up explicitly first. weather_readings and sample
+     * evacuation centers are never touched here.
+     */
+    private function wipeOldEstimatedEvents(): void
+    {
+        $eventIds = EvacuationEvent::whereIn('name', self::OLD_EVENT_NAMES_TO_WIPE)->pluck('id');
+
+        if ($eventIds->isEmpty()) {
+            return;
+        }
+
+        Alert::whereIn('evacuation_event_id', $eventIds)->delete();
+        AnalyticsPrediction::whereIn('evacuation_event_id', $eventIds)->delete();
+        EvacuationEvent::whereIn('id', $eventIds)->delete();
+
+        $this->command->info('Wiped '.$eventIds->count().' old estimated-value historical event(s) and their dependent data.');
+    }
+
+    /**
+     * Real severity for one event's date range, computed directly from
+     * weather_readings -- SUM of rainfall_mm (total accumulated rainfall)
+     * and MAX of wind_speed_kph (peak recorded reading), both of which
+     * naturally skip NULL/missing days via plain SQL aggregate semantics
+     * (no manual filtering needed). Returns null if there's no real data
+     * at all for this range yet, so the caller can skip the event rather
+     * than silently creating one with a false "0mm rainfall" reading.
+     */
+    private function computeRealSeverity(string $startDate, string $endDate): ?array
+    {
+        $query = WeatherReading::whereBetween('reading_date', [$startDate, $endDate])
+            ->where('station', self::STATION);
+
+        $daysFound = (clone $query)->count();
+
+        if ($daysFound === 0) {
+            return null;
+        }
+
+        return [
+            'rainfall_mm' => round((float) (clone $query)->sum('rainfall_mm'), 2),
+            'wind_speed_kph' => round((float) (clone $query)->max('wind_speed_kph'), 2),
+            'days_found' => $daysFound,
+        ];
     }
 
     /**
