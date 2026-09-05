@@ -124,6 +124,7 @@
                     <div>
                         <label class="text-xs text-gray-600 block mb-1">Hazard type</label>
                         <select id="hz-type" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                            <option value="" disabled selected>-- Select hazard type --</option>
                             <option value="flood">Flood</option>
                             <option value="landslide">Landslide</option>
                             <option value="lahar">Lahar</option>
@@ -245,6 +246,18 @@
 
         let pendingLayer = null;
 
+        // Fields are never touched again after a save/cancel otherwise --
+        // without this, a hazard_type picked for one zone would silently
+        // sit "pre-selected" as the apparent default for the next polygon
+        // drawn in the same session, defeating the placeholder/required
+        // check below after the first successful save.
+        function resetHazardForm() {
+            document.getElementById('hz-name').value = '';
+            document.getElementById('hz-type').value = '';
+            document.getElementById('hz-barangay').value = '';
+            document.getElementById('hz-description').value = '';
+        }
+
         map.on(L.Draw.Event.CREATED, (e) => {
             pendingLayer = e.layer;
             drawnItems.addLayer(pendingLayer);
@@ -255,6 +268,7 @@
         document.getElementById('hz-cancel').addEventListener('click', () => {
             if (pendingLayer) drawnItems.removeLayer(pendingLayer);
             pendingLayer = null;
+            resetHazardForm();
             document.getElementById('hazard-form-panel').classList.add('hidden');
             document.getElementById('draw-hint').classList.remove('hidden');
         });
@@ -268,9 +282,15 @@
                 return;
             }
 
+            const hazardType = document.getElementById('hz-type').value;
+            if (! hazardType) {
+                showFormErrors({ message: 'Select a hazard type before saving.' });
+                return;
+            }
+
             const payload = {
                 area_name: name,
-                hazard_type: document.getElementById('hz-type').value,
+                hazard_type: hazardType,
                 barangay_id: document.getElementById('hz-barangay').value || null,
                 description: document.getElementById('hz-description').value || null,
                 geojson: pendingLayer.toGeoJSON().geometry,
@@ -278,6 +298,7 @@
 
             try {
                 await Api.post('/hazard-areas', payload);
+                resetHazardForm();
                 document.getElementById('hazard-form-panel').classList.add('hidden');
                 document.getElementById('draw-hint').classList.remove('hidden');
                 pendingLayer = null;
