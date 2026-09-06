@@ -298,19 +298,12 @@
         document.getElementById('draw-hint').classList.remove('hidden');
 
         map.on(L.Draw.Event.CREATED, (e) => {
-            // TEMPORARY DIAGNOSTIC -- remove this try/catch wrapper (and the
-            // two alert() calls) once resolved, restoring the plain body below.
-            try {
-                editingHazardAreaId = null;
-                pendingLayer = e.layer;
-                drawnItems.addLayer(pendingLayer);
-                document.getElementById('hazard-form-heading').textContent = 'New hazard zone';
-                document.getElementById('hazard-form-panel').classList.remove('hidden');
-                document.getElementById('draw-hint').classList.add('hidden');
-                alert('reached the end successfully'); // TEMPORARY DIAGNOSTIC
-            } catch (diagnosticError) {
-                alert('CAUGHT ERROR: ' + diagnosticError.message); // TEMPORARY DIAGNOSTIC
-            }
+            editingHazardAreaId = null;
+            pendingLayer = e.layer;
+            drawnItems.addLayer(pendingLayer);
+            document.getElementById('hazard-form-heading').textContent = 'New hazard zone';
+            document.getElementById('hazard-form-panel').classList.remove('hidden');
+            document.getElementById('draw-hint').classList.add('hidden');
         });
 
         document.getElementById('hz-cancel').addEventListener('click', () => {
