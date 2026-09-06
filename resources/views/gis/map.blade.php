@@ -114,41 +114,6 @@
                 <div id="center-list" class="flex flex-col gap-3 text-sm max-h-64 overflow-y-auto"></div>
             </div>
 
-            <div id="hazard-form-panel" class="hidden bg-white border border-gray-200 rounded-xl p-4">
-                <p id="hazard-form-heading" class="text-sm font-medium mb-3">New hazard zone</p>
-                <div class="flex flex-col gap-3">
-                    <div>
-                        <label class="text-xs text-gray-600 block mb-1">Area name</label>
-                        <input type="text" id="hz-name" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-600 block mb-1">Hazard type</label>
-                        <select id="hz-type" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                            <option value="" disabled selected>-- Select hazard type --</option>
-                            <option value="flood">Flood</option>
-                            <option value="landslide">Landslide</option>
-                            <option value="lahar">Lahar</option>
-                            <option value="storm_surge">Storm surge</option>
-                            <option value="volcanic_danger_zone">Volcanic danger zone</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-600 block mb-1">Barangay (optional)</label>
-                        <select id="hz-barangay" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-600 block mb-1">Description</label>
-                        <textarea id="hz-description" rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></textarea>
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="button" id="hz-save"
-                            class="flex-1 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg py-2">Save</button>
-                        <button type="button" id="hz-cancel"
-                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg py-2">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
             <div id="draw-hint" class="hidden bg-white border border-gray-200 rounded-xl p-4 text-xs text-gray-500">
                 Use the polygon tool in the map's top-right corner to draw a new hazard zone.
             </div>
@@ -171,6 +136,56 @@
                 restored from lg up where there's room for it beside the
                 control sidebar. --}}
             <div id="map" class="rounded-xl h-[420px] lg:h-[680px]"></div>
+        </div>
+    </div>
+
+    {{-- New/edit hazard zone modal -- same pattern as family-modal
+        (resources/views/families/index.blade.php) and add-center-modal
+        (resources/views/evacuation-centers/index.blade.php): hidden/flex
+        toggle, bg-black/50 backdrop, centered white card, backdrop-click
+        and Escape both close it. Previously this sat inline in the
+        sidebar column, requiring a scroll to see after drawing a shape --
+        this is purely that positioning change; the fields/validation/
+        save-cancel logic inside are unchanged from before. --}}
+    <div id="hazard-form-panel" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <p id="hazard-form-heading" class="font-semibold text-gray-800">New hazard zone</p>
+                <button type="button" id="hazard-form-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="flex flex-col gap-3 p-5">
+                <div>
+                    <label class="text-xs text-gray-600 block mb-1">Area name</label>
+                    <input type="text" id="hz-name" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-600 block mb-1">Hazard type</label>
+                    <select id="hz-type" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                        <option value="" disabled selected>-- Select hazard type --</option>
+                        <option value="flood">Flood</option>
+                        <option value="landslide">Landslide</option>
+                        <option value="lahar">Lahar</option>
+                        <option value="storm_surge">Storm surge</option>
+                        <option value="volcanic_danger_zone">Volcanic danger zone</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-600 block mb-1">Barangay (optional)</label>
+                    <select id="hz-barangay" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-600 block mb-1">Description</label>
+                    <textarea id="hz-description" rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" id="hz-save"
+                        class="flex-1 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg py-2">Save</button>
+                    <button type="button" id="hz-cancel"
+                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg py-2">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -264,8 +279,22 @@
         document.getElementById('hz-barangay').value = feature.properties.barangay_id ?? '';
         document.getElementById('hz-description').value = feature.properties.description ?? '';
         document.getElementById('hazard-form-panel').classList.remove('hidden');
+        document.getElementById('hazard-form-panel').classList.add('flex');
         document.getElementById('draw-hint').classList.add('hidden');
         map.closePopup();
+    }
+
+    // Shared by the Cancel button, the modal's X close button, clicking the
+    // dimmed backdrop, and pressing Escape -- same cleanup either way: drop
+    // an in-progress drawn shape (if any), reset editing state, and close.
+    function closeHazardForm() {
+        if (pendingLayer) drawnItems.removeLayer(pendingLayer);
+        pendingLayer = null;
+        editingHazardAreaId = null;
+        resetHazardForm();
+        document.getElementById('hazard-form-panel').classList.add('hidden');
+        document.getElementById('hazard-form-panel').classList.remove('flex');
+        document.getElementById('draw-hint').classList.remove('hidden');
     }
 
     async function deleteHazardArea(id, name) {
@@ -303,16 +332,23 @@
             drawnItems.addLayer(pendingLayer);
             document.getElementById('hazard-form-heading').textContent = 'New hazard zone';
             document.getElementById('hazard-form-panel').classList.remove('hidden');
+            document.getElementById('hazard-form-panel').classList.add('flex');
             document.getElementById('draw-hint').classList.add('hidden');
         });
 
-        document.getElementById('hz-cancel').addEventListener('click', () => {
-            if (pendingLayer) drawnItems.removeLayer(pendingLayer);
-            pendingLayer = null;
-            editingHazardAreaId = null;
-            resetHazardForm();
-            document.getElementById('hazard-form-panel').classList.add('hidden');
-            document.getElementById('draw-hint').classList.remove('hidden');
+        document.getElementById('hz-cancel').addEventListener('click', closeHazardForm);
+        document.getElementById('hazard-form-close').addEventListener('click', closeHazardForm);
+
+        // Backdrop click (anywhere outside the white card) and Escape both
+        // close it too -- same pattern as family-modal/add-center-modal.
+        document.getElementById('hazard-form-panel').addEventListener('click', (e) => {
+            if (e.target.id === 'hazard-form-panel') closeHazardForm();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && ! document.getElementById('hazard-form-panel').classList.contains('hidden')) {
+                closeHazardForm();
+            }
         });
 
         document.getElementById('hz-save').addEventListener('click', async () => {
@@ -346,6 +382,7 @@
                 }
                 resetHazardForm();
                 document.getElementById('hazard-form-panel').classList.add('hidden');
+                document.getElementById('hazard-form-panel').classList.remove('flex');
                 document.getElementById('draw-hint').classList.remove('hidden');
                 pendingLayer = null;
                 editingHazardAreaId = null;
