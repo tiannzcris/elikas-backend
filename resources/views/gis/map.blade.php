@@ -298,7 +298,6 @@
         document.getElementById('draw-hint').classList.remove('hidden');
 
         map.on(L.Draw.Event.CREATED, (e) => {
-            alert('CREATED event fired'); // TEMPORARY DIAGNOSTIC -- remove this line once resolved
             editingHazardAreaId = null;
             pendingLayer = e.layer;
             drawnItems.addLayer(pendingLayer);
