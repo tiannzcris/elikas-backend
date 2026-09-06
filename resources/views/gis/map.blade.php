@@ -147,7 +147,14 @@
         sidebar column, requiring a scroll to see after drawing a shape --
         this is purely that positioning change; the fields/validation/
         save-cancel logic inside are unchanged from before. --}}
-    <div id="hazard-form-panel" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+    {{-- z-[9999], not the usual z-50 other modals in this app use -- this
+        page has a live Leaflet map as a page-level sibling (not nested
+        inside a modal like evacuation-centers' picker-map is), and
+        Leaflet's own controls (.leaflet-top/.leaflet-bottom, the zoom and
+        layer-switcher icons) default to z-index:1000 in leaflet.css. A
+        plain z-50 (z-index:50) sits far below that, so the map's controls
+        rendered on top of the modal instead of being dimmed behind it. --}}
+    <div id="hazard-form-panel" class="hidden fixed inset-0 bg-black/50 z-[9999] items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between p-5 border-b border-gray-100">
                 <p id="hazard-form-heading" class="font-semibold text-gray-800">New hazard zone</p>
