@@ -364,7 +364,7 @@
     <div id="mobile-app-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
         <div id="mobile-app-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-anim"></div>
 
-        <div id="mobile-app-modal-card" class="relative bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-8 text-center modal-card-anim">
+        <div id="mobile-app-modal-card" class="relative bg-white rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 sm:p-8 text-center modal-card-anim">
             <button type="button" id="mobile-app-modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
                 <i class="ti ti-x" style="font-size: 16px;" aria-hidden="true"></i>
             </button>
