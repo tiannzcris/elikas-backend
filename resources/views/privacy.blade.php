@@ -99,9 +99,12 @@
 
             <section class="pt-4 border-t border-gray-100">
                 <p class="text-xs text-gray-400">
-                    E-LIKAS began as a Bachelor of Science in Information Technology
-                    capstone project, now piloted operationally in partnership with CSWDO
-                    Ligao City.
+                    E-LIKAS is a Bachelor of Science in Information Technology academic
+                    capstone project, developed in partnership with the City Social Welfare
+                    and Development Office (CSWDO) of Ligao City, which cooperated with the
+                    study and provided information supporting its development. It has not
+                    been operationally adopted by CSWDO for actual disaster response
+                    operations.
                 </p>
             </section>
 
