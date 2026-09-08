@@ -67,18 +67,19 @@
 
             <div class="relative flex flex-col h-full" style="z-index: 1;">
             <div class="flex items-center gap-2.5 px-2 pb-4 mb-2 border-b border-white/10">
-                {{-- Emblem PNG (1024x1536 confirmed via getimagesize), zoomed
-                    via fixed-pixel background-size/position. mix-blend-mode:
-                    screen makes any of the source file's solid BLACK
-                    background that falls within this crop disappear into
-                    whatever's behind it (the navy sidebar) instead of
-                    showing as a visible black patch -- pure black
-                    contributes nothing under "screen" blending, so exact
-                    crop precision matters far less than it did without it. --}}
-                <div class="w-20 h-20 rounded-full shrink-0" style="background-image: url('/images/elikas-emblem.png'); background-repeat: no-repeat; background-size: 114px 171px; background-position: -17px -20px; mix-blend-mode: screen;"></div>
+                {{-- elikas-emblem-icon.png is a pre-processed crop of the full
+                    poster-style emblem (public/images/elikas-emblem.png) --
+                    just the circular badge, with its black background
+                    actually removed (real alpha transparency, not a
+                    mix-blend-mode trick against the sidebar's own navy).
+                    That's what let it sit on a plain white circle here
+                    instead of relying on the surrounding color to mask it. --}}
+                <div class="w-20 h-20 rounded-full shrink-0 bg-white flex items-center justify-center overflow-hidden">
+                    <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-[85%] h-[85%] object-contain">
+                </div>
                 <div class="leading-tight">
                     <p class="text-white font-semibold text-sm">E-LIKAS</p>
-                    <p class="text-xs" style="color: #A8C2E8;">CSWDO Ligao City</p>
+                    <p class="text-xs" style="color: #A8C2E8;">Web Dashboard</p>
                 </div>
             </div>
 
