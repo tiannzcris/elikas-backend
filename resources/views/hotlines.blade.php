@@ -80,38 +80,32 @@
 
         <section class="max-w-4xl mx-auto px-6 py-12 sm:py-16">
             {{--
-                PENDING: exact phone numbers not yet confirmed here.
-
-                The mobile app's hotline list lives in a compiled Dart/Flutter
-                binary (features/emergency_hotlines/domain/hotline.dart) that
-                isn't present in this backend repo, so it can't be read
-                directly the way the rest of this task's data sources could.
-                Six real Philippine mobile numbers were recovered from the
-                compiled app for cross-checking, but WHICH number belongs to
-                WHICH organization below could not be reliably determined
-                without risking a wrong pairing -- unacceptable for emergency
-                contact information. Fill in the real number for each
-                organization below once confirmed, then remove this comment
-                and the amber "Number pending confirmation" badges.
+                4 of 6 numbers confirmed real: CSWDO, PNP, BFP, and the
+                hospital entry (replacing the earlier placeholder "City
+                Health Office" -- a genuinely different, correctly-named
+                organization, not a relabel). MDRRMO Ligao City and
+                Philippine Red Cross remain genuinely unconfirmed -- their
+                numbers stay an empty array rather than guessed, matching
+                this page's original safety reasoning (wrong emergency
+                contact info is worse than an honest "pending" state).
             --}}
             <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl p-4 mb-8 flex items-start gap-3">
                 <i class="ti ti-alert-triangle text-amber-500 shrink-0 mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
-                <p>Phone numbers below are pending final confirmation against the mobile app and will be updated shortly.</p>
+                <p>MDRRMO Ligao and Philippine Red Cross numbers below are still pending final confirmation.</p>
             </div>
 
             <div class="flex flex-col gap-4">
                 @php
-                    // Matches the 6 organizations already confirmed as the
-                    // mobile app's hardcoded hotline list -- numbers are
-                    // intentionally left null (see comment above) rather
-                    // than guessed.
+                    // 'numbers' is always an array -- BFP genuinely has two
+                    // real numbers to show, everything else has one, and
+                    // MDRRMO/Red Cross have none yet (empty array = pending).
                     $hotlines = [
-                        ['name' => 'CSWDO Ligao City', 'description' => 'City Social Welfare and Development Office -- disaster response coordination and assistance.', 'icon' => 'ti-building-community', 'number' => null],
-                        ['name' => 'MDRRMO Ligao', 'description' => 'Municipal/City Disaster Risk Reduction and Management Office -- disaster response and coordination.', 'icon' => 'ti-alert-triangle', 'number' => null],
-                        ['name' => 'Philippine Red Cross', 'description' => 'Emergency medical assistance, rescue, and relief operations.', 'icon' => 'ti-first-aid-kit', 'number' => null],
-                        ['name' => 'PNP Ligao City', 'description' => 'Philippine National Police -- peace and order, emergency police response.', 'icon' => 'ti-shield-check', 'number' => null],
-                        ['name' => 'BFP Ligao City', 'description' => 'Bureau of Fire Protection -- fire emergency response.', 'icon' => 'ti-flame', 'number' => null],
-                        ['name' => 'City Health Office', 'description' => 'Medical concerns, health emergencies, and public health advisories.', 'icon' => 'ti-heartbeat', 'number' => null],
+                        ['name' => 'CSWDO Ligao City', 'description' => 'City Social Welfare and Development Office -- disaster response coordination and assistance.', 'icon' => 'ti-building-community', 'numbers' => ['(052) 201 1249']],
+                        ['name' => 'MDRRMO Ligao City', 'description' => 'Municipal/City Disaster Risk Reduction and Management Office -- disaster response and coordination.', 'icon' => 'ti-alert-triangle', 'numbers' => []],
+                        ['name' => 'Philippine Red Cross', 'description' => 'Emergency medical assistance, rescue, and relief operations.', 'icon' => 'ti-first-aid-kit', 'numbers' => []],
+                        ['name' => 'PNP Ligao City', 'description' => 'Philippine National Police -- peace and order, emergency police response.', 'icon' => 'ti-shield-check', 'numbers' => ['0998 598 5928']],
+                        ['name' => 'BFP Ligao City', 'description' => 'Bureau of Fire Protection -- fire emergency response.', 'icon' => 'ti-flame', 'numbers' => ['0963 702 6628', '0928 507 1914']],
+                        ['name' => 'Josefina Belmonte Duran Albay Provincial Hospital', 'description' => 'Medical concerns, health emergencies, and public health advisories.', 'icon' => 'ti-heartbeat', 'numbers' => ['0945 296 2595']],
                     ];
                 @endphp
 
@@ -123,10 +117,14 @@
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-gray-900">{{ $hotline['name'] }}</p>
                             <p class="text-xs text-gray-500 mb-2">{{ $hotline['description'] }}</p>
-                            @if ($hotline['number'])
-                                <a href="tel:{{ $hotline['number'] }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
-                                    <i class="ti ti-phone" style="font-size: 14px;" aria-hidden="true"></i> {{ $hotline['number'] }}
-                                </a>
+                            @if (count($hotline['numbers']) > 0)
+                                <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                    @foreach ($hotline['numbers'] as $number)
+                                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $number) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
+                                            <i class="ti ti-phone" style="font-size: 14px;" aria-hidden="true"></i> {{ $number }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             @else
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2.5 py-1">
                                     <i class="ti ti-clock" style="font-size: 13px;" aria-hidden="true"></i> Number pending confirmation
