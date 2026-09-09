@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About · E-LIKAS</title>
+    <title>Alerts · E-LIKAS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,6 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
 
-        /* Page transition: the destination page still pops into place on
-           load (slight overshoot past 100%, reads as "suddenly forming").
-           The OUTGOING side no longer shrinks/fades the current page to
-           reveal blank white before the real navigation starts -- that
-           was the actual source of the "matagal" complaint (an artificial
-           delay spent staring at an emptying page, on top of the
-           browser's own real page-load time). A slim top loading bar
-           (below) gives instant feedback on click instead. */
         @keyframes page-reform {
             0% { opacity: 0; transform: scale(0.94); }
             60% { opacity: 1; transform: scale(1.01); }
@@ -35,16 +27,6 @@
             transition: width 0.15s ease-out;
         }
         #page-loading-bar.active { width: 70%; }
-
-        /* Lead paragraph: a slightly larger, lighter-weight treatment for
-           the first paragraph under a heading, distinct from the smaller
-           supporting text under it -- gives desktop readers a size step
-           beyond "everything is text-sm", without changing anything on
-           mobile. */
-        .lead-text { font-size: 1rem; line-height: 1.7; color: #4B5563; }
-        @media (min-width: 1024px) {
-            .lead-text { font-size: 1.125rem; line-height: 1.8; }
-        }
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
@@ -61,8 +43,8 @@
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
                 <a href="/" class="text-gray-600 hover:text-brand">Home</a>
-                <a href="/about" class="text-brand border-b-2 border-brand pb-1">About</a>
-                <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a>
+                <a href="/about" class="text-gray-600 hover:text-brand">About</a>
+                <a href="/community-alerts" class="text-brand border-b-2 border-brand pb-1">Alerts</a>
                 <a href="/find-evacuation-centers" class="text-gray-600 hover:text-brand">Evacuation Centers</a>
                 <a href="/hotlines" class="text-gray-600 hover:text-brand">Hotlines</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
@@ -74,8 +56,8 @@
         <nav id="mobile-menu" class="hidden sm:hidden border-t border-gray-100 bg-white">
             <div class="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm font-medium">
                 <a href="/" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Home</a>
-                <a href="/about" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">About</a>
-                <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Alerts</a>
+                <a href="/about" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">About</a>
+                <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">Alerts</a>
                 <a href="/find-evacuation-centers" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Evacuation Centers</a>
                 <a href="/hotlines" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Hotlines</a>
                 <a href="/contact" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Contact</a>
@@ -84,71 +66,40 @@
     </header>
 
     <main class="flex-1">
-        <section class="max-w-6xl mx-auto px-6 py-16 sm:py-20">
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-                <div class="lg:col-span-3" data-aos="fade-right">
-                    <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">About</p>
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3">About E-LIKAS</h1>
-                    <div class="w-12 h-1 bg-brand rounded-full mb-5"></div>
-                    <p class="lead-text mb-10 max-w-xl">
-                        Disaster response depends on information reaching the right people at
-                        the right time — residents need to know where it's safe to go, and
-                        responders need to know who needs help and where. E-LIKAS was built
-                        around that simple idea.
-                    </p>
+        <section class="relative overflow-hidden" style="background: #16264D;">
+            <div class="absolute inset-0" style="background: linear-gradient(120deg, rgba(15,28,58,0.94) 40%, rgba(31,58,110,0.72));"></div>
+            <div class="relative max-w-7xl mx-auto px-6 py-14 sm:py-16">
+                <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3" data-aos="fade-up" data-aos-duration="500">Stay informed</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">Community Alerts</h1>
+                <p class="text-blue-100/80 text-base max-w-2xl" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
+                    Official alerts and advisories sent by CSWDO Ligao City -- no account needed. This
+                    list refreshes with the same alerts sent through the E-LIKAS mobile app.
+                </p>
+            </div>
+        </section>
 
-                    <div class="space-y-8">
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="0">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-target text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">Our Mission</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    To make evacuation information clear, current, and accessible to every
-                                    resident of Ligao City — whether they're checking a phone at home or a
-                                    staff member is registering families at an evacuation center with no
-                                    signal.
-                                </p>
-                            </div>
-                        </div>
+        <section class="max-w-4xl mx-auto px-6 py-12 sm:py-16">
+            <div id="alerts-loading" class="text-center text-gray-400 text-sm py-16">
+                <i class="ti ti-loader-2" style="font-size: 28px;" aria-hidden="true"></i>
+                <p class="mt-2">Loading alerts...</p>
+            </div>
 
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="100">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-sitemap text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">How It Works</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    E-LIKAS is made up of three connected tools: a web dashboard for CSWDO
-                                    and barangay staff to manage evacuation centers, alerts, and evacuee
-                                    records; an offline-capable companion app for registering evacuees in
-                                    the field, even without internet; and a mobile app for residents to
-                                    check alerts, evacuation centers, and hazard maps, no account required.
-                                </p>
-                            </div>
-                        </div>
+            <div id="alerts-error" class="hidden text-center text-gray-500 text-sm py-16 border border-gray-200 rounded-2xl">
+                <i class="ti ti-wifi-off text-gray-300" style="font-size: 32px;" aria-hidden="true"></i>
+                <p class="mt-2">Unable to load alerts right now. Please try again in a moment.</p>
+            </div>
 
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="200">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-school text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">Where We Started</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    E-LIKAS began as a capstone project for the Bachelor of Science in
-                                    Information Technology program at Infotech Development System
-                                    Colleges, developed with the guidance and cooperation of the City
-                                    Social Welfare and Development Office (CSWDO) of Ligao City.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="alerts-empty" class="hidden text-center text-gray-500 text-sm py-16 border border-gray-200 rounded-2xl">
+                <i class="ti ti-bell-off text-gray-300" style="font-size: 32px;" aria-hidden="true"></i>
+                <p class="mt-2">No alerts have been sent yet. Check back later.</p>
+            </div>
 
-                <div class="lg:col-span-2 lg:pt-8" data-aos="fade-left">
-                    <img src="/images/about-dashboard-mockup.png" alt="E-LIKAS web dashboard and mobile app" class="w-full h-auto object-contain">
-                </div>
+            <div id="alerts-list" class="flex flex-col gap-4"></div>
+
+            <div class="text-center mt-8">
+                <button type="button" id="load-more-btn" class="hidden text-sm font-medium text-brand border border-brand/30 rounded-lg px-5 py-2.5 hover:bg-brand-light">
+                    Load more
+                </button>
             </div>
         </section>
     </main>
@@ -233,11 +184,108 @@
             setTimeout(() => { window.location.href = link.href; }, 120);
         });
 
-        // Resets the bar if the page is restored from bfcache (back/forward)
-        // still showing "active" from before the user navigated away.
         window.addEventListener('pageshow', () => {
             document.getElementById('page-loading-bar').classList.remove('active');
         });
+    </script>
+
+    {{-- Same envelope/error handling the staff dashboard uses (Api.get(),
+        {success,message,data} response shape) -- but this page never calls
+        Api.requireAuth(), and /public/alerts needs no bearer token, so it
+        works the same for a visitor with no account at all. --}}
+    <script src="/js/api.js"></script>
+    <script>
+        const severityStyles = {
+            mandatory: { badge: 'bg-red-50 text-red-700', label: 'Mandatory evacuation', icon: 'ti-alert-triangle-filled', iconColor: 'text-red-600' },
+            advisory: { badge: 'bg-orange-50 text-orange-700', label: 'Advisory', icon: 'ti-info-circle', iconColor: 'text-orange-500' },
+            info: { badge: 'bg-blue-50 text-blue-700', label: 'Info', icon: 'ti-info-circle', iconColor: 'text-blue-500' },
+            all_clear: { badge: 'bg-green-50 text-green-700', label: 'All clear', icon: 'ti-circle-check', iconColor: 'text-green-600' },
+        };
+        const typeLabels = {
+            typhoon: 'Typhoon', flood: 'Flood', volcanic: 'Volcanic',
+            earthquake: 'Earthquake', general_advisory: 'General advisory',
+        };
+
+        let currentPage = 1;
+        let lastPage = 1;
+
+        // Alert title/message are staff-authored free text, not sanitized
+        // at creation time -- escaped here since this renders via
+        // innerHTML on a public, unauthenticated page.
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            return new Date(iso).toLocaleString('en-PH', {
+                year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+            });
+        }
+
+        function renderAlerts(alerts, append) {
+            const html = alerts.map((a) => {
+                const style = severityStyles[a.severity] ?? severityStyles.info;
+                const typeLabel = typeLabels[a.alert_type] ?? a.alert_type;
+                return `
+                    <article class="border border-gray-200 rounded-2xl p-5 sm:p-6" data-aos="fade-up">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 rounded-full ${style.badge} flex items-center justify-center shrink-0">
+                                <i class="ti ${style.icon} ${style.iconColor}" style="font-size: 20px;" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}">${style.label}</span>
+                                    <span class="text-xs text-gray-400">${typeLabel}</span>
+                                </div>
+                                <h2 class="font-bold text-gray-900 text-lg mb-1">${escapeHtml(a.title)}</h2>
+                                <p class="text-sm text-gray-600 mb-3 whitespace-pre-line">${escapeHtml(a.message)}</p>
+                                <p class="text-xs text-gray-400">
+                                    <i class="ti ti-clock" style="font-size: 12px;" aria-hidden="true"></i>
+                                    ${formatDate(a.date_sent ?? a.created_at)}
+                                </p>
+                            </div>
+                        </div>
+                    </article>`;
+            }).join('');
+
+            const list = document.getElementById('alerts-list');
+            list.innerHTML = append ? list.innerHTML + html : html;
+        }
+
+        async function loadAlerts(page) {
+            try {
+                const result = await Api.get(`/public/alerts?page=${page}`);
+                const payload = result.data; // {data: [...], links, meta}
+                const alerts = payload.data ?? [];
+
+                document.getElementById('alerts-loading').classList.add('hidden');
+
+                if (page === 1 && alerts.length === 0) {
+                    document.getElementById('alerts-empty').classList.remove('hidden');
+                    return;
+                }
+
+                renderAlerts(alerts, page > 1);
+
+                currentPage = payload.meta?.current_page ?? page;
+                lastPage = payload.meta?.last_page ?? page;
+
+                const loadMoreBtn = document.getElementById('load-more-btn');
+                loadMoreBtn.classList.toggle('hidden', currentPage >= lastPage);
+            } catch (error) {
+                document.getElementById('alerts-loading').classList.add('hidden');
+                document.getElementById('alerts-error').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('load-more-btn').addEventListener('click', () => {
+            loadAlerts(currentPage + 1);
+        });
+
+        loadAlerts(1);
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>

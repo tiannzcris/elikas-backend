@@ -29,6 +29,25 @@ Route::get('/contact', function () {
     return view('contact');
 });
 
+// Public, unauthenticated web equivalents of the mobile app's resident
+// features -- for visitors without the Android app (e.g. iPhone users).
+// All three call the same already-public /api/v1/public/... endpoints the
+// Flutter app itself uses; no new backend work, just a web frontend for it.
+// Named /community-alerts and /find-evacuation-centers (not /alerts or
+// /evacuation-centers) since those paths are already taken by the
+// staff-only dashboard pages defined further down in this file.
+Route::get('/community-alerts', function () {
+    return view('community-alerts');
+});
+
+Route::get('/find-evacuation-centers', function () {
+    return view('find-evacuation-centers');
+});
+
+Route::get('/hotlines', function () {
+    return view('hotlines');
+});
+
 Route::get('/login', function () {
     return view('auth.login');
 });
