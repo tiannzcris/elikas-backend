@@ -59,9 +59,12 @@
                     <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
-            <nav class="hidden sm:flex items-center gap-8 text-sm font-medium">
+            <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
                 <a href="/" class="text-gray-600 hover:text-brand">Home</a>
                 <a href="/about" class="text-gray-600 hover:text-brand">About</a>
+                <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a>
+                <a href="/find-evacuation-centers" class="text-gray-600 hover:text-brand">Evacuation Centers</a>
+                <a href="/hotlines" class="text-gray-600 hover:text-brand">Hotlines</a>
                 <a href="/contact" class="text-brand border-b-2 border-brand pb-1">Contact</a>
             </nav>
             <button type="button" id="mobile-menu-btn" class="sm:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-brand" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -72,6 +75,9 @@
             <div class="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm font-medium">
                 <a href="/" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Home</a>
                 <a href="/about" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">About</a>
+                <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Alerts</a>
+                <a href="/find-evacuation-centers" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Evacuation Centers</a>
+                <a href="/hotlines" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Hotlines</a>
                 <a href="/contact" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">Contact</a>
             </div>
         </nav>

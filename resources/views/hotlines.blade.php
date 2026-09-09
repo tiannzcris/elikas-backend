@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About · E-LIKAS</title>
+    <title>Emergency Hotlines · E-LIKAS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,6 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
 
-        /* Page transition: the destination page still pops into place on
-           load (slight overshoot past 100%, reads as "suddenly forming").
-           The OUTGOING side no longer shrinks/fades the current page to
-           reveal blank white before the real navigation starts -- that
-           was the actual source of the "matagal" complaint (an artificial
-           delay spent staring at an emptying page, on top of the
-           browser's own real page-load time). A slim top loading bar
-           (below) gives instant feedback on click instead. */
         @keyframes page-reform {
             0% { opacity: 0; transform: scale(0.94); }
             60% { opacity: 1; transform: scale(1.01); }
@@ -35,16 +27,6 @@
             transition: width 0.15s ease-out;
         }
         #page-loading-bar.active { width: 70%; }
-
-        /* Lead paragraph: a slightly larger, lighter-weight treatment for
-           the first paragraph under a heading, distinct from the smaller
-           supporting text under it -- gives desktop readers a size step
-           beyond "everything is text-sm", without changing anything on
-           mobile. */
-        .lead-text { font-size: 1rem; line-height: 1.7; color: #4B5563; }
-        @media (min-width: 1024px) {
-            .lead-text { font-size: 1.125rem; line-height: 1.8; }
-        }
     </style>
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
@@ -61,10 +43,10 @@
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
                 <a href="/" class="text-gray-600 hover:text-brand">Home</a>
-                <a href="/about" class="text-brand border-b-2 border-brand pb-1">About</a>
+                <a href="/about" class="text-gray-600 hover:text-brand">About</a>
                 <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a>
                 <a href="/find-evacuation-centers" class="text-gray-600 hover:text-brand">Evacuation Centers</a>
-                <a href="/hotlines" class="text-gray-600 hover:text-brand">Hotlines</a>
+                <a href="/hotlines" class="text-brand border-b-2 border-brand pb-1">Hotlines</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
             </nav>
             <button type="button" id="mobile-menu-btn" class="sm:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-brand" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -74,81 +56,85 @@
         <nav id="mobile-menu" class="hidden sm:hidden border-t border-gray-100 bg-white">
             <div class="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm font-medium">
                 <a href="/" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Home</a>
-                <a href="/about" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">About</a>
+                <a href="/about" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">About</a>
                 <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Alerts</a>
                 <a href="/find-evacuation-centers" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Evacuation Centers</a>
-                <a href="/hotlines" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Hotlines</a>
+                <a href="/hotlines" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">Hotlines</a>
                 <a href="/contact" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Contact</a>
             </div>
         </nav>
     </header>
 
     <main class="flex-1">
-        <section class="max-w-6xl mx-auto px-6 py-16 sm:py-20">
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-                <div class="lg:col-span-3" data-aos="fade-right">
-                    <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2">About</p>
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3">About E-LIKAS</h1>
-                    <div class="w-12 h-1 bg-brand rounded-full mb-5"></div>
-                    <p class="lead-text mb-10 max-w-xl">
-                        Disaster response depends on information reaching the right people at
-                        the right time — residents need to know where it's safe to go, and
-                        responders need to know who needs help and where. E-LIKAS was built
-                        around that simple idea.
-                    </p>
+        <section class="relative overflow-hidden" style="background: #16264D;">
+            <div class="absolute inset-0" style="background: linear-gradient(120deg, rgba(15,28,58,0.94) 40%, rgba(31,58,110,0.72));"></div>
+            <div class="relative max-w-7xl mx-auto px-6 py-14 sm:py-16">
+                <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3" data-aos="fade-up" data-aos-duration="500">One tap away</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">Emergency Hotlines</h1>
+                <p class="text-blue-100/80 text-base max-w-2xl" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
+                    Important contact numbers for Ligao City -- the same list shown in the E-LIKAS
+                    mobile app. Tap a number on your phone to call directly.
+                </p>
+            </div>
+        </section>
 
-                    <div class="space-y-8">
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="0">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-target text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">Our Mission</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    To make evacuation information clear, current, and accessible to every
-                                    resident of Ligao City — whether they're checking a phone at home or a
-                                    staff member is registering families at an evacuation center with no
-                                    signal.
-                                </p>
-                            </div>
+        <section class="max-w-4xl mx-auto px-6 py-12 sm:py-16">
+            {{--
+                PENDING: exact phone numbers not yet confirmed here.
+
+                The mobile app's hotline list lives in a compiled Dart/Flutter
+                binary (features/emergency_hotlines/domain/hotline.dart) that
+                isn't present in this backend repo, so it can't be read
+                directly the way the rest of this task's data sources could.
+                Six real Philippine mobile numbers were recovered from the
+                compiled app for cross-checking, but WHICH number belongs to
+                WHICH organization below could not be reliably determined
+                without risking a wrong pairing -- unacceptable for emergency
+                contact information. Fill in the real number for each
+                organization below once confirmed, then remove this comment
+                and the amber "Number pending confirmation" badges.
+            --}}
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl p-4 mb-8 flex items-start gap-3">
+                <i class="ti ti-alert-triangle text-amber-500 shrink-0 mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
+                <p>Phone numbers below are pending final confirmation against the mobile app and will be updated shortly.</p>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                @php
+                    // Matches the 6 organizations already confirmed as the
+                    // mobile app's hardcoded hotline list -- numbers are
+                    // intentionally left null (see comment above) rather
+                    // than guessed.
+                    $hotlines = [
+                        ['name' => 'CSWDO Ligao City', 'description' => 'City Social Welfare and Development Office -- disaster response coordination and assistance.', 'icon' => 'ti-building-community', 'number' => null],
+                        ['name' => 'MDRRMO Ligao', 'description' => 'Municipal/City Disaster Risk Reduction and Management Office -- disaster response and coordination.', 'icon' => 'ti-alert-triangle', 'number' => null],
+                        ['name' => 'Philippine Red Cross', 'description' => 'Emergency medical assistance, rescue, and relief operations.', 'icon' => 'ti-first-aid-kit', 'number' => null],
+                        ['name' => 'PNP Ligao City', 'description' => 'Philippine National Police -- peace and order, emergency police response.', 'icon' => 'ti-shield-check', 'number' => null],
+                        ['name' => 'BFP Ligao City', 'description' => 'Bureau of Fire Protection -- fire emergency response.', 'icon' => 'ti-flame', 'number' => null],
+                        ['name' => 'City Health Office', 'description' => 'Medical concerns, health emergencies, and public health advisories.', 'icon' => 'ti-heartbeat', 'number' => null],
+                    ];
+                @endphp
+
+                @foreach ($hotlines as $hotline)
+                    <div class="border border-gray-200 rounded-2xl p-5 sm:p-6 flex items-center gap-4" data-aos="fade-up">
+                        <div class="w-12 h-12 rounded-full bg-brand-light flex items-center justify-center shrink-0">
+                            <i class="ti {{ $hotline['icon'] }} text-brand" style="font-size: 22px;" aria-hidden="true"></i>
                         </div>
-
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="100">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-sitemap text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">How It Works</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    E-LIKAS is made up of three connected tools: a web dashboard for CSWDO
-                                    and barangay staff to manage evacuation centers, alerts, and evacuee
-                                    records; an offline-capable companion app for registering evacuees in
-                                    the field, even without internet; and a mobile app for residents to
-                                    check alerts, evacuation centers, and hazard maps, no account required.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4" data-aos="fade-up" data-aos-delay="200">
-                            <div class="w-11 h-11 rounded-full bg-brand-light flex items-center justify-center shrink-0">
-                                <i class="ti ti-school text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-bold text-gray-900 lg:text-lg mb-1">Where We Started</h2>
-                                <p class="text-sm lg:text-base text-gray-600 lg:leading-relaxed">
-                                    E-LIKAS began as a capstone project for the Bachelor of Science in
-                                    Information Technology program at Infotech Development System
-                                    Colleges, developed with the guidance and cooperation of the City
-                                    Social Welfare and Development Office (CSWDO) of Ligao City.
-                                </p>
-                            </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-gray-900">{{ $hotline['name'] }}</p>
+                            <p class="text-xs text-gray-500 mb-2">{{ $hotline['description'] }}</p>
+                            @if ($hotline['number'])
+                                <a href="tel:{{ $hotline['number'] }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark">
+                                    <i class="ti ti-phone" style="font-size: 14px;" aria-hidden="true"></i> {{ $hotline['number'] }}
+                                </a>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2.5 py-1">
+                                    <i class="ti ti-clock" style="font-size: 13px;" aria-hidden="true"></i> Number pending confirmation
+                                </span>
+                            @endif
                         </div>
                     </div>
-                </div>
-
-                <div class="lg:col-span-2 lg:pt-8" data-aos="fade-left">
-                    <img src="/images/about-dashboard-mockup.png" alt="E-LIKAS web dashboard and mobile app" class="w-full h-auto object-contain">
-                </div>
+                @endforeach
             </div>
         </section>
     </main>
@@ -233,8 +219,6 @@
             setTimeout(() => { window.location.href = link.href; }, 120);
         });
 
-        // Resets the bar if the page is restored from bfcache (back/forward)
-        // still showing "active" from before the user navigated away.
         window.addEventListener('pageshow', () => {
             document.getElementById('page-loading-bar').classList.remove('active');
         });
