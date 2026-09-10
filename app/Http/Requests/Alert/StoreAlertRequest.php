@@ -24,6 +24,13 @@ class StoreAlertRequest extends FormRequest
             // Optional: restrict SMS notification to one barangay's officials/evacuees
             // instead of city-wide -- useful for a localized advisory.
             'barangay_id' => ['nullable', 'integer', 'exists:barangays,id'],
+            // Optional: scope evacuee SMS to exactly ONE evacuee instead of
+            // barangay/city-wide -- primarily for safely testing SMS delivery
+            // against one's own registered number without risking a real
+            // broadcast, but generally useful for any one-person-specific
+            // notification. Takes priority over notify_evacuees/barangay_id
+            // when set -- see AlertController::store().
+            'evacuee_id' => ['nullable', 'integer', 'exists:evacuees,id'],
         ];
     }
 }
