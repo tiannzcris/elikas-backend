@@ -71,7 +71,21 @@ class AlertController extends Controller
             );
         }
 
-        if (! empty($validated['notify_evacuees'])) {
+        // A specific evacuee_id always wins over notify_evacuees/barangay_id
+        // entirely -- deliberately scoping to exactly one person (e.g. a
+        // safe test send to one's own registered number) should never
+        // silently widen into a barangay/city-wide broadcast because those
+        // other fields also happened to be submitted from the same form.
+        if (! empty($validated['evacuee_id'])) {
+            $evacuee = Evacuee::find($validated['evacuee_id']);
+
+            $recipientCount += $this->smsRecipients(
+                $alert,
+                $sms,
+                ($evacuee && $evacuee->contact_number) ? [$evacuee->id => $evacuee->contact_number] : [],
+                'resident_sms'
+            );
+        } elseif (! empty($validated['notify_evacuees'])) {
             $recipientCount += $this->smsRecipients(
                 $alert,
                 $sms,

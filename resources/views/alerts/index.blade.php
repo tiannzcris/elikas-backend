@@ -167,13 +167,33 @@
 
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
-                    <label class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
+                        <label class="text-sm text-gray-600 block mb-1">Send to ONE specific evacuee only (e.g. for testing)</label>
+                        <div class="relative">
+                            <input type="text" id="evacuee-search-input" placeholder="Search by name..." autocomplete="off"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <div id="evacuee-search-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                        </div>
+                        <input type="hidden" id="alert-evacuee-id" value="">
+                        <div id="evacuee-selected-banner" class="hidden mt-2 flex items-center justify-between gap-2 bg-brand-light text-brand text-sm rounded-lg px-3 py-2">
+                            <span class="flex items-center gap-1.5">
+                                <i class="ti ti-user-check" style="font-size: 15px;" aria-hidden="true"></i>
+                                This alert will be sent to <strong id="evacuee-selected-name"></strong> ONLY -- not barangay-wide.
+                            </span>
+                            <button type="button" id="evacuee-selected-clear" class="text-brand hover:text-brand-dark shrink-0">
+                                <i class="ti ti-x" style="font-size: 15px;" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label id="notify-officials-label" class="flex items-center gap-2 text-sm text-gray-600 mb-2">
                         <input type="checkbox" id="alert-notify-officials"> Notify barangay officials by SMS
                     </label>
-                    <label class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    <label id="notify-evacuees-label" class="flex items-center gap-2 text-sm text-gray-600 mb-3">
                         <input type="checkbox" id="alert-notify-evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
                     </label>
-                    <div>
+                    <div id="barangay-limit-field">
                         <label class="text-sm text-gray-600 block mb-1">Limit SMS to one barangay (optional)</label>
                         <select id="alert-barangay" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                             <option value="">All barangays</option>
@@ -434,9 +454,93 @@
     // still exists untouched as a real page (the topbar's global "Send
     // emergency alert" button still links straight there).
 
+    // --- Single-evacuee targeting (evacuee_id) -----------------------------
+    // Reuses GET /evacuees?search=... (the same name-search EvacueeController
+    // already supports for the staff evacuee list) rather than a new
+    // endpoint. Selecting an evacuee disables the barangay-wide toggle/
+    // select entirely rather than just leaving them checkable-but-ignored --
+    // form.reset() alone would NOT undo that disabled state, which is why
+    // clearSelectedEvacuee() is also called explicitly from openAlertModal().
+    let selectedEvacueeId = null;
+    let evacueeSearchDebounce = null;
+
+    function clearSelectedEvacuee() {
+        selectedEvacueeId = null;
+        document.getElementById('alert-evacuee-id').value = '';
+        document.getElementById('evacuee-search-input').value = '';
+        document.getElementById('evacuee-search-results').classList.add('hidden');
+        document.getElementById('evacuee-search-results').innerHTML = '';
+        document.getElementById('evacuee-selected-banner').classList.add('hidden');
+
+        document.getElementById('alert-notify-evacuees').disabled = false;
+        document.getElementById('notify-evacuees-label').classList.remove('opacity-50');
+        document.getElementById('alert-barangay').disabled = false;
+        document.getElementById('barangay-limit-field').classList.remove('opacity-50');
+    }
+
+    function selectEvacuee(evacuee) {
+        selectedEvacueeId = evacuee.id;
+        document.getElementById('alert-evacuee-id').value = evacuee.id;
+        document.getElementById('evacuee-search-input').value = evacuee.full_name;
+        document.getElementById('evacuee-search-results').classList.add('hidden');
+        document.getElementById('evacuee-selected-name').textContent = evacuee.full_name;
+        document.getElementById('evacuee-selected-banner').classList.remove('hidden');
+
+        // Overrides/disables the barangay-wide path entirely -- avoids any
+        // ambiguity about which targeting mode is actually active, per the
+        // explicit request that these two modes never coexist visually.
+        document.getElementById('alert-notify-evacuees').checked = false;
+        document.getElementById('alert-notify-evacuees').disabled = true;
+        document.getElementById('notify-evacuees-label').classList.add('opacity-50');
+        document.getElementById('alert-barangay').value = '';
+        document.getElementById('alert-barangay').disabled = true;
+        document.getElementById('barangay-limit-field').classList.add('opacity-50');
+    }
+
+    document.getElementById('evacuee-search-input').addEventListener('input', (e) => {
+        clearTimeout(evacueeSearchDebounce);
+        const term = e.target.value.trim();
+
+        if (term.length < 2) {
+            document.getElementById('evacuee-search-results').classList.add('hidden');
+            return;
+        }
+
+        evacueeSearchDebounce = setTimeout(async () => {
+            try {
+                const result = await Api.get(`/evacuees?search=${encodeURIComponent(term)}&per_page=8`);
+                const evacuees = result.data.data;
+                const box = document.getElementById('evacuee-search-results');
+
+                box.innerHTML = evacuees.length === 0
+                    ? '<p class="text-xs text-gray-400 px-3 py-2">No matching evacuees.</p>'
+                    : evacuees.map((ev) => `
+                        <button type="button" class="evacuee-result-item block w-full text-left px-3 py-2 text-sm hover:bg-gray-50" data-id="${ev.id}">
+                            <span class="font-medium text-gray-700">${ev.full_name}</span>
+                            <span class="text-xs text-gray-400 block">${ev.contact_number ?? 'No contact number on file'}</span>
+                        </button>`).join('');
+
+                document.querySelectorAll('.evacuee-result-item').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const evacuee = evacuees.find((ev) => ev.id === Number(btn.dataset.id));
+                        if (evacuee) selectEvacuee(evacuee);
+                    });
+                });
+
+                box.classList.remove('hidden');
+            } catch (error) {
+                // Search box just stays closed if this fails -- the rest
+                // of the form (barangay-wide targeting) is still usable.
+            }
+        }, 300);
+    });
+
+    document.getElementById('evacuee-selected-clear').addEventListener('click', clearSelectedEvacuee);
+
     async function openAlertModal() {
         document.getElementById('alert-modal-errors').classList.add('hidden');
         document.getElementById('alert-form').reset();
+        clearSelectedEvacuee();
         document.getElementById('send-alert-modal').classList.remove('hidden');
         document.getElementById('send-alert-modal').classList.add('flex');
 
@@ -505,6 +609,7 @@
             notify_barangay_officials: document.getElementById('alert-notify-officials').checked,
             notify_evacuees: document.getElementById('alert-notify-evacuees').checked,
             barangay_id: document.getElementById('alert-barangay').value || null,
+            evacuee_id: selectedEvacueeId,
         };
 
         const button = document.getElementById('alert-submit-btn');
