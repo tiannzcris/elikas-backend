@@ -34,10 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    /*'semaphore' => [
-    'api_key' => env('SEMAPHORE_API_KEY'),
-    'sender_name' => env('SEMAPHORE_SENDER_NAME', 'ELIKAS'),
-    ],*/
+    'semaphore' => [
+        'api_key' => env('SEMAPHORE_API_KEY'),
+        'sender_name' => env('SEMAPHORE_SENDER_NAME', 'ELIKAS'),
+    ],
 
     // sarima-service/ -- a separate Python/FastAPI process for SARIMA/
     // SARIMAX weather forecasting, deployed independently on the VPS.

@@ -129,11 +129,26 @@ class AlertController extends Controller
 
             $result = $sms->send($phoneNumber, "{$alert->title}: {$alert->message}");
 
+            // $result['reason'] is 'not_configured' | 'api_error' | 'exception'
+            // (absent entirely on success). $result['detail'] -- the raw
+            // Semaphore response body, or the exception message -- is only
+            // present for api_error/exception specifically, per
+            // SemaphoreSmsService::send(). Concatenating both (when detail
+            // exists) means a future real failure is actually diagnosable
+            // from this one column, not just "failed" with no context.
+            $failureReason = null;
+            if (! $result['success']) {
+                $failureReason = isset($result['detail'])
+                    ? "{$result['reason']}: {$result['detail']}"
+                    : $result['reason'];
+            }
+
             AlertRecipient::create([
                 'alert_id' => $alert->id,
                 'recipient_type' => $recipientType,
                 'recipient_value' => $phoneNumber,
                 'status' => $result['success'] ? 'sent' : 'failed',
+                'failure_reason' => $failureReason,
                 'date_sent' => $result['success'] ? now() : null,
             ]);
 
