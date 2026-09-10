@@ -20,7 +20,13 @@ class SemaphoreSmsService
         $apiKey = config('services.semaphore.api_key');
 
         if (! $apiKey) {
-            Log::info("[SemaphoreSmsService] No API key configured -- would have sent to {$phoneNumber}: \"{$message}\"");
+            // Log::error, not ::info/::warning -- production runs
+            // LOG_LEVEL=error, and Monolog's severity ordering
+            // (debug=100, info=200, warning=300, error=400...) means
+            // anything below 'error' is silently dropped there. This is
+            // also a genuinely actionable configuration problem (the
+            // entire SMS feature is non-functional), not just informational.
+            Log::error("[SemaphoreSmsService] No API key configured -- would have sent to {$phoneNumber}: \"{$message}\"");
 
             return ['success' => false, 'reason' => 'not_configured'];
         }
@@ -37,15 +43,18 @@ class SemaphoreSmsService
                 return ['success' => true];
             }
 
-            Log::warning("[SemaphoreSmsService] Semaphore API returned an error for {$phoneNumber}: {$response->body()}");
+            // Same LOG_LEVEL reasoning as above -- ::warning (300) is also
+            // below production's 'error' (400) threshold and would be
+            // silently dropped just like ::info was.
+            Log::error("[SemaphoreSmsService] Semaphore API returned an error for {$phoneNumber}: {$response->body()}");
 
-            return ['success' => false, 'reason' => 'api_error'];
+            return ['success' => false, 'reason' => 'api_error', 'detail' => $response->body()];
         } catch (\Throwable $e) {
             // Network failure, timeout, etc. -- one failed SMS should never
             // take down the whole alert-sending request.
             Log::error("[SemaphoreSmsService] Exception sending to {$phoneNumber}: {$e->getMessage()}");
 
-            return ['success' => false, 'reason' => 'exception'];
+            return ['success' => false, 'reason' => 'exception', 'detail' => $e->getMessage()];
         }
     }
 }

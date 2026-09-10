@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AlertRecipient extends Model
 {
-    protected $fillable = ['alert_id', 'recipient_type', 'recipient_value', 'status', 'date_sent'];
+    protected $fillable = ['alert_id', 'recipient_type', 'recipient_value', 'status', 'failure_reason', 'date_sent'];
 
     protected $casts = [
         'date_sent' => 'datetime',
