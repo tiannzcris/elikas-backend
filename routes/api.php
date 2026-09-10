@@ -191,6 +191,10 @@ Route::prefix('v1')->group(function () {
     // public appropriateness (e.g. no camp manager contact numbers).
     Route::get('/public/evacuation-centers', [PublicController::class, 'evacuationCenters']);
     Route::get('/public/evacuation-centers/nearest', [PublicController::class, 'nearestEvacuationCenters']);
+    // Must stay AFTER the literal /nearest route above -- otherwise Laravel
+    // would try to route-model-bind the literal string "nearest" as this
+    // route's {evacuationCenter} id and 404.
+    Route::get('/public/evacuation-centers/{evacuationCenter}', [PublicController::class, 'evacuationCenter']);
     Route::get('/public/alerts', [PublicController::class, 'alerts']);
     // Reuses GisController::mapData() directly (not wrapped) -- its fields
     // were already checked and don't expose anything staff-only, so no

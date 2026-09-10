@@ -123,6 +123,10 @@
 
                     <div class="bg-white border border-gray-200 rounded-xl p-4">
                         <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Search centers</p>
+                        <button type="button" id="find-near-me-btn" class="w-full flex items-center justify-center gap-2 bg-brand-light hover:bg-blue-100 text-brand text-xs font-semibold rounded-lg py-2 mb-2">
+                            <i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Find centers near me
+                        </button>
+                        <p id="location-status" class="hidden text-xs text-gray-500 mb-3"></p>
                         <div class="relative mb-2">
                             <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
                             <input id="center-search" type="text" placeholder="Search by name or barangay..."
@@ -151,6 +155,56 @@
             </div>
         </section>
     </main>
+
+    {{-- Full center-detail modal -- same hidden/flex + bg-black/50 pattern
+        already established elsewhere in this app (e.g. the staff GIS
+        map's hazard-zone form). Opened by clicking a map marker OR a list
+        item; fetches /public/evacuation-centers/{id} fresh each time so
+        the facilities checklist and occupancy are current, not whatever
+        was loaded on page load. --}}
+    <div id="center-detail-modal" class="hidden fixed inset-0 bg-black/50 z-[9999] items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <p id="detail-heading" class="font-semibold text-gray-800">Evacuation Center</p>
+                <button type="button" id="detail-close-btn" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div id="detail-loading" class="text-center text-gray-400 text-sm py-16">
+                <i class="ti ti-loader-2" style="font-size: 24px;" aria-hidden="true"></i>
+                <p class="mt-2">Loading center details...</p>
+            </div>
+            <div id="detail-error" class="hidden text-center text-gray-500 text-sm py-16">
+                <i class="ti ti-wifi-off text-gray-300" style="font-size: 28px;" aria-hidden="true"></i>
+                <p class="mt-2">Unable to load this center's details right now.</p>
+            </div>
+            <div id="detail-body" class="hidden p-5">
+                <div class="mb-4">
+                    <img id="detail-photo" src="" alt="" class="hidden w-full h-52 object-cover rounded-lg">
+                    <div id="detail-photo-placeholder" class="w-full h-52 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
+                        <i class="ti ti-building" style="font-size: 40px;" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                        <h2 id="detail-name" class="font-bold text-gray-900 text-lg"></h2>
+                        <p id="detail-address" class="text-sm text-gray-500"></p>
+                    </div>
+                    <span id="detail-status" class="text-xs px-2 py-1 rounded-lg font-medium shrink-0"></span>
+                </div>
+                <p id="detail-occupancy" class="text-sm text-gray-600 mb-1"></p>
+                <p id="detail-distance" class="hidden text-sm text-brand font-medium mb-3"></p>
+
+                <a id="detail-directions-btn" href="#" target="_blank" rel="noopener"
+                    class="flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-2.5 mb-5">
+                    <i class="ti ti-route" style="font-size: 16px;" aria-hidden="true"></i> Get Directions
+                </a>
+
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Facilities</p>
+                <div id="detail-facilities" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm"></div>
+            </div>
+        </div>
+    </div>
 
     <footer class="text-white" style="background: #16264D;">
         <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 gap-10">
@@ -247,6 +301,47 @@
             return div.innerHTML;
         }
 
+        // Same 19 facility_type values/labels as the staff detail page
+        // (resources/views/evacuation-centers/show.blade.php) -- kept in
+        // sync manually since this page has no shared JS module to import
+        // it from.
+        const facilityTypes = [
+            ['toilet_male', 'Toilet (male)'], ['toilet_female', 'Toilet (female)'], ['toilet_common', 'Toilet (common)'],
+            ['latrine_compost_pit', 'Latrine (compost pit)'], ['latrine_sealed', 'Latrine (sealed)'],
+            ['bathing_area_male', 'Bathing area (male)'], ['bathing_area_female', 'Bathing area (female)'], ['bathing_area_common', 'Bathing area (common)'],
+            ['handwashing_facility', 'Handwashing facility'], ['laundry_space', 'Laundry space'],
+            ['women_friendly_space', 'Women-friendly space'], ['child_friendly_space', 'Child-friendly space'],
+            ['health_facility', 'Health facility'], ['prayer_room', 'Prayer room'], ['community_kitchen', 'Community kitchen'],
+            ['livestock_area', 'Livestock area'], ['camp_management_desk', 'Camp management desk'],
+            ['info_board', 'Info board'], ['storage_area', 'Storage area'],
+        ];
+
+        const statusColors = {
+            active: 'bg-green-50 text-green-700', on_standby: 'bg-gray-100 text-gray-600',
+            full: 'bg-amber-50 text-amber-700', closed: 'bg-red-50 text-red-700',
+        };
+
+        // Great-circle straight-line distance, meters. Client-side rather
+        // than the server's EvacuationCenter::nearestTo() -- that query
+        // deliberately excludes full/closed centers (a "which center should
+        // I go to RIGHT NOW" filter), but this list shows distance on
+        // EVERY center regardless of status for full transparency, so the
+        // two "which centers" rules don't actually match.
+        function haversineMeters(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const toRad = (d) => (d * Math.PI) / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLng = toRad(lng2 - lng1);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function formatDistance(meters) {
+            return meters < 1000 ? `${Math.round(meters)} m away` : `${(meters / 1000).toFixed(1)} km away`;
+        }
+
+        let userLocation = null; // {latitude, longitude} once granted, else null
+
         const MAP_CENTER = [13.1391, 123.5321];
         const MAP_ZOOM = 13;
 
@@ -310,17 +405,10 @@
                     fillOpacity: 0.9,
                 }),
                 onEachFeature: (feature, layer) => {
-                    const p = feature.properties;
-                    const popupPhoto = p.photo_url
-                        ? `<img src="${p.photo_url}" alt="${escapeHtml(p.name)}" style="width:180px;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block;">`
-                        : `<div style="width:180px;height:120px;background:#f3f4f6;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:#9ca3af;"><i class="ti ti-building" style="font-size:32px;" aria-hidden="true"></i></div>`;
-
-                    layer.bindPopup(`
-                        ${popupPhoto}
-                        <strong>${escapeHtml(p.name)}</strong><br>
-                        ${escapeHtml(p.barangay ?? '')} · ${escapeHtml((p.status ?? '').replace('_', ' '))}<br>
-                        ${p.capacity_persons ? `Occupancy: ${p.current_occupancy} / ${p.capacity_persons}` : 'No capacity set'}
-                    `);
+                    // Opens the full detail modal directly on click, rather
+                    // than a small Leaflet popup -- richer info (facilities,
+                    // Get Directions) doesn't fit well in a popup bubble.
+                    layer.on('click', () => openCenterDetail(feature.properties.id));
                 },
             });
             if (showLayer) centerLayer.addTo(map);
@@ -354,37 +442,178 @@
             const query = document.getElementById('center-search').value.trim().toLowerCase();
             const status = document.getElementById('center-status-filter').value;
 
-            const filtered = allCentersList.filter((c) => {
+            let filtered = allCentersList.filter((c) => {
                 const matchesQuery = !query || c.name.toLowerCase().includes(query) || (c.barangay ?? '').toLowerCase().includes(query);
                 const matchesStatus = !status || c.status === status;
                 return matchesQuery && matchesStatus;
             });
 
+            // Only actually sorts once userLocation is set -- distance_meters
+            // is attached to every item in allCentersList by
+            // findCentersNearMe() below, independent of the search/status
+            // filter above, so it survives re-filtering.
+            if (userLocation) {
+                filtered = [...filtered].sort((a, b) => (a.distance_meters ?? Infinity) - (b.distance_meters ?? Infinity));
+            }
+
             document.getElementById('center-list').innerHTML = filtered.length === 0
                 ? '<p class="text-xs text-gray-400 text-center py-6">No centers match this filter.</p>'
                 : filtered.map((c) => `
-                    <button class="center-list-item text-left w-full" data-lat="${c.latitude ?? ''}" data-lng="${c.longitude ?? ''}">
+                    <button class="center-list-item text-left w-full" data-id="${c.id}" data-lat="${c.latitude ?? ''}" data-lng="${c.longitude ?? ''}">
                         <span class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[c.status] ?? '#666'}"></span>
                             <span class="font-medium text-gray-700">${escapeHtml(c.name)}</span>
                         </span>
-                        <p class="text-xs text-gray-400 pl-4">${escapeHtml(c.barangay ?? '')}${c.capacity_persons ? ` · ${c.current_occupancy} / ${c.capacity_persons}` : ''}</p>
+                        <p class="text-xs text-gray-400 pl-4">
+                            ${escapeHtml(c.barangay ?? '')}${c.capacity_persons ? ` · ${c.current_occupancy} / ${c.capacity_persons}` : ''}
+                            ${c.distance_meters != null ? ` · <span class="text-brand font-medium">${formatDistance(c.distance_meters)}</span>` : ''}
+                        </p>
                     </button>`).join('');
 
             document.querySelectorAll('.center-list-item').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const lat = Number(btn.dataset.lat);
                     const lng = Number(btn.dataset.lng);
-                    if (!lat || !lng) return;
-                    map.setView([lat, lng], 16);
-                    centerLayer?.eachLayer((layer) => {
-                        if (Math.abs(layer.getLatLng().lat - lat) < 0.0001 && Math.abs(layer.getLatLng().lng - lng) < 0.0001) {
-                            layer.openPopup();
-                        }
-                    });
+                    if (lat && lng) map.setView([lat, lng], 16);
+                    openCenterDetail(Number(btn.dataset.id));
                 });
             });
         }
+
+        function findCentersNearMe() {
+            const btn = document.getElementById('find-near-me-btn');
+            const status = document.getElementById('location-status');
+
+            if (!navigator.geolocation) {
+                status.textContent = 'Location isn\'t supported by this browser. Showing all centers without distance sorting.';
+                status.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ti ti-loader-2" style="font-size: 15px;" aria-hidden="true"></i> Locating...';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+                    allCentersList.forEach((c) => {
+                        c.distance_meters = (c.latitude != null && c.longitude != null)
+                            ? haversineMeters(userLocation.latitude, userLocation.longitude, c.latitude, c.longitude)
+                            : null;
+                    });
+
+                    status.textContent = 'Showing distances from your current location, nearest first.';
+                    status.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ti ti-current-location-filled" style="font-size: 15px;" aria-hidden="true"></i> Location found';
+                    renderCenterList();
+                },
+                (error) => {
+                    // Fails gracefully -- the full list stays exactly as
+                    // usable as before, just without distance sorting.
+                    const reason = error.code === error.PERMISSION_DENIED
+                        ? 'Location access was denied.'
+                        : 'Could not determine your location.';
+                    status.textContent = `${reason} Showing all centers without distance sorting.`;
+                    status.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Find centers near me';
+                },
+                { enableHighAccuracy: false, timeout: 10000 }
+            );
+        }
+
+        document.getElementById('find-near-me-btn').addEventListener('click', findCentersNearMe);
+
+        function closeCenterDetail() {
+            document.getElementById('center-detail-modal').classList.add('hidden');
+            document.getElementById('center-detail-modal').classList.remove('flex');
+        }
+
+        async function openCenterDetail(id) {
+            const modal = document.getElementById('center-detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('detail-loading').classList.remove('hidden');
+            document.getElementById('detail-error').classList.add('hidden');
+            document.getElementById('detail-body').classList.add('hidden');
+
+            try {
+                const result = await Api.get(`/public/evacuation-centers/${id}`);
+                const c = result.data;
+
+                document.getElementById('detail-heading').textContent = c.name;
+                document.getElementById('detail-name').textContent = c.name;
+                document.getElementById('detail-address').textContent = `${c.barangay ?? '—'} · ${c.address ?? ''}`;
+                document.getElementById('detail-status').textContent = (c.status ?? '').replace('_', ' ');
+                document.getElementById('detail-status').className = `text-xs px-2 py-1 rounded-lg font-medium shrink-0 ${statusColors[c.status] ?? ''}`;
+                document.getElementById('detail-occupancy').textContent = c.capacity_persons
+                    ? `Occupancy: ${c.current_occupancy} / ${c.capacity_persons} persons`
+                    : 'No capacity set';
+
+                const distanceEl = document.getElementById('detail-distance');
+                const known = allCentersList.find((x) => x.id === c.id);
+                if (known?.distance_meters != null) {
+                    distanceEl.textContent = formatDistance(known.distance_meters);
+                    distanceEl.classList.remove('hidden');
+                } else {
+                    distanceEl.classList.add('hidden');
+                }
+
+                const photo = document.getElementById('detail-photo');
+                const placeholder = document.getElementById('detail-photo-placeholder');
+                if (c.photo_url) {
+                    photo.src = c.photo_url;
+                    photo.alt = c.name;
+                    photo.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                } else {
+                    photo.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                }
+
+                // Hands off to the resident's own maps app rather than
+                // building custom in-app routing -- omitting an explicit
+                // origin lets the maps app default to the device's current
+                // location, so this works even if this page's own
+                // "Find centers near me" was never used/granted.
+                const directionsBtn = document.getElementById('detail-directions-btn');
+                if (c.latitude != null && c.longitude != null) {
+                    directionsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${c.latitude},${c.longitude}`;
+                    directionsBtn.classList.remove('hidden');
+                } else {
+                    directionsBtn.classList.add('hidden');
+                }
+
+                const existingFacilities = {};
+                (c.facilities || []).forEach((f) => { existingFacilities[f.facility_type] = f; });
+
+                document.getElementById('detail-facilities').innerHTML = facilityTypes.map(([type, label]) => {
+                    const f = existingFacilities[type];
+                    const available = f?.is_available ?? false;
+                    const icon = available ? 'ti-circle-check text-green-600' : 'ti-circle-x text-gray-300';
+                    const note = (!available && f?.concerns_and_needs) ? ` <span class="text-gray-400">(${escapeHtml(f.concerns_and_needs)})</span>` : '';
+                    return `<div class="flex items-start gap-1.5"><i class="ti ${icon} shrink-0 mt-0.5" style="font-size: 15px;" aria-hidden="true"></i> <span class="${available ? 'text-gray-700' : 'text-gray-400'}">${label}${f ? ` (${f.quantity})` : ''}${note}</span></div>`;
+                }).join('');
+
+                document.getElementById('detail-loading').classList.add('hidden');
+                document.getElementById('detail-body').classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('detail-loading').classList.add('hidden');
+                document.getElementById('detail-error').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('detail-close-btn').addEventListener('click', closeCenterDetail);
+        document.getElementById('center-detail-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'center-detail-modal') closeCenterDetail();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('center-detail-modal').classList.contains('hidden')) {
+                closeCenterDetail();
+            }
+        });
 
         async function loadMapData() {
             try {
