@@ -51,6 +51,43 @@ class PublicController extends Controller
     }
 
     /**
+     * Full detail for ONE center, including its facilities checklist --
+     * neither the list above nor GisController::mapData() carry facilities,
+     * and sending them for every center on every page load would be
+     * wasteful, so this is fetched on demand when a resident actually
+     * opens one center's detail view. Same public-appropriateness rule as
+     * evacuationCenters() above: no camp_manager_name/camp_manager_contact.
+     * concerns_and_needs IS included (unlike staff contact info) -- e.g.
+     * "toilet unavailable, awaiting repair" is directly relevant to a
+     * resident deciding where to go, not a staff-internal detail.
+     */
+    public function evacuationCenter(EvacuationCenter $evacuationCenter)
+    {
+        $evacuationCenter->load(['barangay', 'facilities']);
+
+        return $this->success([
+            'id' => $evacuationCenter->id,
+            'name' => $evacuationCenter->name,
+            'type' => $evacuationCenter->type,
+            'address' => $evacuationCenter->address,
+            'barangay' => $evacuationCenter->barangay?->name,
+            'latitude' => $evacuationCenter->latitude !== null ? (float) $evacuationCenter->latitude : null,
+            'longitude' => $evacuationCenter->longitude !== null ? (float) $evacuationCenter->longitude : null,
+            'capacity_persons' => $evacuationCenter->capacity_persons,
+            'current_occupancy' => $evacuationCenter->currentOccupancy(),
+            'occupancy_percent' => $evacuationCenter->occupancyPercent(),
+            'status' => $evacuationCenter->status,
+            'photo_url' => $evacuationCenter->photo_url,
+            'facilities' => $evacuationCenter->facilities->map(fn ($f) => [
+                'facility_type' => $f->facility_type,
+                'quantity' => $f->quantity,
+                'is_available' => (bool) $f->is_available,
+                'concerns_and_needs' => $f->concerns_and_needs,
+            ]),
+        ]);
+    }
+
+    /**
      * Same nearest-center search staff use internally, opened up publicly
      * -- this is the actual "which evacuation center should I go to" query
      * a resident's app needs.
