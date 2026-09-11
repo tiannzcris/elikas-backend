@@ -169,7 +169,7 @@
                     <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
 
                     <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
-                        <label class="text-sm text-gray-600 block mb-1">Send to ONE specific evacuee only (e.g. for testing)</label>
+                        <label class="text-sm text-gray-600 block mb-1">Send to a specific evacuee only</label>
                         <div class="relative">
                             <input type="text" id="evacuee-search-input" placeholder="Search by name..." autocomplete="off"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -200,8 +200,8 @@
                         </select>
                     </div>
                     <p class="text-xs text-gray-400 mt-3">
-                        If SMS isn't configured yet (no Semaphore account), the alert still sends to the live
-                        dashboard — SMS attempts are just logged instead of actually delivered.
+                        SMS delivery depends on Semaphore's connection to each recipient's network -- the
+                        alert always reaches the live dashboard regardless of SMS outcome.
                     </p>
                 </div>
 

@@ -68,8 +68,8 @@
                 </select>
             </div>
             <p class="text-xs text-gray-400 mt-3">
-                If SMS isn't configured yet (no Semaphore account), the alert still sends to the live
-                dashboard — SMS attempts are just logged instead of actually delivered.
+                SMS delivery depends on Semaphore's connection to each recipient's network -- the
+                alert always reaches the live dashboard regardless of SMS outcome.
             </p>
         </div>
 
