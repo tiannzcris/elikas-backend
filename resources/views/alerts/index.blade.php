@@ -113,8 +113,8 @@
         <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between p-5 border-b border-gray-100">
                 <div>
-                    <p class="font-semibold text-gray-800">Send an alert</p>
-                    <p class="text-xs text-gray-500">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
+                    <p id="alert-modal-heading" class="font-semibold text-gray-800">Send an alert</p>
+                    <p id="alert-modal-subheading" class="text-xs text-gray-500">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
                 </div>
                 <button type="button" id="alert-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
@@ -124,6 +124,15 @@
             <div id="alert-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
 
             <form id="alert-form" class="flex flex-col gap-4 p-5">
+                <div class="bg-brand-light border border-blue-100 rounded-xl p-3 flex items-center justify-between gap-3">
+                    <p class="text-xs text-gray-600">
+                        <i class="ti ti-file-text" style="font-size: 14px;" aria-hidden="true"></i>
+                        Template available for <strong id="template-type-label">Typhoon</strong> -- fills Title/Message below, still fully editable.
+                    </p>
+                    <button type="button" id="use-template-btn" class="text-xs font-semibold text-brand hover:text-brand-dark bg-white border border-brand/30 rounded-lg px-3 py-1.5 whitespace-nowrap shrink-0">
+                        Use template
+                    </button>
+                </div>
                 <div>
                     <label class="text-sm text-gray-600 block mb-1">Title</label>
                     <input type="text" id="alert-title" required maxlength="200"
@@ -136,6 +145,15 @@
                         placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
                     <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
+                    {{-- A plain <textarea> can't render partial bold/colored text
+                        within its own value, so "highlight the remaining
+                        bracketed option" is done via this callout below it
+                        instead of inline styling inside the field itself. --}}
+                    <p id="bracket-warning" class="hidden text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                        <i class="ti ti-alert-triangle" style="font-size: 13px;" aria-hidden="true"></i>
+                        Delete the bracketed choices that don't apply, keeping only the one matching the
+                        selected Urgency: <strong id="bracket-warning-text"></strong>
+                    </p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
@@ -165,7 +183,12 @@
                     </div>
                 </div>
 
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p id="alert-edit-note" class="hidden text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <i class="ti ti-info-circle" style="font-size: 13px;" aria-hidden="true"></i>
+                    SMS was already sent when this alert was originally created. Editing only updates its
+                    content on the dashboard and history -- it does not resend anything to anyone.
+                </p>
+                <div id="sms-delivery-section" class="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
 
                     <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
@@ -222,7 +245,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
     const user = Api.getUser();
-    if (user && user.role !== 'barangay_official') {
+    const canManage = !! (user && user.role !== 'barangay_official');
+    if (canManage) {
         document.getElementById('send-alert-btn').classList.remove('hidden');
     }
 
@@ -302,6 +326,16 @@
                             <p class="text-sm text-gray-600 mt-1">${a.message}</p>
                         </div>
                     </div>
+                    ${canManage ? `
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button type="button" class="alert-edit-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-brand hover:bg-gray-50 rounded-lg" data-id="${a.id}" aria-label="Edit alert">
+                                <i class="ti ti-pencil" style="font-size: 15px;" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="alert-delete-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" data-id="${a.id}" data-title="${a.title.replace(/"/g, '&quot;')}" aria-label="Delete alert">
+                                <i class="ti ti-trash" style="font-size: 15px;" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 border-t border-gray-100 pt-3 flex-wrap">
                     <span>Sent by ${a.sender?.name ?? 'Unknown'}</span>
@@ -319,6 +353,36 @@
                 ` : ''}
             </div>`;
         }).join('');
+    }
+
+    // Delegated -- #alerts-list is fully replaced (innerHTML) on every
+    // renderAlertsList() call, so listeners bound directly to individual
+    // buttons would be lost on the next render.
+    document.getElementById('alerts-list').addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.alert-edit-btn');
+        if (editBtn) {
+            const alertToEdit = allAlerts.find((a) => a.id === Number(editBtn.dataset.id));
+            if (alertToEdit) openAlertModal(alertToEdit);
+            return;
+        }
+
+        const deleteBtn = e.target.closest('.alert-delete-btn');
+        if (deleteBtn) {
+            deleteAlert(Number(deleteBtn.dataset.id), deleteBtn.dataset.title);
+        }
+    });
+
+    async function deleteAlert(id, title) {
+        if (! confirm(`Delete the alert "${title}"? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await Api.request(`/alerts/${id}`, { method: 'DELETE' });
+            await loadAlerts();
+        } catch (error) {
+            showFormErrors(error);
+        }
     }
 
     function renderSidebar() {
@@ -537,12 +601,131 @@
 
     document.getElementById('evacuee-selected-clear').addEventListener('click', clearSelectedEvacuee);
 
-    async function openAlertModal() {
+    // --- Message templates ---------------------------------------------
+    // Natural Filipino/Taglish, matching how real LGU/barangay emergency
+    // announcements actually communicate -- one template per alert_type,
+    // each usable across all 4 Urgency levels via a bracketed choice staff
+    // narrow down to the one that applies (see bracket-warning below).
+    const templates = {
+        typhoon: {
+            title: 'Babala sa Bagyo -- [Barangay/Lungsod]',
+            message: 'May bagyong umaapekto sa ating lugar. [LUMIKAS AGAD papunta sa pinakamalapit na evacuation center / SUBAYBAYAN ang kalagayan at maghanda ng go-bag / MANATILING NAKAALAM sa opisyal na balita]. Iwasan ang mga baha at mababang bahagi ng lugar. Para sa tulong, tumawag sa inyong barangay o sa CSWDO Ligao City.',
+        },
+        flood: {
+            title: 'Babala sa Baha -- [Barangay/Lungsod]',
+            message: 'May tumataas na tubig-baha na naiulat sa ating lugar. [LUMIKAS AGAD papunta sa mataas na lugar o sa pinakamalapit na evacuation center / SUBAYBAYAN ang taas ng baha malapit sa inyong bahay / MANATILING NAKAALAM at iwasan ang paglabas kung hindi kailangan]. Huwag tumawid sa baha, lakad man o sasakyan.',
+        },
+        volcanic: {
+            // [Alert Level] is NOT barangay-related -- no auto-fill source
+            // exists for it on this form, so it's left for staff to edit
+            // directly (e.g. "Alert Level 3"), same as the bracketed
+            // urgency choice in the message.
+            title: 'Babala sa Bulkang Mayon -- [Alert Level]',
+            message: 'Itinaas ng PHIVOLCS ang alert status ng Bulkang Mayon. [LUMIKAS AGAD kung kayo ay nasa loob ng Permanent o Extended Danger Zone / SUBAYBAYAN ang opisyal na bulletin ng PHIVOLCS at maghanda para sa posibleng paglikas / MANATILING NAKAALAM sa opisyal na balita]. Iwasan ang danger zone ng bulkan sa lahat ng oras.',
+        },
+        earthquake: {
+            title: 'Babala sa Lindol -- [Barangay/Lungsod]',
+            message: 'May lindol na naramdaman sa ating lugar. [LUMIKAS AGAD papunta sa bukas na lugar, malayo sa mga gusali, kung may pinaghihinalaang sira / SUBAYBAYAN ang inyong paligid para sa aftershocks o sira sa bahay / MANATILING NAKAALAM sa opisyal na balita]. Suriin muna ang inyong bahay bago pumasok.',
+        },
+        general_advisory: {
+            title: 'Paalala -- [Barangay/Lungsod]',
+            message: 'Ito ay opisyal na paalala mula sa CSWDO Ligao City. [Ilagay dito ang espesipikong impormasyon]. Para sa katanungan o tulong, tumawag sa inyong barangay o sa CSWDO Ligao City.',
+        },
+    };
+
+    // What was last substituted into the Title for [Barangay/Lungsod] --
+    // lets a later barangay-dropdown change re-fill just that portion via
+    // an exact find-and-replace, without touching any other edits staff
+    // may have already made. Stays null when no template has been applied
+    // yet, or the applied template's title has no barangay placeholder
+    // (volcanic's [Alert Level] isn't one).
+    let lastBarangayFillValue = null;
+
+    function currentBarangayFillValue() {
+        const select = document.getElementById('alert-barangay');
+        if (! select.value) return 'Ligao City';
+        return select.options[select.selectedIndex].text;
+    }
+
+    function updateTemplateLabel() {
+        const type = document.getElementById('alert-type').value;
+        document.getElementById('template-type-label').textContent = typeLabels[type] ?? type;
+    }
+
+    function updateBracketWarning() {
+        const match = document.getElementById('alert-message').value.match(/\[[^\]]*\]/);
+        const warning = document.getElementById('bracket-warning');
+        if (match) {
+            document.getElementById('bracket-warning-text').textContent = match[0];
+            warning.classList.remove('hidden');
+        } else {
+            warning.classList.add('hidden');
+        }
+    }
+
+    function applyTemplate() {
+        const type = document.getElementById('alert-type').value;
+        const tpl = templates[type];
+        if (! tpl) return;
+
+        let title = tpl.title;
+        if (title.includes('[Barangay/Lungsod]')) {
+            const fillValue = currentBarangayFillValue();
+            title = title.replace('[Barangay/Lungsod]', fillValue);
+            lastBarangayFillValue = fillValue;
+        } else {
+            lastBarangayFillValue = null;
+        }
+
+        document.getElementById('alert-title').value = title;
+        document.getElementById('alert-message').value = tpl.message;
+        updateBracketWarning();
+    }
+
+    document.getElementById('use-template-btn').addEventListener('click', applyTemplate);
+    document.getElementById('alert-type').addEventListener('change', updateTemplateLabel);
+    document.getElementById('alert-message').addEventListener('input', updateBracketWarning);
+
+    // Re-fills ONLY the barangay portion of the title, and only if it's
+    // still there verbatim -- String.replace() is a no-op if staff already
+    // edited that part of the title away, so this never clobbers a manual
+    // edit.
+    document.getElementById('alert-barangay').addEventListener('change', () => {
+        if (lastBarangayFillValue === null) return;
+        const newFillValue = currentBarangayFillValue();
+        const titleField = document.getElementById('alert-title');
+        titleField.value = titleField.value.replace(lastBarangayFillValue, newFillValue);
+        lastBarangayFillValue = newFillValue;
+    });
+
+    // --- Send/Edit modal --------------------------------------------------
+    // null = creating a new alert (POST). An Alert object = editing an
+    // existing one (PATCH) -- editing never touches SMS/recipients at all,
+    // so the whole SMS delivery section (and the template picker, which
+    // depends on the barangay dropdown living inside it) is hidden in
+    // that case.
+    let editingAlert = null;
+
+    async function openAlertModal(alertToEdit = null) {
+        editingAlert = alertToEdit;
+
         document.getElementById('alert-modal-errors').classList.add('hidden');
         document.getElementById('alert-form').reset();
         clearSelectedEvacuee();
+        lastBarangayFillValue = null;
+        updateBracketWarning();
         document.getElementById('send-alert-modal').classList.remove('hidden');
         document.getElementById('send-alert-modal').classList.add('flex');
+
+        const isEditing = !! editingAlert;
+        document.getElementById('alert-modal-heading').textContent = isEditing ? 'Edit alert' : 'Send an alert';
+        document.getElementById('alert-modal-subheading').textContent = isEditing
+            ? 'Changes save immediately and never resend SMS.'
+            : 'Broadcasts instantly to the dashboard. SMS is optional and best-effort.';
+        document.querySelector('#alert-form > .bg-brand-light').classList.toggle('hidden', isEditing);
+        document.getElementById('sms-delivery-section').classList.toggle('hidden', isEditing);
+        document.getElementById('alert-edit-note').classList.toggle('hidden', ! isEditing);
+        document.getElementById('alert-submit-btn').textContent = isEditing ? 'Save changes' : 'Send alert';
 
         try {
             const [events, barangays] = await Promise.all([
@@ -555,18 +738,30 @@
             document.getElementById('alert-barangay').innerHTML =
                 '<option value="">All barangays</option>' +
                 barangays.data.map((b) => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            if (isEditing) {
+                document.getElementById('alert-title').value = editingAlert.title;
+                document.getElementById('alert-message').value = editingAlert.message;
+                document.getElementById('alert-type').value = editingAlert.alert_type;
+                document.getElementById('alert-severity').value = editingAlert.severity;
+                document.getElementById('alert-evacuation-event').value = editingAlert.evacuation_event?.id ?? '';
+                updateBracketWarning();
+            }
         } catch (error) {
             // Dropdowns just stay at their default single option if this
             // fails -- the rest of the form is still usable.
         }
+
+        updateTemplateLabel();
     }
 
     function closeAlertModal() {
         document.getElementById('send-alert-modal').classList.add('hidden');
         document.getElementById('send-alert-modal').classList.remove('flex');
+        editingAlert = null;
     }
 
-    document.getElementById('send-alert-btn').addEventListener('click', openAlertModal);
+    document.getElementById('send-alert-btn').addEventListener('click', () => openAlertModal());
     document.getElementById('alert-modal-close').addEventListener('click', closeAlertModal);
     document.getElementById('alert-modal-cancel').addEventListener('click', closeAlertModal);
 
@@ -574,7 +769,7 @@
     // (present on every page, defined in layouts/app.blade.php) can open
     // this same modal directly when it's already sitting on /alerts,
     // instead of doing a full navigation + reload.
-    window.openAlertModal = openAlertModal;
+    window.openAlertModal = () => openAlertModal();
 
     // Landing here via the topbar button from another page navigates to
     // /alerts?compose=1 -- auto-open the modal once so the click still
@@ -600,37 +795,60 @@
     document.getElementById('alert-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const payload = {
-            title: document.getElementById('alert-title').value,
-            message: document.getElementById('alert-message').value,
-            alert_type: document.getElementById('alert-type').value,
-            severity: document.getElementById('alert-severity').value,
-            evacuation_event_id: document.getElementById('alert-evacuation-event').value || null,
-            notify_barangay_officials: document.getElementById('alert-notify-officials').checked,
-            notify_evacuees: document.getElementById('alert-notify-evacuees').checked,
-            barangay_id: document.getElementById('alert-barangay').value || null,
-            evacuee_id: selectedEvacueeId,
-        };
+        const box = document.getElementById('alert-modal-errors');
+        box.classList.add('hidden');
 
+        // A literal "[" surviving to Send means an urgency choice (or,
+        // for volcanic/general_advisory, a free-fill placeholder) was
+        // never actually resolved -- blocks sending rather than letting a
+        // half-filled template go out during a real emergency.
+        if (document.getElementById('alert-message').value.includes('[')) {
+            box.innerHTML = '<p>Remove the bracketed placeholder text in the Message before sending -- pick the one urgency option that applies and delete the other two (or fill in the free-text placeholder).</p>';
+            box.classList.remove('hidden');
+            return;
+        }
+
+        const isEditing = !! editingAlert;
         const button = document.getElementById('alert-submit-btn');
         button.disabled = true;
-        button.textContent = 'Sending...';
+        button.textContent = isEditing ? 'Saving...' : 'Sending...';
 
         try {
-            await Api.post('/alerts', payload);
+            if (isEditing) {
+                const payload = {
+                    title: document.getElementById('alert-title').value,
+                    message: document.getElementById('alert-message').value,
+                    alert_type: document.getElementById('alert-type').value,
+                    severity: document.getElementById('alert-severity').value,
+                    evacuation_event_id: document.getElementById('alert-evacuation-event').value || null,
+                };
+                await Api.request(`/alerts/${editingAlert.id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+            } else {
+                const payload = {
+                    title: document.getElementById('alert-title').value,
+                    message: document.getElementById('alert-message').value,
+                    alert_type: document.getElementById('alert-type').value,
+                    severity: document.getElementById('alert-severity').value,
+                    evacuation_event_id: document.getElementById('alert-evacuation-event').value || null,
+                    notify_barangay_officials: document.getElementById('alert-notify-officials').checked,
+                    notify_evacuees: document.getElementById('alert-notify-evacuees').checked,
+                    barangay_id: document.getElementById('alert-barangay').value || null,
+                    evacuee_id: selectedEvacueeId,
+                };
+                await Api.post('/alerts', payload);
+            }
             closeAlertModal();
             await loadAlerts(); // refresh in place, no full page reload
         } catch (error) {
             // Shown inside the modal itself (not the page's #form-errors
             // box, which sits behind the modal and wouldn't be visible)
             // -- same message/errors-array handling showFormErrors uses.
-            const box = document.getElementById('alert-modal-errors');
             const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
             box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
             box.classList.remove('hidden');
         } finally {
             button.disabled = false;
-            button.textContent = 'Send alert';
+            button.textContent = isEditing ? 'Save changes' : 'Send alert';
         }
     });
 </script>

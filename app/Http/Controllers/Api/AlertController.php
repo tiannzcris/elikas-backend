@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\AlertBroadcast;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Alert\StoreAlertRequest;
+use App\Http\Requests\Alert\UpdateAlertRequest;
 use App\Http\Resources\AlertResource;
 use App\Models\Alert;
 use App\Models\AlertRecipient;
@@ -31,6 +32,57 @@ class AlertController extends Controller
         return $this->success(
             new AlertResource($alert->load(['sender', 'evacuationEvent', 'recipients']))
         );
+    }
+
+    /**
+     * Editing an alert only ever touches its content (title, message,
+     * alert_type, severity, evacuation_event_id) -- never status/date_sent,
+     * and never re-runs the recipient-building/SMS-sending logic in
+     * store(). Fixing a typo in a mandatory evacuation order shouldn't
+     * re-blast everyone who already received the original SMS.
+     */
+    public function update(UpdateAlertRequest $request, Alert $alert)
+    {
+        $validated = $request->validated();
+
+        $alert->update([
+            'evacuation_event_id' => $validated['evacuation_event_id'] ?? null,
+            'title' => $validated['title'],
+            'message' => $validated['message'],
+            'alert_type' => $validated['alert_type'],
+            'severity' => $validated['severity'],
+        ]);
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'alert.updated',
+            'description' => "{$request->user()->name} edited alert \"{$alert->title}\".",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(
+            new AlertResource($alert->fresh(['sender', 'evacuationEvent', 'recipients'])),
+            'Alert updated successfully.'
+        );
+    }
+
+    /**
+     * alert_recipients.alert_id cascades on delete (confirmed directly in
+     * its migration) -- no manual recipient cleanup needed here.
+     */
+    public function destroy(Request $request, Alert $alert)
+    {
+        $title = $alert->title;
+        $alert->delete();
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'alert.deleted',
+            'description' => "{$request->user()->name} deleted alert \"{$title}\".",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(null, 'Alert deleted successfully.');
     }
 
     /**
