@@ -768,8 +768,18 @@
     // Exposed globally so the topbar's "Send emergency alert" button
     // (present on every page, defined in layouts/app.blade.php) can open
     // this same modal directly when it's already sitting on /alerts,
-    // instead of doing a full navigation + reload.
-    window.openAlertModal = () => openAlertModal();
+    // instead of doing a full navigation + reload. Must be a PLAIN
+    // reference, not `() => openAlertModal()` -- a normal top-level
+    // function declaration in a non-module <script> IS window.openAlertModal
+    // already (same binding), so wrapping it in an arrow function and
+    // assigning that to window.openAlertModal overwrites that shared
+    // binding with a function whose own body calls itself, infinitely
+    // recursing the instant anything (the send-alert-btn listener, the
+    // edit-button handler, this line's own caller) invokes
+    // openAlertModal(...). layouts/app.blade.php only ever calls this
+    // with zero arguments, and openAlertModal(alertToEdit = null)
+    // already defaults correctly for that -- no wrapper needed at all.
+    window.openAlertModal = openAlertModal;
 
     // Landing here via the topbar button from another page navigates to
     // /alerts?compose=1 -- auto-open the modal once so the click still
