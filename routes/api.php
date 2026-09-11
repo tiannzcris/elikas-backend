@@ -161,6 +161,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'destroy']);
 
             Route::post('/alerts', [AlertController::class, 'store']);
+            Route::patch('/alerts/{alert}', [AlertController::class, 'update']);
+            Route::delete('/alerts/{alert}', [AlertController::class, 'destroy']);
 
             Route::post('/reports/dromic-region-v', [ReportController::class, 'generateDromicRegionV']);
 
