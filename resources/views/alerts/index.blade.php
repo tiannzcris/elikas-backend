@@ -798,12 +798,18 @@
         const box = document.getElementById('alert-modal-errors');
         box.classList.add('hidden');
 
-        // A literal "[" surviving to Send means an urgency choice (or,
-        // for volcanic/general_advisory, a free-fill placeholder) was
-        // never actually resolved -- blocks sending rather than letting a
-        // half-filled template go out during a real emergency.
-        if (document.getElementById('alert-message').value.includes('[')) {
-            box.innerHTML = '<p>Remove the bracketed placeholder text in the Message before sending -- pick the one urgency option that applies and delete the other two (or fill in the free-text placeholder).</p>';
+        // A literal "[" surviving to Send means a placeholder was never
+        // actually resolved -- blocks sending rather than letting a
+        // half-filled template go out during a real emergency. Covers
+        // both fields: Message's urgency-choice/free-fill bracket, AND
+        // Title's bracket for templates with no auto-fill source (e.g.
+        // volcanic's [Alert Level] -- unlike [Barangay/Lungsod], nothing
+        // on this form fills that in automatically).
+        const titleHasBracket = document.getElementById('alert-title').value.includes('[');
+        const messageHasBracket = document.getElementById('alert-message').value.includes('[');
+        if (titleHasBracket || messageHasBracket) {
+            const fieldNames = [titleHasBracket && 'Title', messageHasBracket && 'Message'].filter(Boolean).join(' and ');
+            box.innerHTML = `<p>Remove the bracketed placeholder text in the ${fieldNames} before sending -- pick the one urgency option that applies and delete the other two (or fill in the free-text placeholder).</p>`;
             box.classList.remove('hidden');
             return;
         }
