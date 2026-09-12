@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log in · E-LIKAS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { DEFAULT: '#2F5496', dark: '#1F3A6E' } } } } };
@@ -37,7 +38,14 @@
                 </div>
                 <div>
                     <label class="text-xs font-medium text-gray-600 uppercase tracking-wide block mb-1.5">Password</label>
-                    <input type="password" id="password" required class="input-field">
+                    <div class="relative">
+                        <input type="password" id="password" required class="input-field pr-10">
+                        <button type="button" id="toggle-password" tabindex="-1"
+                            class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            aria-label="Show password" aria-pressed="false">
+                            <i class="ti ti-eye" id="toggle-password-icon" style="font-size: 17px;" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <label class="flex items-center gap-2 text-sm text-gray-600 select-none cursor-pointer">
@@ -75,6 +83,18 @@
 
     <script src="/js/api.js"></script>
     <script>
+        document.getElementById('toggle-password').addEventListener('click', () => {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('toggle-password-icon');
+            const button = document.getElementById('toggle-password');
+
+            const showing = input.type === 'password';
+            input.type = showing ? 'text' : 'password';
+            icon.className = showing ? 'ti ti-eye-off' : 'ti ti-eye';
+            button.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+            button.setAttribute('aria-pressed', showing ? 'true' : 'false');
+        });
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
