@@ -64,6 +64,12 @@
                     <th class="text-left px-2 py-2">Evacuation center</th>
                     <th class="text-right px-2 py-2">4Ps</th>
                     <th class="text-right px-2 py-2">PWD</th>
+                    {{-- Persons counted in "Persons" but missing sex and/or
+                        age bracket, so absent from the actual report's
+                        age/sex columns -- see DromicRegionVReportService's
+                        class docblock. Only meant to catch the eye when
+                        nonzero; the cell renders blank otherwise. --}}
+                    <th class="text-right px-2 py-2">Unclassified</th>
                 </tr>
             </thead>
             <tbody id="preview-tbody"></tbody>
@@ -446,6 +452,7 @@
                         <td class="px-2 py-2">${r.evacuation_center ?? '&mdash;'}</td>
                         <td class="px-2 py-2 text-right">${r.fourps_count}</td>
                         <td class="px-2 py-2 text-right">${r.pwd_count}</td>
+                        <td class="px-2 py-2 text-right ${r.unclassified_persons > 0 ? 'text-amber-700 font-medium' : 'text-gray-300'}">${r.unclassified_persons > 0 ? r.unclassified_persons : '&mdash;'}</td>
                     </tr>
                 `).join('');
 

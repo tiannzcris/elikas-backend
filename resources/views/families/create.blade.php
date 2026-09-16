@@ -37,7 +37,13 @@
             </label>
         </div>
 
-        <div>
+        {{-- Quick headcount registration was removed from here -- the EC
+            Information Board (evacuation center detail page) now serves
+            that purpose: its age/sex breakdown generates real placeholder
+            evacuees directly, so staff enter a fast headcount there
+            instead of a second, separate place. Full-detail registration
+            is the only path here. --}}
+        <div id="full-mode-section">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="text-sm font-medium text-gray-700">Household members</h2>
                 <button type="button" id="add-member-btn" class="text-sm text-brand hover:underline">+ Add another member</button>
@@ -187,22 +193,6 @@
     document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const members = Array.from(document.querySelectorAll('.member-row')).map((row) => ({
-            first_name: row.querySelector('.m-first_name').value,
-            middle_name: row.querySelector('.m-middle_name').value || null,
-            last_name: row.querySelector('.m-last_name').value,
-            sex: row.querySelector('.m-sex').value,
-            date_of_birth: row.querySelector('.m-date_of_birth').value,
-            contact_number: row.querySelector('.m-contact_number').value || null,
-            is_head_of_family: row.querySelector('.m-is_head_of_family').checked,
-            is_pwd: row.querySelector('.m-is_pwd').checked,
-            pwd_type: row.querySelector('.m-is_pwd').checked ? row.querySelector('.m-pwd_type').value : null,
-            is_pregnant: row.querySelector('.m-is_pregnant').checked,
-            is_lactating: row.querySelector('.m-is_lactating').checked,
-            is_solo_parent: row.querySelector('.m-is_solo_parent').checked,
-            is_indigenous_person: row.querySelector('.m-is_indigenous_person').checked,
-        }));
-
         const payload = {
             barangay_id: Number(document.getElementById('barangay_id').value),
             home_address: document.getElementById('home_address').value || null,
@@ -212,7 +202,21 @@
                 ? Number(document.getElementById('evacuation_center_id').value)
                 : null,
             is_4ps_beneficiary: document.getElementById('is_4ps_beneficiary').checked,
-            members,
+            members: Array.from(document.querySelectorAll('.member-row')).map((row) => ({
+                first_name: row.querySelector('.m-first_name').value,
+                middle_name: row.querySelector('.m-middle_name').value || null,
+                last_name: row.querySelector('.m-last_name').value,
+                sex: row.querySelector('.m-sex').value,
+                date_of_birth: row.querySelector('.m-date_of_birth').value,
+                contact_number: row.querySelector('.m-contact_number').value || null,
+                is_head_of_family: row.querySelector('.m-is_head_of_family').checked,
+                is_pwd: row.querySelector('.m-is_pwd').checked,
+                pwd_type: row.querySelector('.m-is_pwd').checked ? row.querySelector('.m-pwd_type').value : null,
+                is_pregnant: row.querySelector('.m-is_pregnant').checked,
+                is_lactating: row.querySelector('.m-is_lactating').checked,
+                is_solo_parent: row.querySelector('.m-is_solo_parent').checked,
+                is_indigenous_person: row.querySelector('.m-is_indigenous_person').checked,
+            })),
         };
 
         const button = document.getElementById('submit-btn');

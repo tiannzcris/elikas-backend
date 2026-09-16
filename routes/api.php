@@ -51,6 +51,11 @@ Route::prefix('v1')->group(function () {
             // otherwise Laravel tries to resolve "stats" as a family id
             // via route-model binding and 404s instead of running this.
             Route::get('/families/stats', [FamilyController::class, 'stats']);
+            // Same "must come before {family}" reasoning as /families/stats
+            // above -- these back the Evacuees page's barangay -> center
+            // drill-down landing view.
+            Route::get('/families/barangay-summary', [FamilyController::class, 'barangaySummary']);
+            Route::get('/families/center-summary', [FamilyController::class, 'centerSummary']);
             Route::get('/families/{family}', [FamilyController::class, 'show']);
             Route::post('/families/{family}/members', [EvacueeController::class, 'addMember']);
             Route::patch('/families/{family}/evacuation-center', [FamilyController::class, 'updateEvacuationCenter']);
@@ -94,6 +99,21 @@ Route::prefix('v1')->group(function () {
             // only, below -- not part of this change.
             Route::post('/evacuation-centers', [EvacuationCenterController::class, 'store']);
             Route::patch('/evacuation-centers/{evacuationCenter}', [EvacuationCenterController::class, 'update']);
+
+            // EC Information Board: fast aggregate headcount, open to any
+            // staff role (not scoped to the center's own barangay official)
+            // since any available staff member should be able to report/
+            // update it during an active evacuation. "Add Evacuee" is now
+            // the primary way the age/sex breakdown grows -- it creates
+            // real Evacuee+Family records directly (see
+            // EvacuationCenterController::addEvacuee()'s docblock), rather
+            // than a typed number reconciled against generated
+            // placeholders afterward. Separate from, and does not replace,
+            // the detailed family/evacuee registration below.
+            Route::get('/evacuation-centers/{evacuationCenter}/quick-count', [EvacuationCenterController::class, 'quickCount']);
+            Route::put('/evacuation-centers/{evacuationCenter}/quick-count', [EvacuationCenterController::class, 'updateQuickCount']);
+            Route::post('/evacuation-centers/{evacuationCenter}/evacuees', [EvacuationCenterController::class, 'addEvacuee']);
+            Route::get('/evacuation-centers/{evacuationCenter}/families', [EvacuationCenterController::class, 'familiesAtCenter']);
 
             Route::get('/hazard-areas', [HazardProneAreaController::class, 'index']);
             Route::get('/hazard-areas/{hazardProneArea}', [HazardProneAreaController::class, 'show']);

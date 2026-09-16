@@ -23,8 +23,8 @@
         <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between p-5 border-b border-gray-100">
                 <div>
-                    <p class="font-semibold text-gray-800">Edit member</p>
-                    <p class="text-xs text-gray-500">Corrects this person's own details -- doesn't change their household or check-in status.</p>
+                    <p class="font-semibold text-gray-800" id="member-modal-title">Edit member</p>
+                    <p class="text-xs text-gray-500" id="member-modal-subtitle">Corrects this person's own details -- doesn't change their household or check-in status.</p>
                 </div>
                 <button type="button" id="member-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
@@ -125,7 +125,7 @@
     let editingEvacueeId = null;
 
     function renderMembers() {
-        document.getElementById('members-list').innerHTML = currentFamily.members.map((m) => {
+        document.getElementById('members-list').innerHTML = currentFamily.members.map((m, idx) => {
             const activeRecord = m.evacuation_records.find(r => ! r.date_out);
             const sectoral = Object.entries(m.sectoral)
                 .filter(([key, val]) => val === true)
@@ -134,11 +134,20 @@
 
             const isHead = m.id === currentFamily.head_of_family?.id;
 
+            // Placeholder: registered via the quick-headcount path (or an
+            // in-progress incremental fill-in) and still missing one of
+            // first/last name, sex, or date of birth -- age/age_bracket are
+            // both null for these (see Evacuee::getAgeBracketAttribute()),
+            // so that line is skipped entirely rather than shown as blank.
+            const nameLine = m.is_placeholder
+                ? `Member ${idx + 1} <span class="text-amber-600 font-normal">— details pending</span>`
+                : `${m.full_name} <span class="text-gray-400 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>`;
+
             return `
             <div class="p-4 flex items-center justify-between gap-3">
                 <div class="min-w-0">
                     <p class="text-sm font-medium">
-                        ${m.full_name} <span class="text-gray-400 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>
+                        ${nameLine}
                         ${isHead ? '<span class="text-xs px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 ml-1">Head of family</span>' : ''}
                     </p>
                     <p class="text-xs text-gray-500 mt-0.5">
@@ -150,7 +159,9 @@
                     <span class="text-xs px-2 py-1 rounded-lg ${m.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
                         ${m.status.replace('_', ' ')}
                     </span>
-                    <button type="button" class="edit-member-btn text-xs text-brand hover:underline" data-id="${m.id}">Edit</button>
+                    <button type="button" class="edit-member-btn text-xs ${m.is_placeholder ? 'text-amber-600 font-medium' : 'text-brand'} hover:underline" data-id="${m.id}">
+                        ${m.is_placeholder ? 'Add details' : 'Edit'}
+                    </button>
                     <button type="button" class="remove-member-btn text-xs text-red-500 hover:underline" data-id="${m.id}">Remove</button>
                 </div>
             </div>`;
@@ -165,8 +176,13 @@
             const result = await Api.get(`/families/${familyId}`);
             currentFamily = result.data;
 
-            document.getElementById('family-title').textContent =
-                `${currentFamily.barangay?.name ?? 'Unknown barangay'} — ${currentFamily.head_of_family?.full_name ?? 'Family'}`;
+            // currentFamily.name is set when this household was created via
+            // the EC Board's "Add Evacuee -> New household" path (see
+            // FamilyResource) -- it has no head of family on file yet to
+            // fall back to otherwise.
+            document.getElementById('family-title').textContent = currentFamily.name
+                ? currentFamily.name
+                : `${currentFamily.barangay?.name ?? 'Unknown barangay'} — ${currentFamily.head_of_family?.full_name ?? 'Family'}`;
             document.getElementById('family-subtitle').textContent =
                 `${currentFamily.evacuation_event?.name ?? ''} · Registered ${new Date(currentFamily.created_at).toLocaleString()}`;
 
@@ -206,14 +222,24 @@
 
         editingEvacueeId = evacueeId;
 
+        document.getElementById('member-modal-title').textContent = member.is_placeholder ? 'Add details' : 'Edit member';
+        document.getElementById('member-modal-subtitle').textContent = member.is_placeholder
+            ? 'Fill in this person\'s real details -- this is currently a placeholder from a quick headcount registration.'
+            : 'Corrects this person\'s own details -- doesn\'t change their household or check-in status.';
+
         document.getElementById('member-modal-errors').classList.add('hidden');
         document.getElementById('member-form').reset();
 
-        document.getElementById('m-first_name').value = member.first_name;
+        // ?? '' throughout -- a placeholder member (see is_placeholder)
+        // can have first_name/last_name/sex/date_of_birth still null;
+        // assigning null straight to an <input>/<select>'s value would
+        // otherwise stringify to the literal text "null" instead of
+        // leaving the field genuinely blank for staff to fill in.
+        document.getElementById('m-first_name').value = member.first_name ?? '';
         document.getElementById('m-middle_name').value = member.middle_name ?? '';
-        document.getElementById('m-last_name').value = member.last_name;
-        document.getElementById('m-sex').value = member.sex;
-        document.getElementById('m-date_of_birth').value = member.date_of_birth;
+        document.getElementById('m-last_name').value = member.last_name ?? '';
+        document.getElementById('m-sex').value = member.sex ?? '';
+        document.getElementById('m-date_of_birth').value = member.date_of_birth ?? '';
         document.getElementById('m-civil_status').value = member.civil_status ?? '';
         document.getElementById('m-contact_number').value = member.contact_number ?? '';
 
@@ -248,7 +274,11 @@
             const member = currentFamily.members.find((m) => m.id === evacueeId);
             if (! member) return;
 
-            if (! confirm(`Permanently remove ${member.full_name} from this family? This cannot be undone.`)) {
+            const memberLabel = member.is_placeholder
+                ? `Member ${currentFamily.members.indexOf(member) + 1} (details pending)`
+                : member.full_name;
+
+            if (! confirm(`Permanently remove ${memberLabel} from this family? This cannot be undone.`)) {
                 return;
             }
 

@@ -11,7 +11,7 @@ class Evacuee extends Model
 {
     protected $fillable = [
         'family_id', 'barangay_id', 'first_name', 'middle_name', 'last_name', 'suffix',
-        'sex', 'date_of_birth', 'civil_status', 'contact_number',
+        'sex', 'date_of_birth', 'age_bracket_override', 'civil_status', 'contact_number',
         'is_pwd', 'pwd_type', 'is_pregnant', 'is_lactating', 'is_solo_parent',
         'is_indigenous_person', 'is_4ps_beneficiary', 'status',
     ];
@@ -26,7 +26,17 @@ class Evacuee extends Model
         'is_4ps_beneficiary' => 'boolean',
     ];
 
-    protected $appends = ['full_name', 'age', 'age_bracket'];
+    protected $appends = ['full_name', 'age', 'age_bracket', 'is_placeholder'];
+
+    // The four fields a "complete" evacuee record needs -- anything short
+    // of all four is a placeholder. Kept as a single source of truth here
+    // rather than a stored status column: a stored flag would need to be
+    // kept in sync on every single write path (fast registration, add
+    // member, incremental edit, any future bulk-import), and could drift
+    // out of sync with the fields it's supposed to describe. A computed
+    // check can't drift -- it's always exactly true or false for whatever
+    // the row actually contains right now.
+    private const IDENTITY_FIELDS = ['first_name', 'last_name', 'sex', 'date_of_birth'];
 
     public function family(): BelongsTo
     {
@@ -48,16 +58,37 @@ class Evacuee extends Model
         return trim("{$this->first_name} {$this->middle_name} {$this->last_name} {$this->suffix}");
     }
 
-    public function getAgeAttribute(): int
+    // Null for a placeholder with no date_of_birth yet -- Carbon::parse(null)
+    // would otherwise silently resolve to "now" (age 0), which is how a
+    // placeholder used to get miscounted as an infant instead of excluded.
+    public function getAgeAttribute(): ?int
     {
-        return Carbon::parse($this->date_of_birth)->age;
+        return $this->date_of_birth ? Carbon::parse($this->date_of_birth)->age : null;
     }
 
     // Reproduces the 7 age brackets used in the DROMIC Region V report and the
     // EC Information Board template. Computed from date_of_birth rather than
-    // stored, so a record never goes stale as the evacuee ages.
-    public function getAgeBracketAttribute(): string
+    // stored, so a record never goes stale as the evacuee ages. Falls back to
+    // age_bracket_override when date_of_birth isn't known yet -- "Add
+    // Evacuee" on the EC Board (EvacuationCenterController::addEvacuee())
+    // records a person's age bracket + sex directly, with no birthdate to
+    // derive one from (see the migration that added that column). Real data
+    // always wins once it exists: a real date_of_birth is used the instant
+    // it's set via "Add details", even though age_bracket_override itself is
+    // left in place afterward rather than being cleared -- it's just inert
+    // history at that point, since this accessor never looks at it again for
+    // that record. Still null (not a guessed bracket) when NEITHER is known
+    // -- every age/sex filter elsewhere (DromicRegionVReportService,
+    // EcInformationBoardReportService, EvacuationCenterQuickCount's live*()
+    // methods) compares against one of the 7 bracket strings, so null simply
+    // never matches any of them and the placeholder is excluded from every
+    // bracket, rather than being force-counted into "infant".
+    public function getAgeBracketAttribute(): ?string
     {
+        if (! $this->date_of_birth) {
+            return $this->age_bracket_override;
+        }
+
         $ageInMonths = Carbon::parse($this->date_of_birth)->diffInMonths(now());
         $age = $this->age;
 
@@ -70,5 +101,20 @@ class Evacuee extends Model
             $age <= 59 => 'adult',
             default => 'senior_citizen',
         };
+    }
+
+    // True if any of the four core identity fields are still missing --
+    // exactly the fields a fast/headcount-only registration leaves blank.
+    // See the IDENTITY_FIELDS docblock above for why this is computed
+    // rather than a stored column.
+    public function getIsPlaceholderAttribute(): bool
+    {
+        foreach (self::IDENTITY_FIELDS as $field) {
+            if ($this->{$field} === null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

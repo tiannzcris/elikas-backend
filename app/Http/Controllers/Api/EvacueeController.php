@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\AuthorizesBarangayAccess;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EvacueeResource;
 use App\Models\Evacuee;
+use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
 use App\Models\SystemLog;
@@ -23,7 +24,11 @@ class EvacueeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Evacuee::query()->with(['family', 'evacuationRecords' => function ($q) {
+        // family.barangay is used only for the "which barangay is this
+        // person in" hint the Evacuees page's global search dropdown shows
+        // next to each result -- not needed/loaded by any other consumer
+        // of this endpoint.
+        $query = Evacuee::query()->with(['family.barangay', 'evacuationRecords' => function ($q) {
             $q->whereNull('date_out')->latest('date_in')->limit(1);
         }]);
 
@@ -94,6 +99,16 @@ class EvacueeController extends Controller
             'date_in' => now(),
             'status' => 'currently_evacuated',
         ]);
+
+        // No-ops for 'outside_center' displacement -- see
+        // EvacuationCenterQuickCount::recordArrival()'s own docblock for
+        // why this is the one shared place every evacuee-creating path in
+        // the app keeps EC Board cumulative counts in sync.
+        EvacuationCenterQuickCount::recordArrival(
+            $validated['evacuation_center_id'] ?? null,
+            $family->evacuation_event_id,
+            $evacuee
+        );
 
         SystemLog::create([
             'user_id' => $request->user()->id,
@@ -192,9 +207,20 @@ class EvacueeController extends Controller
         }
 
         $family = $evacuee->family;
+
+        // No special-case block for EC-Board-added evacuees anymore -- the
+        // EC Board's own numbers are now live-computed straight from real
+        // Evacuee/EvacuationRecord rows (see EvacuationCenterQuickCount's
+        // live*() methods), so removing someone here is automatically
+        // reflected there with no separate sync step to protect. Deletion
+        // behaves identically for every evacuee regardless of how they
+        // were registered.
         $isHead = $family->head_of_family_evacuee_id === $evacuee->id;
         $hasOtherMembers = $family->members()->where('id', '!=', $evacuee->id)->exists();
-        $evacueeName = $evacuee->full_name;
+        // full_name is blank for a placeholder (no name collected yet) --
+        // falls back to a generic label so log/success messages never read
+        // as "  was removed from family #12".
+        $evacueeName = trim($evacuee->full_name) !== '' ? $evacuee->full_name : 'This placeholder member';
 
         if ($isHead && $hasOtherMembers) {
             return $this->error(

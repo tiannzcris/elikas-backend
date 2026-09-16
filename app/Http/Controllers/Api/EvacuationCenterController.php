@@ -5,9 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EvacuationCenter\StoreEvacuationCenterRequest;
 use App\Http\Requests\EvacuationCenter\UpdateEvacuationCenterRequest;
+use App\Http\Resources\EvacuationCenterQuickCountResource;
 use App\Http\Resources\EvacuationCenterResource;
+use App\Http\Resources\FamilyResource;
 use App\Models\EvacuationCenter;
 use App\Models\EvacuationCenterFacility;
+use App\Models\EvacuationCenterQuickCount;
+use App\Models\EvacuationRecord;
+use App\Models\Evacuee;
+use App\Models\Family;
 use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -198,6 +204,232 @@ class EvacuationCenterController extends Controller
             new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities', 'creator'])),
             'Facilities updated successfully.'
         );
+    }
+
+    /**
+     * The EC Information Board data for one center+event -- a separate,
+     * much quicker mechanism than the detailed family/evacuee registration
+     * flow, for the aggregate headcount and demographic breakdown staff
+     * need first during an active evacuation. Open to any of the three
+     * staff roles (not just the center's own barangay official): in an
+     * emergency, whichever staff member is on hand needs to be able to
+     * report or update this.
+     *
+     * families_now/persons_now and the age/sex breakdown are LIVE --
+     * computed straight from real Evacuee/EvacuationRecord rows (see
+     * EvacuationCenterQuickCount::livePersonsNow() and siblings), not a
+     * manually-typed figure -- so they're always exactly what "Add
+     * Evacuee" (below) and the Evacuees page's own edits/removals produce,
+     * with nothing to fall out of sync. Only families_cumulative/
+     * persons_cumulative/beneficiaries_4ps/sectoral_groups are still real
+     * stored data; a fresh, unsaved instance stands in when no board row
+     * exists yet for this center+event, so those read as zero rather than
+     * 404ing -- "nothing reported yet" is the normal starting state.
+     */
+    public function quickCount(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
+        ]);
+
+        $quickCount = EvacuationCenterQuickCount::with(['updater', 'sectoralGroups'])
+            ->where('evacuation_center_id', $evacuationCenter->id)
+            ->where('evacuation_event_id', $validated['evacuation_event_id'])
+            ->first();
+
+        if ($quickCount) {
+            $quickCount->setRelation('evacuationCenter', $evacuationCenter);
+        }
+
+        if (! $quickCount) {
+            $quickCount = new EvacuationCenterQuickCount([
+                'evacuation_center_id' => $evacuationCenter->id,
+                'evacuation_event_id' => $validated['evacuation_event_id'],
+                'families_cumulative' => 0,
+                'persons_cumulative' => 0,
+                'beneficiaries_4ps' => 0,
+            ]);
+            $quickCount->setRelation('evacuationCenter', $evacuationCenter);
+        }
+
+        return $this->success(new EvacuationCenterQuickCountResource($quickCount));
+    }
+
+    /**
+     * Saves the board's remaining MANUALLY-reported figures for this
+     * center+event: beneficiaries_4ps and the sectoral breakdown. Nothing
+     * else is client-editable anymore -- families_cumulative/persons_cumulative
+     * are server-incremented by addEvacuee() below, and families_now/
+     * persons_now/the age-sex breakdown are computed live (see
+     * quickCount()'s docblock). Sectoral flags (is_pwd, is_pregnant, etc.)
+     * are deliberately NOT live-computed the same way age/sex is: those
+     * flags are only known once someone's full details are filled in via
+     * "Add details", which normally happens well after the fast headcount
+     * is taken -- a live sectoral count would read as near-zero for most
+     * of an active evacuation, understating real numbers rather than
+     * reporting them accurately. Kept as a directly-reported aggregate
+     * instead, same as it already worked before this redesign, and same
+     * reasoning as beneficiaries_4ps.
+     */
+    public function updateQuickCount(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
+            'beneficiaries_4ps' => ['required', 'integer', 'min:0'],
+            'sectoral_groups' => ['array'],
+            'sectoral_groups.*.sectoral_group' => ['required', Rule::in(EvacuationCenterQuickCount::SECTORAL_GROUPS)],
+            'sectoral_groups.*.male_count' => ['required', 'integer', 'min:0'],
+            'sectoral_groups.*.female_count' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $quickCount = DB::transaction(function () use ($validated, $request, $evacuationCenter) {
+            $quickCount = EvacuationCenterQuickCount::updateOrCreate(
+                [
+                    'evacuation_center_id' => $evacuationCenter->id,
+                    'evacuation_event_id' => $validated['evacuation_event_id'],
+                ],
+                [
+                    'beneficiaries_4ps' => $validated['beneficiaries_4ps'],
+                    'updated_by' => $request->user()->id,
+                ]
+            );
+
+            foreach ($validated['sectoral_groups'] ?? [] as $sectoralGroup) {
+                $quickCount->sectoralGroups()->updateOrCreate(
+                    ['sectoral_group' => $sectoralGroup['sectoral_group']],
+                    ['male_count' => $sectoralGroup['male_count'], 'female_count' => $sectoralGroup['female_count']]
+                );
+            }
+
+            return $quickCount;
+        });
+
+        return $this->success(
+            new EvacuationCenterQuickCountResource($quickCount->fresh(['updater', 'sectoralGroups'])),
+            'EC Board updated successfully.'
+        );
+    }
+
+    /**
+     * "Add Evacuee": the EC Board's fast entry point, replacing the old
+     * typed-number-then-reconcile mechanism. Creates a REAL Evacuee (sex +
+     * age_bracket_override only -- no name/birthdate yet, exactly like the
+     * old placeholder, but now correctly attached to a real household
+     * instead of a synthetic bulk one) plus its EvacuationRecord at this
+     * center, and either attaches it to an ALREADY-registered family
+     * (household_mode 'existing') or creates a brand-new one
+     * (household_mode 'new' -- family_name becomes that family's display
+     * name, since the evacuee being added has no name of its own to show
+     * for it; see FamilyResource).
+     *
+     * Also records the arrival against this board's families_cumulative/
+     * persons_cumulative via EvacuationCenterQuickCount::recordArrival() --
+     * the one shared hook every evacuee-creating path in the app calls
+     * (FamilyController::store(), EvacueeController::addMember(), and this
+     * one), so cumulative reflects EVERYONE ever registered at this center
+     * for this event, not just people added through this specific form.
+     */
+    public function addEvacuee(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
+            'age_bracket' => ['required', Rule::in(EvacuationCenterQuickCount::AGE_BRACKETS)],
+            'sex' => ['required', 'in:male,female'],
+            'household_mode' => ['required', 'in:existing,new'],
+            'family_id' => ['nullable', 'required_if:household_mode,existing', 'integer', 'exists:families,id'],
+            'barangay_id' => ['nullable', 'required_if:household_mode,new', 'integer', 'exists:barangays,id'],
+            'family_name' => ['nullable', 'required_if:household_mode,new', 'string', 'max:150'],
+        ]);
+
+        $existingFamily = null;
+        if ($validated['household_mode'] === 'existing') {
+            $existingFamily = Family::findOrFail($validated['family_id']);
+
+            if ((int) $existingFamily->evacuation_event_id !== (int) $validated['evacuation_event_id']) {
+                return $this->error('Selected household belongs to a different disaster event.', 422);
+            }
+        }
+
+        $family = DB::transaction(function () use ($validated, $request, $evacuationCenter, $existingFamily) {
+            $family = $existingFamily ?? Family::create([
+                'evacuation_event_id' => $validated['evacuation_event_id'],
+                'barangay_id' => $validated['barangay_id'],
+                'name' => $validated['family_name'],
+            ]);
+
+            $evacuee = Evacuee::create([
+                'family_id' => $family->id,
+                'barangay_id' => $family->barangay_id,
+                'sex' => $validated['sex'],
+                'age_bracket_override' => $validated['age_bracket'],
+                'status' => 'active',
+            ]);
+
+            EvacuationRecord::create([
+                'evacuee_id' => $evacuee->id,
+                'evacuation_center_id' => $evacuationCenter->id,
+                'evacuation_event_id' => $validated['evacuation_event_id'],
+                'displacement_type' => 'inside_center',
+                'date_in' => now(),
+                'status' => 'currently_evacuated',
+            ]);
+
+            EvacuationCenterQuickCount::recordArrival($evacuationCenter->id, $validated['evacuation_event_id'], $evacuee);
+
+            SystemLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'evacuee.added_via_ec_board',
+                'description' => sprintf(
+                    '%s added a %s %s evacuee to %s via the EC Board for "%s".',
+                    $request->user()->name,
+                    $validated['sex'],
+                    $validated['age_bracket'],
+                    $existingFamily ? "family #{$family->id}" : "a new household (\"{$family->name}\")",
+                    $evacuationCenter->name
+                ),
+                'ip_address' => $request->ip(),
+            ]);
+
+            return $family;
+        });
+
+        return $this->success(
+            new FamilyResource(
+                $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
+            ),
+            'Evacuee added successfully.',
+            201
+        );
+    }
+
+    /**
+     * Families already registered at THIS center for THIS event -- powers
+     * the "Add Evacuee -> Existing household" search/select, so staff
+     * adding a second/third member of a household already here don't have
+     * to recreate it. Matched via each member's own EvacuationRecord
+     * (evacuation_center_id/evacuation_event_id), not the "one
+     * representative center per family" heuristic FamilyResource uses
+     * elsewhere -- here we want ANY family with at least one person
+     * actually checked in here, not just the one center a family's FIRST
+     * member happens to be at.
+     */
+    public function familiesAtCenter(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
+        ]);
+
+        $families = Family::query()
+            ->where('evacuation_event_id', $validated['evacuation_event_id'])
+            ->whereHas('members.evacuationRecords', fn ($q) => $q
+                ->where('evacuation_center_id', $evacuationCenter->id)
+                ->where('evacuation_event_id', $validated['evacuation_event_id']))
+            ->withCount('members')
+            ->with(['headOfFamily', 'barangay'])
+            ->orderBy('name')
+            ->get();
+
+        return $this->success(FamilyResource::collection($families));
     }
 
     /**

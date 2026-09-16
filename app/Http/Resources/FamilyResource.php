@@ -24,6 +24,15 @@ class FamilyResource extends JsonResource
                 'id' => $this->headOfFamily->id,
                 'full_name' => $this->headOfFamily->full_name,
             ] : null),
+            // Null for a family that already has a head of family on file.
+            // Set when a household was created via the EC Board's "Add
+            // Evacuee -> New household" path (see
+            // EvacuationCenterController::addEvacuee()) -- staff enters the
+            // head's name there even though the evacuee record being added
+            // is itself still nameless (age bracket + sex only), so this is
+            // where that name is captured instead. Frontend prefers this
+            // over head_of_family whenever present.
+            'name' => $this->name,
             'is_4ps_beneficiary' => (bool) $this->is_4ps_beneficiary,
             // Computed from loaded members -- "does ANY member of this
             // household have this flag", matching the sectoral tags shown

@@ -58,9 +58,42 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * official -- treat it as a first draft that eliminates manual data entry
  * and arithmetic, not as a fully autonomous submission.
  * ============================================================================
+ *
+ * INCOMPLETE-IDENTITY EVACUEES: an evacuee with no sex and/or no
+ * age_bracket (age_bracket is null unless a real date_of_birth or an EC
+ * Board age_bracket_override is set -- see Evacuee::getAgeBracketAttribute())
+ * has Evacuee::age_bracket and/or ->sex null. Every age x sex column
+ * (AI-BJ) and sex subtotal (BK-BN) here is a strict equality filter
+ * against one of the 7 bracket strings or 'male'/'female' -- null never
+ * equals either, so such a person is excluded from all of those columns
+ * while still counting in every column that isn't demographic-specific --
+ * J/K (family/person counts), U-AB (inside/outside counts), AE/AF (total
+ * persons) -- since those just count rows, not filter by identity.
+ * UNLIKE the EC Information Board report (which can freely add a "Not Yet
+ * Classified" row to its own from-scratch layout), this report's barangay
+ * rows write into a REAL DSWD template's fixed, pre-labeled column grid --
+ * inserting a new row/column there would misalign every column header
+ * from the actual file DSWD distributes. So instead: computeBarangayData()
+ * tracks the gap per barangay (via the non-template '_unclassified_cum'/
+ * '_unclassified_now' keys, explicitly skipped by writeRow() so they're
+ * never mistaken for a real column letter), previewSummary() surfaces it
+ * per barangay in its own free-form JSON (shown in the dashboard before
+ * generating the file), and generate() appends one free-text footnote row
+ * beneath the city total -- in the margin around the official grid, not
+ * inside it -- if the city-wide total is nonzero. Sectoral columns (BO-CP,
+ * filtering on `is_pwd === true` etc.) are NOT given the same treatment --
+ * same reasoning as the EC Board's own sectoral table: sectoral categories
+ * overlap (a solo parent can also be a PWD), so there's no single
+ * meaningful "total" for them to reconcile against in the first place.
  */
 class DromicRegionVReportService
 {
+    // Matches Evacuee::age_bracket's possible values exactly -- the single
+    // source of truth for the unclassified-detection helper below.
+    private const AGE_BRACKETS = [
+        'infant', 'toddler', 'preschooler', 'school_age', 'teenage', 'adult', 'senior_citizen',
+    ];
+
     private const TEMPLATE_RELATIVE_PATH = 'report_templates/dromic_region_v_template.xlsx';
 
     private const SHEET_NAME = 'REGION V';
@@ -99,6 +132,14 @@ class DromicRegionVReportService
                 'evacuation_center' => $data['Q'],
                 'fourps_count' => $data['CM'] + $data['CO'],
                 'pwd_count' => $data['CE'] + $data['CG'],
+                // Persons counted in 'persons' above but missing sex and/or
+                // age_bracket, so they're NOT reflected in any age/sex
+                // column of the real generated report -- surfaced here so
+                // staff see the gap before generating/submitting the file,
+                // not just as a buried footnote inside it. 0 in the normal
+                // case; nonzero means the report's own age/sex breakdown
+                // will under-represent this barangay's real total.
+                'unclassified_persons' => $data['_unclassified_cum'],
             ];
         })->values()->toArray();
     }
@@ -171,6 +212,29 @@ class DromicRegionVReportService
         // of Ligao"); in this fresh, compact file nothing has been written
         // to columns A/B yet, so it needs to be added explicitly here.
         $sheet->setCellValue('B'.self::CITY_SUMMARY_ROW, 'City of Ligao (TOTAL)');
+
+        // Footnote, not a template row -- see this class's docblock for why
+        // the gap can't be a proper row/column inside the official grid.
+        // Only written when the gap is real, so a fully-classified report
+        // (the normal case) stays visually identical to before this fix.
+        if (($cityTotals['_unclassified_cum'] ?? 0) > 0) {
+            // $row is one past the last barangay data row at this point (the
+            // loop above increments it after each write) -- CITY_SUMMARY_ROW
+            // sits ABOVE the barangay rows in this compact layout, so anchoring
+            // off it instead would land the note in the middle of the barangay
+            // block and silently clobber a barangay's row.
+            $noteRow = $row + 1;
+            $sheet->setCellValue('A'.$noteRow, sprintf(
+                'DATA QUALITY NOTE: %d of the persons counted above (Now: %d) have no sex and/or age bracket on file yet, '
+                .'so they are excluded from every age x sex column (AI-BJ, BK-BN) though still included in the family/person '
+                .'totals (J, K, AE, AF). Complete their details ("Add details" on the Evacuees page) before relying on the '
+                .'age/sex breakdown for an official submission.',
+                $cityTotals['_unclassified_cum'],
+                $cityTotals['_unclassified_now'] ?? 0
+            ));
+            $sheet->mergeCells("A{$noteRow}:GE{$noteRow}");
+            $sheet->getStyle('A'.$noteRow)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFB45309'));
+        }
 
         $outputPath = storage_path('app/reports/dromic_region_v_'.$event->id.'_'.now()->format('Ymd_His').'.xlsx');
         if (! is_dir(dirname($outputPath))) {
@@ -265,6 +329,13 @@ class DromicRegionVReportService
         $bracketSex = function (Collection $evacuees, string $bracket, string $sex) {
             return $evacuees->filter(fn ($e) => $e->age_bracket === $bracket && $e->sex === $sex)->count();
         };
+
+        // Anyone NOT captured by any (bracket, sex) cell above -- see this
+        // class's docblock for why this can't just be an extra row/column
+        // in the official template grid, and how it surfaces instead.
+        $unclassified = fn (Collection $evacuees) => $evacuees->filter(
+            fn ($e) => ! in_array($e->age_bracket, self::AGE_BRACKETS, true) || ! in_array($e->sex, ['male', 'female'], true)
+        )->count();
 
         // The one evacuation center actually used by this barangay's
         // families, picked by highest current occupancy when more than one
@@ -402,6 +473,12 @@ class DromicRegionVReportService
             'FY' => $cashTotal, 'FZ' => $dswdTotal,
             'GA' => $costBySource('lgu'), 'GB' => $costBySource('ngo'), 'GC' => $costBySource('other'),
             'GD' => $dswdTotal + $otherSourcesTotal, 'GE' => $dswdTotal + $otherSourcesTotal,
+            // NOT real template columns -- see this class's docblock.
+            // writeRow() explicitly skips these (they're not valid Excel
+            // column letters); sumRows() sums them like anything else,
+            // giving generate() a city-wide total for the footnote row.
+            '_unclassified_cum' => $unclassified($cumEvacuees),
+            '_unclassified_now' => $unclassified($nowEvacuees),
         ];
     }
 
@@ -430,8 +507,8 @@ class DromicRegionVReportService
     private function writeRow(Worksheet $sheet, int $row, array $data, bool $isCityTotal): void
     {
         foreach ($data as $column => $value) {
-            if ($column === 'barangay_name') {
-                continue; // handled via 'H' below for barangay rows; city row keeps its existing "City of Ligao" label
+            if ($column === 'barangay_name' || str_starts_with($column, '_')) {
+                continue; // 'barangay_name' is handled via 'H' below; '_'-prefixed keys aren't real columns at all -- see computeBarangayData()
             }
             if ($isCityTotal && in_array($column, ['H', 'O', 'P', 'Q', 'R'], true)) {
                 continue; // don't overwrite the template's existing "City of Ligao" label/columns with a sum

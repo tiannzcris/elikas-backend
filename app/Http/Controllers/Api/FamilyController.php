@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Evacuee\RegisterFamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Models\Evacuee;
+use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
 use App\Models\SystemLog;
@@ -47,6 +48,7 @@ class FamilyController extends Controller
             ]);
 
             $headOfFamilyId = null;
+            $memberCount = count($validated['members']);
 
             foreach ($validated['members'] as $member) {
                 $evacuee = Evacuee::create([
@@ -79,6 +81,18 @@ class FamilyController extends Controller
                     'status' => 'currently_evacuated',
                 ]);
 
+                // No-ops for 'outside_center' displacement (evacuation_center_id
+                // null) -- see EvacuationCenterQuickCount::recordArrival()'s
+                // own docblock for why this is the one shared place every
+                // evacuee-creating path in the app keeps EC Board
+                // cumulative counts in sync, instead of duplicating the
+                // increment logic here.
+                EvacuationCenterQuickCount::recordArrival(
+                    $validated['evacuation_center_id'] ?? null,
+                    $validated['evacuation_event_id'],
+                    $evacuee
+                );
+
                 if (! empty($member['is_head_of_family'])) {
                     $headOfFamilyId = $evacuee->id;
                 }
@@ -92,7 +106,7 @@ class FamilyController extends Controller
                 'description' => sprintf(
                     '%s registered a family of %d member(s) in barangay #%d for event #%d.',
                     $request->user()->name,
-                    count($validated['members']),
+                    $memberCount,
                     $validated['barangay_id'],
                     $validated['evacuation_event_id']
                 ),
@@ -159,6 +173,91 @@ class FamilyController extends Controller
             'households' => $familyIds->count(),
             'total_persons' => Evacuee::whereIn('family_id', $familyIds)->count(),
         ]);
+    }
+
+    /**
+     * Barangay-level rollup for the Evacuees page's default (landing) view
+     * -- one row per barangay with at least one family in scope, each with
+     * its family/person/pending-details counts. Same scoping as index()/
+     * stats() (barangay officials see only their own barangay; defaults to
+     * current, non-closed events). Aggregated in PHP over an eager-loaded
+     * collection rather than a raw SQL GROUP BY, matching how
+     * DromicRegionVReportService computes its own per-barangay rows --
+     * "pending" relies on Evacuee::is_placeholder, a computed accessor with
+     * no SQL equivalent to group by directly.
+     */
+    public function barangaySummary(Request $request)
+    {
+        $query = Family::query()->with(['barangay', 'members']);
+        $this->scopeToRequest($query, $request);
+
+        $rows = $query->get()
+            ->groupBy('barangay_id')
+            ->map(function ($families) {
+                $members = $families->flatMap->members;
+
+                return [
+                    'barangay_id' => $families->first()->barangay_id,
+                    'barangay_name' => $families->first()->barangay?->name ?? 'Unknown barangay',
+                    'family_count' => $families->count(),
+                    'person_count' => $members->count(),
+                    'pending_count' => $members->filter(fn ($m) => $m->is_placeholder)->count(),
+                ];
+            })
+            ->sortBy('barangay_name')
+            ->values();
+
+        return $this->success($rows);
+    }
+
+    /**
+     * Evacuation-center-level rollup within ONE barangay -- the drill-down
+     * one level below barangaySummary(). Each family's center is the same
+     * "whole family, one center" representative pick FamilyResource already
+     * makes (first member's most recent evacuation record). Families with
+     * no active/assigned center (displaced outside a center, or checked
+     * out entirely) group under a null "Outside center / unassigned" row
+     * rather than being silently dropped.
+     */
+    public function centerSummary(Request $request)
+    {
+        $validated = $request->validate([
+            'barangay_id' => ['required', 'integer', 'exists:barangays,id'],
+        ]);
+
+        if (! $this->userMayAccessBarangay($request->user(), $validated['barangay_id'])) {
+            return $this->error('You may not view families outside your barangay.', 403);
+        }
+
+        $query = Family::query()
+            ->where('barangay_id', $validated['barangay_id'])
+            ->with(['members.evacuationRecords.evacuationCenter']);
+        $this->scopeToRequest($query, $request);
+
+        $families = $query->get();
+
+        $centerFor = fn ($family) => optional(
+            $family->members->first()?->evacuationRecords?->sortByDesc('date_in')?->first()
+        )->evacuationCenter;
+
+        $rows = $families
+            ->groupBy(fn ($family) => $centerFor($family)?->id ?? 0)
+            ->map(function ($group) use ($centerFor) {
+                $center = $centerFor($group->first());
+                $members = $group->flatMap->members;
+
+                return [
+                    'evacuation_center_id' => $center?->id,
+                    'evacuation_center_name' => $center?->name ?? 'Outside center / unassigned',
+                    'family_count' => $group->count(),
+                    'person_count' => $members->count(),
+                    'pending_count' => $members->filter(fn ($m) => $m->is_placeholder)->count(),
+                ];
+            })
+            ->sortBy('evacuation_center_name')
+            ->values();
+
+        return $this->success($rows);
     }
 
     public function show(Request $request, Family $family)

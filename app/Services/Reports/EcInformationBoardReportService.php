@@ -20,6 +20,16 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * "Single-Headed Family" rows are shown with a value of 0 -- this system
  * does not track those two sectoral flags (see DromicRegionVReportService's
  * docblock for the same note).
+ *
+ * PLACEHOLDER EVACUEES: a placeholder's age_bracket and/or sex can be null
+ * (no age_bracket_override or real date_of_birth yet), so the age/sex
+ * filters below never match them for any specific bracket/sex cell -- but
+ * unlike the sectoral table (where this stays a silent, expected gap; see
+ * DromicRegionVReportService's docblock), the age/sex table's own "Not Yet
+ * Classified" row (see generate()) counts them explicitly, so this
+ * table's own total always still equals $now->count() /
+ * $allEvacuees->count() (plain row counts, not identity-filtered) instead
+ * of quietly under-representing the real headcount on an official export.
  */
 class EcInformationBoardReportService
 {
@@ -92,7 +102,29 @@ class EcInformationBoardReportService
             $ageTotal['female'] += $female;
             $row = $this->writeDataRow($sheet, $row, $label, $male, $female);
         }
-        $this->writeDataRow($sheet, $row, 'Total', $ageTotal['male'], $ageTotal['female'], bold: true);
+
+        // "Not Yet Classified": anyone currently here missing sex and/or
+        // age_bracket entirely (e.g. a record from before this app tracked
+        // either) -- without this row they'd simply vanish from every
+        // bracket above while still being part of $now->count(), which is
+        // exactly the silent Now-vs-breakdown mismatch this row exists to
+        // surface instead of hide. Male/Female columns here are whoever's
+        // sex IS at least known; Total is the true full unclassified
+        // headcount (can exceed Male+Female when sex is unknown too), so
+        // this row's Total plus every bracket's Total above always equals
+        // $now->count() from the Persons (Now) figure at the top -- if it
+        // doesn't, that's a real bug to investigate, not something to
+        // paper over here.
+        $unclassified = $now->filter(
+            fn ($e) => ! in_array($e->age_bracket, array_keys($brackets), true) || ! in_array($e->sex, ['male', 'female'], true)
+        );
+        $unclassifiedMale = $unclassified->where('sex', 'male')->count();
+        $unclassifiedFemale = $unclassified->where('sex', 'female')->count();
+        $ageTotal['male'] += $unclassifiedMale;
+        $ageTotal['female'] += $unclassifiedFemale;
+        $row = $this->writeDataRow($sheet, $row, 'Not Yet Classified (missing age/sex data)', $unclassifiedMale, $unclassifiedFemale, totalOverride: $unclassified->count());
+
+        $this->writeDataRow($sheet, $row, 'Total', $ageTotal['male'], $ageTotal['female'], bold: true, totalOverride: $ageTotal['male'] + $ageTotal['female'] + ($unclassified->count() - $unclassifiedMale - $unclassifiedFemale));
         $row += 2;
 
         // -- Sectoral Group --
@@ -203,12 +235,17 @@ class EcInformationBoardReportService
         return $row + 1;
     }
 
-    private function writeDataRow($sheet, int $row, string $label, int $male, int $female, bool $bold = false): int
+    // $totalOverride: normally the Total column is just $male + $female,
+    // but the "Not Yet Classified" row (see generate()) needs a total that
+    // can legitimately be HIGHER than male+female -- some of that row's
+    // people have unknown sex too, so they're in the true headcount but
+    // not in either the male or female column.
+    private function writeDataRow($sheet, int $row, string $label, int $male, int $female, bool $bold = false, ?int $totalOverride = null): int
     {
         $sheet->setCellValue("A{$row}", $label);
         $sheet->setCellValue("D{$row}", $male);
         $sheet->setCellValue("F{$row}", $female);
-        $sheet->setCellValue("H{$row}", $male + $female);
+        $sheet->setCellValue("H{$row}", $totalOverride ?? ($male + $female));
         if ($bold) {
             $sheet->getStyle("A{$row}:H{$row}")->getFont()->setBold(true);
         }
