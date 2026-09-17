@@ -77,6 +77,14 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 });
 
+// Standalone fast-entry path to EC Board: barangay -> center -> that
+// center's existing /evacuation-centers/{id}/ec-board page. Separate from
+// the Evacuation Centers management page below, which stays occupancy/
+// facilities-focused.
+Route::get('/ec-board', function () {
+    return view('ec-board.index');
+});
+
 Route::get('/families', function () {
     return view('families.index');
 });

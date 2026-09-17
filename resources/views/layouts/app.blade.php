@@ -87,6 +87,13 @@
                 <a href="/dashboard" class="nav-link @yield('nav-dashboard')">
                     <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
                 </a>
+                {{-- Sole entry path to a center's EC Board -- barangay ->
+                    center -> board, skipping the occupancy/facilities-
+                    focused Evacuation Centers page entirely (that page has
+                    no EC Board link of its own; see show.blade.php). --}}
+                <a href="/ec-board" class="nav-link @yield('nav-ecboard')">
+                    <i class="ti ti-clipboard-list" aria-hidden="true"></i> EC Board
+                </a>
                 <a href="/evacuation-events" class="nav-link @yield('nav-events')">
                     <i class="ti ti-alert-triangle" aria-hidden="true"></i> Evacuation events
                 </a>
