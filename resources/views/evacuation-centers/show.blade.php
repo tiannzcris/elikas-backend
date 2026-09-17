@@ -7,24 +7,10 @@
     <a href="/evacuation-centers" class="text-sm text-gray-500 hover:text-brand">&larr; Back to evacuation centers</a>
 
     <div id="content-wrap" class="hidden mt-4 max-w-3xl">
-        {{-- Prominent, first thing on the page -- staff arriving here to add
-            an evacuee (the common case during an active disaster) should
-            immediately see where to go. EC Board itself now lives on its
-            own dedicated page (see ec-board.blade.php) so this page can stay
-            focused on the center's own basic/static info. --}}
-        <a id="ec-board-link" href="#" class="flex items-center justify-between bg-brand-light border border-brand/30 rounded-xl p-4 mb-6 hover:border-brand group">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0">
-                    <i class="ti ti-clipboard-list text-brand" style="font-size: 18px;" aria-hidden="true"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-800">EC Information Board</p>
-                    <p class="text-xs text-gray-500">Live headcount, age/sex breakdown, and "Add Evacuee"</p>
-                </div>
-            </div>
-            <i class="ti ti-chevron-right text-brand group-hover:translate-x-0.5" style="font-size: 18px;" aria-hidden="true"></i>
-        </a>
-
+        {{-- No EC Board link here -- reaching a center's board is now
+            exclusively through the standalone EC Board sidebar section
+            (barangay -> centers -> board, see ec-board/index.blade.php).
+            This page stays scoped to the center's own management details. --}}
         <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
             <div class="mb-4">
                 <img id="center-photo" src="" alt="" class="hidden w-full h-64 object-cover rounded-lg">
@@ -122,8 +108,6 @@
         try {
             const result = await Api.get(`/evacuation-centers/${centerId}`);
             const c = result.data;
-
-            document.getElementById('ec-board-link').href = `/evacuation-centers/${centerId}/ec-board`;
 
             document.getElementById('center-name').textContent = c.name;
             document.getElementById('center-subtitle').textContent = `${c.barangay?.name ?? '—'} · ${c.address}`;
