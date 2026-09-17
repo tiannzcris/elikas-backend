@@ -13,51 +13,28 @@
         pattern, but two levels only and name-only rows -- this page's only
         job is getting staff to a specific center's board as fast as
         possible, not showing stats (those live on the Evacuation Centers
-        page and the board itself). --}}
+        page and the board itself). Rows are styled as clickable cards
+        (icon + hover lift + chevron), matching the Evacuation Centers list
+        page's own card pattern, rather than plain table rows. --}}
     <nav id="drill-breadcrumb" class="flex items-center gap-1.5 text-sm text-gray-500 mb-4"></nav>
 
-    {{-- Level 1 (landing view): one row per barangay that has at least one
+    {{-- Level 1 (landing view): one card per barangay that has at least one
         evacuation center. --}}
-    <div id="barangay-list-view" class="max-w-2xl">
+    <div id="barangay-list-view" class="max-w-3xl">
         <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
             <i class="ti ti-building text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
             <p class="text-sm font-medium text-gray-600 mb-1">No evacuation centers yet</p>
             <p class="text-sm text-gray-400">Centers will appear here once barangays register them.</p>
         </div>
-        <div id="barangay-table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                        <tr>
-                            <th class="text-left px-4 py-3">Barangay</th>
-                            <th class="text-left px-4 py-3">Centers</th>
-                            <th class="text-left px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="barangay-tbody"></tbody>
-                </table>
-            </div>
-        </div>
+        <div id="barangay-list" class="hidden flex flex-col gap-2.5"></div>
     </div>
 
     {{-- Level 2: that barangay's evacuation centers, name only. --}}
-    <div id="center-list-view" class="hidden max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                        <tr>
-                            <th class="text-left px-4 py-3">Evacuation center</th>
-                            <th class="text-left px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="center-tbody"></tbody>
-                </table>
-            </div>
-        </div>
+    <div id="center-list-view" class="hidden max-w-3xl">
+        <div id="center-list" class="flex flex-col gap-2.5"></div>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mt-4 max-w-2xl"></div>
+    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mt-4 max-w-3xl"></div>
 @endsection
 
 @section('scripts')
@@ -100,6 +77,10 @@
         showLevel('barangay');
     }
 
+    // Card row shared by both levels -- consistent padding, hover
+    // border/shadow lift, icon chip, and a trailing chevron/CTA so the row
+    // reads as clickable at a glance instead of relying on cursor:pointer
+    // alone (matches the Evacuation Centers list page's own card pattern).
     function renderBarangayTable() {
         // Count centers per barangay, then keep only barangays with >= 1 --
         // this page exists purely to route staff to a center's board, so a
@@ -119,28 +100,35 @@
             .sort((a, b) => a.barangay_name.localeCompare(b.barangay_name));
 
         const emptyState = document.getElementById('barangay-empty-state');
-        const tableWrap = document.getElementById('barangay-table-wrap');
+        const listEl = document.getElementById('barangay-list');
 
         if (rows.length === 0) {
-            tableWrap.classList.add('hidden');
+            listEl.classList.add('hidden');
             emptyState.classList.remove('hidden');
             emptyState.classList.add('flex');
             return;
         }
 
         emptyState.classList.add('hidden');
-        tableWrap.classList.remove('hidden');
+        listEl.classList.remove('hidden');
 
-        document.getElementById('barangay-tbody').innerHTML = rows.map((r) => `
-            <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer" data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
-                <td class="px-4 py-3 font-medium">${r.barangay_name}</td>
-                <td class="px-4 py-3">${r.center_count}</td>
-                <td class="px-4 py-3 text-right"><i class="ti ti-chevron-right text-gray-400" aria-hidden="true"></i></td>
-            </tr>`).join('');
+        listEl.innerHTML = rows.map((r) => `
+            <button type="button"
+                class="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-left hover:border-brand hover:shadow-sm transition-shadow"
+                data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
+                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                    <i class="ti ti-map-pin text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-sm text-gray-800">${r.barangay_name}</p>
+                    <p class="text-xs text-gray-500">${r.center_count} evacuation center${r.center_count === 1 ? '' : 's'}</p>
+                </div>
+                <i class="ti ti-chevron-right text-gray-300 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
+            </button>`).join('');
     }
 
-    document.getElementById('barangay-tbody').addEventListener('click', (e) => {
-        const row = e.target.closest('tr[data-barangay-id]');
+    document.getElementById('barangay-list').addEventListener('click', (e) => {
+        const row = e.target.closest('[data-barangay-id]');
         if (! row) return;
         drillIntoBarangay(Number(row.dataset.barangayId), row.dataset.barangayName);
     });
@@ -156,13 +144,17 @@
             .filter((c) => c.barangay_id === barangayId)
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        document.getElementById('center-tbody').innerHTML = centers.map((c) => `
-            <tr class="border-t border-gray-100">
-                <td class="px-4 py-3 font-medium">${c.name}</td>
-                <td class="px-4 py-3 text-right">
-                    <a href="/evacuation-centers/${c.id}/ec-board" class="text-brand hover:underline text-sm font-medium">Go to EC Board &rarr;</a>
-                </td>
-            </tr>`).join('');
+        document.getElementById('center-list').innerHTML = centers.map((c) => `
+            <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3.5 hover:border-brand hover:shadow-sm transition-shadow">
+                <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                    <i class="ti ti-building text-green-500" style="font-size: 18px;" aria-hidden="true"></i>
+                </div>
+                <p class="flex-1 min-w-0 font-medium text-sm text-gray-800">${c.name}</p>
+                <a href="/ec-board/${c.id}?from=ec-board&barangay=${currentBarangayId}"
+                    class="shrink-0 flex items-center gap-1 bg-brand hover:bg-brand-dark text-white text-xs font-medium rounded-lg px-3 py-2">
+                    Go to EC Board <i class="ti ti-arrow-right" style="font-size: 13px;" aria-hidden="true"></i>
+                </a>
+            </div>`).join('');
     }
 
     (async () => {
@@ -177,6 +169,16 @@
 
             renderBreadcrumb();
             renderBarangayTable();
+
+            // Deep link support: /ec-board?barangay=X lands straight on that
+            // barangay's centers list instead of the top-level landing view
+            // -- used by a board page's "Back" link (see ec-board/show.blade.php)
+            // so it returns to the SAME barangay list the user drilled into,
+            // not just the section's default landing view.
+            const barangayParam = Number(new URLSearchParams(window.location.search).get('barangay'));
+            if (barangayParam && barangayNameById[barangayParam]) {
+                drillIntoBarangay(barangayParam, barangayNameById[barangayParam]);
+            }
         } catch (error) {
             showFormErrors(error);
         }

@@ -78,12 +78,17 @@ Route::get('/dashboard', function () {
 });
 
 // Standalone fast-entry path to EC Board: barangay -> center -> that
-// center's existing /evacuation-centers/{id}/ec-board page. Separate from
-// the Evacuation Centers management page below, which stays occupancy/
-// facilities-focused.
+// center's board. Kept under its own /ec-board/... prefix (not nested
+// under /evacuation-centers/...) so the URL itself signals this is a
+// separate section, not a sub-page of the Evacuation Centers management
+// area below, which stays occupancy/facilities-focused.
 Route::get('/ec-board', function () {
     return view('ec-board.index');
 });
+
+Route::get('/ec-board/{id}', function (string $id) {
+    return view('ec-board.show');
+})->where('id', '[0-9]+');
 
 Route::get('/families', function () {
     return view('families.index');
@@ -123,14 +128,6 @@ Route::get('/evacuation-centers/{id}/edit', function (string $id) {
 
 Route::get('/evacuation-centers/{id}', function (string $id) {
     return view('evacuation-centers.show');
-})->where('id', '[0-9]+');
-
-// Separate from the basic info page above -- the EC Board (live headcount,
-// age/sex breakdown, "Add Evacuee") is its own dedicated page rather than a
-// section bolted onto the center's basic info, so each page stays focused
-// on its own concern and loads only the data it actually needs.
-Route::get('/evacuation-centers/{id}/ec-board', function (string $id) {
-    return view('evacuation-centers.ec-board');
 })->where('id', '[0-9]+');
 
 Route::get('/gis-map', function () {
