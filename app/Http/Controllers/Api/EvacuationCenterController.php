@@ -350,7 +350,7 @@ class EvacuationCenterController extends Controller
             }
         }
 
-        $family = DB::transaction(function () use ($validated, $request, $evacuationCenter, $existingFamily) {
+        ['family' => $family, 'evacuee_id' => $evacueeId] = DB::transaction(function () use ($validated, $request, $evacuationCenter, $existingFamily) {
             $family = $existingFamily ?? Family::create([
                 'evacuation_event_id' => $validated['evacuation_event_id'],
                 'barangay_id' => $validated['barangay_id'],
@@ -390,16 +390,25 @@ class EvacuationCenterController extends Controller
                 'ip_address' => $request->ip(),
             ]);
 
-            return $family;
+            return ['family' => $family, 'evacuee_id' => $evacuee->id];
         });
 
-        return $this->success(
+        $response = $this->success(
             new FamilyResource(
                 $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
             ),
             'Evacuee added successfully.',
             201
         );
+
+        // The offline client needs the newly-created EVACUEE's own id (not the
+        // family's, which is what `data.id` above is) to track sync status for
+        // that specific evacuee -- exposed as a top-level field so the existing
+        // `data` shape consumers rely on is untouched.
+        $payload = $response->getData(true);
+        $payload['evacuee_id'] = $evacueeId;
+
+        return response()->json($payload, $response->getStatusCode());
     }
 
     /**

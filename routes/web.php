@@ -117,6 +117,14 @@ Route::get('/evacuation-centers/{id}', function (string $id) {
     return view('evacuation-centers.show');
 })->where('id', '[0-9]+');
 
+// Separate from the basic info page above -- the EC Board (live headcount,
+// age/sex breakdown, "Add Evacuee") is its own dedicated page rather than a
+// section bolted onto the center's basic info, so each page stays focused
+// on its own concern and loads only the data it actually needs.
+Route::get('/evacuation-centers/{id}/ec-board', function (string $id) {
+    return view('evacuation-centers.ec-board');
+})->where('id', '[0-9]+');
+
 Route::get('/gis-map', function () {
     return view('gis.map');
 });
