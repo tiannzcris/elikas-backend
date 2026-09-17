@@ -90,11 +90,11 @@
                 <a href="/evacuation-events" class="nav-link @yield('nav-events')">
                     <i class="ti ti-alert-triangle" aria-hidden="true"></i> Evacuation events
                 </a>
-                <a href="/families" class="nav-link @yield('nav-families')">
-                    <i class="ti ti-users" aria-hidden="true"></i> Evacuees
-                </a>
                 <a href="/evacuation-centers" class="nav-link @yield('nav-centers')">
                     <i class="ti ti-building" aria-hidden="true"></i> Evacuation centers
+                </a>
+                <a href="/families" class="nav-link @yield('nav-families')">
+                    <i class="ti ti-users" aria-hidden="true"></i> Evacuees
                 </a>
                 <a href="/gis-map" class="nav-link @yield('nav-gis')">
                     <i class="ti ti-map" aria-hidden="true"></i> GIS map
