@@ -412,6 +412,90 @@ class EvacuationCenterController extends Controller
     }
 
     /**
+     * "Quick Departure": the EC Board's reverse counterpart to "Add
+     * Evacuee" -- marks N currently-evacuated people at this center as
+     * departed by age bracket + sex + quantity, not by picking individual
+     * names, same speed-over-completeness reasoning as Add Evacuee. Open
+     * to any staff role with no barangay restriction, matching Add
+     * Evacuee's own access model -- this acts on whoever is physically at
+     * THIS center, not on any one barangay's own roster.
+     *
+     * Deliberately does NOT touch families_cumulative/persons_cumulative
+     * -- cumulative only ever grows on arrival (see
+     * EvacuationCenterQuickCount::recordArrival()'s own docblock: "neither
+     * ever decrements"); this is exactly the kind of removal that
+     * invariant exists to survive. Only the live "Now" figures change,
+     * the same way an individual check-out already does -- see
+     * EvacuationRecord::checkOut(), which this reuses rather than
+     * duplicating the date_out/status mutation.
+     *
+     * Selection when more than $quantity records match: oldest arrival
+     * first (date_in ascending) -- simple, deterministic, and matches the
+     * intuitive "whoever's been here longest leaves first" reading of a
+     * departure a staff member didn't personally witness.
+     */
+    public function quickDeparture(Request $request, EvacuationCenter $evacuationCenter)
+    {
+        $validated = $request->validate([
+            'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
+            'age_bracket' => ['required', Rule::in(EvacuationCenterQuickCount::AGE_BRACKETS)],
+            'sex' => ['required', 'in:male,female'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'status' => ['required', Rule::in(['returned_home', 'transferred'])],
+        ]);
+
+        // age_bracket is a computed accessor (real date_of_birth, or
+        // age_bracket_override for a placeholder -- see
+        // Evacuee::getAgeBracketAttribute()), not a real column, so it
+        // can't be filtered in the query itself -- same reason
+        // EvacuationCenterQuickCount::liveAgeSexBreakdown() and both
+        // DROMIC report services filter in PHP after loading, not SQL.
+        $candidates = EvacuationRecord::where('evacuation_center_id', $evacuationCenter->id)
+            ->where('evacuation_event_id', $validated['evacuation_event_id'])
+            ->where('status', 'currently_evacuated')
+            ->whereNull('date_out')
+            ->whereHas('evacuee', fn ($q) => $q->where('sex', $validated['sex']))
+            ->with('evacuee')
+            ->orderBy('date_in')
+            ->get()
+            ->filter(fn ($record) => $record->evacuee->age_bracket === $validated['age_bracket']);
+
+        $available = $candidates->count();
+
+        if ($available < $validated['quantity']) {
+            return $this->error(
+                "Only {$available} matching evacuee(s) are currently here, cannot mark {$validated['quantity']} as departed.",
+                422
+            );
+        }
+
+        $toCheckOut = $candidates->take($validated['quantity']);
+
+        DB::transaction(function () use ($toCheckOut, $validated) {
+            foreach ($toCheckOut as $record) {
+                $record->checkOut($validated['status']);
+            }
+        });
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'evacuee.quick_departure',
+            'description' => sprintf(
+                '%s marked %d %s %s as %s via Quick Departure at %s.',
+                $request->user()->name,
+                $validated['quantity'],
+                $validated['sex'],
+                $validated['age_bracket'],
+                $validated['status'],
+                $evacuationCenter->name
+            ),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(null, "{$validated['quantity']} evacuee(s) marked as departed.");
+    }
+
+    /**
      * Families already registered at THIS center for THIS event -- powers
      * the "Add Evacuee -> Existing household" search/select, so staff
      * adding a second/third member of a household already here don't have

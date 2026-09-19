@@ -170,8 +170,7 @@ class EvacueeController extends Controller
             return $this->error('This evacuee has no active evacuation record to close out.', 404);
         }
 
-        $record->update(['date_out' => now(), 'status' => $validated['status']]);
-        $evacuee->update(['status' => $validated['status']]);
+        $record->checkOut($validated['status']);
 
         SystemLog::create([
             'user_id' => $request->user()->id,

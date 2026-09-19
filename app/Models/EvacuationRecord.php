@@ -31,4 +31,24 @@ class EvacuationRecord extends Model
     {
         return $this->belongsTo(EvacuationEvent::class);
     }
+
+    /**
+     * Closes out this active record: sets date_out/status and mirrors the
+     * same status onto the evacuee. The one shared mutation both
+     * EvacueeController::checkOut() (single evacuee, by name) and
+     * EvacuationCenterController::quickDeparture() (bulk, by age
+     * bracket + sex + quantity) call, so what actually happens on
+     * departure only ever exists in one place. Deliberately does NOT
+     * touch EvacuationCenterQuickCount's cumulative figures -- those only
+     * ever grow on arrival (see EvacuationCenterQuickCount::recordArrival()'s
+     * own docblock: "neither ever decrements"); this is exactly the kind
+     * of removal that invariant exists to survive. Only the live "Now"
+     * figures change, since those are computed straight from this
+     * record's status/date_out every time the board loads.
+     */
+    public function checkOut(string $status): void
+    {
+        $this->update(['date_out' => now(), 'status' => $status]);
+        $this->evacuee->update(['status' => $status]);
+    }
 }

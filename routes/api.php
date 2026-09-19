@@ -113,6 +113,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/evacuation-centers/{evacuationCenter}/quick-count', [EvacuationCenterController::class, 'quickCount']);
             Route::put('/evacuation-centers/{evacuationCenter}/quick-count', [EvacuationCenterController::class, 'updateQuickCount']);
             Route::post('/evacuation-centers/{evacuationCenter}/evacuees', [EvacuationCenterController::class, 'addEvacuee']);
+            // "Quick Departure": the reverse of Add Evacuee above -- mark N
+            // people as departed by age bracket + sex + quantity instead of
+            // by name. See EvacuationCenterController::quickDeparture()'s
+            // own docblock.
+            Route::post('/evacuation-centers/{evacuationCenter}/quick-departure', [EvacuationCenterController::class, 'quickDeparture']);
             Route::get('/evacuation-centers/{evacuationCenter}/families', [EvacuationCenterController::class, 'familiesAtCenter']);
 
             Route::get('/hazard-areas', [HazardProneAreaController::class, 'index']);

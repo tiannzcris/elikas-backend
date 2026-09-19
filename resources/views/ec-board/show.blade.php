@@ -175,6 +175,59 @@
             </div>
         </div>
 
+        {{-- Quick Departure: the reverse of Add Evacuee above -- same card
+            width/style so the two read as a matched pair of fast actions,
+            stacked directly beneath it rather than competing for the same
+            row. By bracket + sex + quantity, not by name, for the same
+            speed reason Add Evacuee skips full registration. --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
+                <div class="mb-5">
+                    <p class="text-base font-semibold text-gray-800">Quick departure</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Marks that many currently-evacuated people as departed -- oldest arrivals in the matching bracket first. For one specific person by name, use "Check out" on the Evacuees page instead.</p>
+                </div>
+
+                <div id="quick-departure-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+
+                <form id="quick-departure-form" class="flex flex-col gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Age bracket</label>
+                            <select id="qd-age-bracket" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Sex</label>
+                            <select id="qd-sex" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Quantity</label>
+                            <input type="number" min="1" value="1" id="qd-quantity" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">Reason</label>
+                        <select id="qd-status" class="w-full sm:w-64 border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                            <option value="returned_home">Returned home</option>
+                            <option value="transferred">Transferred elsewhere</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
+                        <button type="submit" id="quick-departure-submit-btn"
+                            class="bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-5 py-2.5">
+                            Mark as departed
+                        </button>
+                        <span id="quick-departure-success-msg" class="hidden text-xs text-green-600 font-medium">&check; Marked as departed.</span>
+                        <span id="quick-departure-disabled-note" class="hidden text-xs text-gray-400">No active disaster event -- can't log departures right now.</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         {{-- Only these two remain manually saved -- see this page's own
             notes and EvacuationCenterController::updateQuickCount()'s
             docblock for why sectoral flags stay a reported aggregate
@@ -365,6 +418,8 @@
     renderSectoralRows();
     document.getElementById('ae-age-bracket').innerHTML =
         ageBrackets.map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
+    document.getElementById('qd-age-bracket').innerHTML =
+        ageBrackets.map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
 
     (async () => {
         try {
@@ -407,6 +462,10 @@
             const submitBtn = document.getElementById('add-evacuee-submit-btn');
             submitBtn.disabled = ! openEvents.length;
             document.getElementById('add-evacuee-disabled-note').classList.toggle('hidden', !! openEvents.length);
+
+            const quickDepartureBtn = document.getElementById('quick-departure-submit-btn');
+            quickDepartureBtn.disabled = ! openEvents.length;
+            document.getElementById('quick-departure-disabled-note').classList.toggle('hidden', !! openEvents.length);
 
             if (openEvents.length) {
                 await Promise.all([loadEcBoard(eventSelect.value), loadAddEvacueeFormData(eventSelect.value)]);
@@ -530,6 +589,58 @@
         } finally {
             button.disabled = false;
             button.textContent = '+ Add evacuee';
+        }
+    });
+
+    // --- Quick Departure -----------------------------------------------
+
+    document.getElementById('quick-departure-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const eventId = document.getElementById('ecb-event-select').value;
+        const payload = {
+            evacuation_event_id: Number(eventId),
+            age_bracket: document.getElementById('qd-age-bracket').value,
+            sex: document.getElementById('qd-sex').value,
+            quantity: Number(document.getElementById('qd-quantity').value) || 0,
+            status: document.getElementById('qd-status').value,
+        };
+
+        const errorBox = document.getElementById('quick-departure-errors');
+        errorBox.classList.add('hidden');
+
+        const button = document.getElementById('quick-departure-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Marking...';
+
+        try {
+            await Api.request(`/evacuation-centers/${centerId}/quick-departure`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+
+            // Reset just the quantity for the next batch -- bracket/sex/
+            // reason intentionally carry over, same "ready for the next
+            // one" convenience as Add Evacuee above.
+            document.getElementById('qd-quantity').value = 1;
+            const successMsg = document.getElementById('quick-departure-success-msg');
+            successMsg.classList.remove('hidden');
+            setTimeout(() => successMsg.classList.add('hidden'), 2500);
+
+            // Refreshes the live "Now" figures and age/sex breakdown --
+            // this action never touches cumulative, so nothing else on the
+            // page needs updating.
+            await loadEcBoard(eventId);
+        } catch (error) {
+            // The "only N available" block from quickDeparture() is a
+            // plain top-level message, not a per-field errors object --
+            // same fallback families/index.blade.php's own forms use.
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            errorBox.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            errorBox.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Mark as departed';
         }
     });
 </script>
