@@ -33,6 +33,22 @@
                     <span class="text-gray-400">Event:</span>
                     <select id="ecb-event-select" class="border border-gray-300 rounded-lg px-2 py-1 text-xs"></select>
                 </span>
+                {{-- Matches the real EC Information Board template's own row
+                    order: this header-level count sits WITH Barangay/Center/
+                    Families/Persons, before the Age & Sex table -- not down
+                    with the Sectoral Group table, which has its own
+                    separate "4Ps Beneficiary/ies" row (see the sectoral
+                    table below; that's a different, per-person-sex figure,
+                    not this one). Not inside <form id="ecboard-form"> below
+                    -- its value is still read/saved by that form's own JS
+                    via this element's id, regardless of where it sits in
+                    the page. --}}
+                <span class="flex items-center gap-1.5">
+                    <span class="text-gray-400">4Ps beneficiary families:</span>
+                    <input type="number" min="0" id="ecb-beneficiaries-4ps"
+                        title="Saved together with the sectoral breakdown further down the page"
+                        class="w-16 border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                </span>
             </div>
         </div>
 
@@ -167,11 +183,6 @@
             narrow sidebar, since it's a longer secondary form. --}}
         <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
             <form id="ecboard-form">
-                <div class="mb-4">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1" for="ecb-beneficiaries-4ps">4Ps beneficiary families</label>
-                    <input type="number" min="0" id="ecb-beneficiaries-4ps" class="w-28 border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                </div>
-
                 <p class="text-xs font-semibold text-gray-600 mb-2">Sectoral group breakdown</p>
                 <div class="overflow-x-auto mb-4">
                     <table class="w-full text-sm border-collapse">
