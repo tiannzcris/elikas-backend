@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Models\EvacuationCenter;
+use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationEvent;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -21,6 +22,18 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * does not track those two sectoral flags (see DromicRegionVReportService's
  * docblock for the same note).
  *
+ * 4Ps BENEFICIARIES / SECTORAL SOURCE: the header's "4Ps Beneficiaries:"
+ * count and every Sectoral Group row (except the two untracked ones above)
+ * are staff-reported aggregates, not derived from individual Evacuee
+ * flags -- same reasoning as EvacuationCenterQuickCount's own docblock
+ * (most evacuees are placeholders with no name/details filled in, so
+ * per-person flags like is_4ps_beneficiary are rarely set). When a
+ * EvacuationCenterQuickCount row exists for this center+event, its
+ * beneficiaries_4ps and sectoralGroups() are used directly; only falls
+ * back to counting individual Evacuee flags when no such row exists at
+ * all (i.e. the EC Board's sectoral form has never been saved here).
+ *
+
  * PLACEHOLDER EVACUEES: a placeholder's age_bracket and/or sex can be null
  * (no age_bracket_override or real date_of_birth yet), so the age/sex
  * filters below never match them for any specific bracket/sex cell -- but
@@ -52,7 +65,15 @@ class EcInformationBoardReportService
 
         $familiesCum = $allEvacuees->pluck('family_id')->unique()->count();
         $familiesNow = $now->pluck('family_id')->unique()->count();
-        $fourPsCount = $allEvacuees->where('is_4ps_beneficiary', true)->count();
+
+        $quickCount = EvacuationCenterQuickCount::where('evacuation_center_id', $center->id)
+            ->where('evacuation_event_id', $event->id)
+            ->with('sectoralGroups')
+            ->first();
+
+        $fourPsCount = $quickCount
+            ? $quickCount->beneficiaries_4ps
+            : $allEvacuees->where('is_4ps_beneficiary', true)->count();
 
         $row = 1;
         $sheet->setCellValue("A{$row}", 'EVACUATION CENTER INFORMATION BOARD');
@@ -130,29 +151,37 @@ class EcInformationBoardReportService
         // -- Sectoral Group --
         $row = $this->writeSectionHeader($sheet, $row, 'Sectoral Group', ['Male', 'Female', 'Total']);
 
+        // 'group' is the EvacuationCenterQuickCount::SECTORAL_GROUPS enum
+        // value this category is stored under -- deliberately a separate
+        // key from the array index (the Evacuee flag name) since the two
+        // naming conventions don't match 1:1 (e.g. is_pwd vs 'pwd').
         $sectors = [
-            'is_pwd' => 'Persons with Disability/ies (PWDs)',
-            '__child_headed' => 'Child-Headed Family/ies',    // not tracked -- always 0, see class docblock
-            '__single_headed' => 'Single-Headed Family/ies',  // not tracked -- always 0, see class docblock
-            'is_solo_parent' => 'Solo Parent/s',
-            'is_pregnant' => 'Pregnant Women',
-            'is_lactating' => 'Lactating Mother/s',
-            'is_4ps_beneficiary' => '4Ps Beneficiary/ies',
-            'is_indigenous_person' => 'Indigenous Peoples (IPs)',
+            'is_pwd' => ['label' => 'Persons with Disability/ies (PWDs)', 'group' => 'pwd'],
+            '__child_headed' => ['label' => 'Child-Headed Family/ies', 'group' => 'child_headed_family'],    // not tracked -- always 0, see class docblock
+            '__single_headed' => ['label' => 'Single-Headed Family/ies', 'group' => 'single_headed_family'],  // not tracked -- always 0, see class docblock
+            'is_solo_parent' => ['label' => 'Solo Parent/s', 'group' => 'solo_parent'],
+            'is_pregnant' => ['label' => 'Pregnant Women', 'group' => 'pregnant_women'],
+            'is_lactating' => ['label' => 'Lactating Mother/s', 'group' => 'lactating_mothers'],
+            'is_4ps_beneficiary' => ['label' => '4Ps Beneficiary/ies', 'group' => 'four_ps_beneficiary'],
+            'is_indigenous_person' => ['label' => 'Indigenous Peoples (IPs)', 'group' => 'indigenous_peoples'],
         ];
 
         $sectorTotal = ['male' => 0, 'female' => 0];
-        foreach ($sectors as $flag => $label) {
+        foreach ($sectors as $flag => $meta) {
             if (str_starts_with($flag, '__')) {
                 $male = 0;
                 $female = 0;
+            } elseif ($quickCount) {
+                $reported = $quickCount->sectoralGroups->firstWhere('sectoral_group', $meta['group']);
+                $male = $reported->male_count ?? 0;
+                $female = $reported->female_count ?? 0;
             } else {
                 $male = $now->filter(fn ($e) => $e->{$flag} && $e->sex === 'male')->count();
                 $female = $now->filter(fn ($e) => $e->{$flag} && $e->sex === 'female')->count();
             }
             $sectorTotal['male'] += $male;
             $sectorTotal['female'] += $female;
-            $row = $this->writeDataRow($sheet, $row, $label, $male, $female);
+            $row = $this->writeDataRow($sheet, $row, $meta['label'], $male, $female);
         }
         $this->writeDataRow($sheet, $row, 'Total', $sectorTotal['male'], $sectorTotal['female'], bold: true);
         $row += 2;

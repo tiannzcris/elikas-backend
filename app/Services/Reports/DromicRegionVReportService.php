@@ -7,6 +7,7 @@ use App\Models\CashAssistanceDisbursement;
 use App\Models\DamagedHouse;
 use App\Models\EvacuationCenter;
 use App\Models\EvacuationCenterFacility;
+use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationEvent;
 use App\Models\Family;
 use App\Models\ReliefDistribution;
@@ -85,6 +86,23 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * same reasoning as the EC Board's own sectoral table: sectoral categories
  * overlap (a solo parent can also be a PWD), so there's no single
  * meaningful "total" for them to reconcile against in the first place.
+ *
+ * SECTORAL COLUMNS' DATA SOURCE (BO-CP except the untracked BS-BZ pair):
+ * the NOW half of each pair (BP, BR, CB, CD, CF, CH, CJ, CL, CN, CP)
+ * prefers each EvacuationCenterQuickCount's staff-reported sectoralGroups()
+ * -- same reasoning as EvacuationCenterQuickCount's own docblock, most
+ * evacuees here are placeholders with no per-person flags set yet -- summed
+ * across every center this barangay's currently-active evacuees are
+ * actually checked into (a barangay can use more than one center; unlike
+ * the EC-detail columns O-R, which show only the highest-occupancy one,
+ * a sectoral total needs every center's figures, not just one). Falls
+ * back to counting individual Evacuee flags only where NONE of those
+ * centers has a quick-count row for this event at all. The CUM half
+ * (BO, BQ, CA, CC, CE, CG, CI, CK, CM, CO) has no manually-reported
+ * equivalent anywhere in this system -- quick-count sectoral figures are a
+ * single current snapshot, not tracked cumulatively the way
+ * families_cumulative/persons_cumulative are -- so it always stays
+ * computed from Evacuee flags, same as before this fix.
  */
 class DromicRegionVReportService
 {
@@ -337,6 +355,38 @@ class DromicRegionVReportService
             fn ($e) => ! in_array($e->age_bracket, self::AGE_BRACKETS, true) || ! in_array($e->sex, ['male', 'female'], true)
         )->count();
 
+        // Every center this barangay's CURRENTLY-active evacuees are
+        // actually checked into for this event -- not just the single
+        // highest-occupancy "primary" center used for the EC-detail
+        // columns below, since a sectoral total needs every center's
+        // reported figures, not just one. See this class's docblock for
+        // why only the NOW columns use this (quick-count sectoral data
+        // isn't tracked cumulatively anywhere in this system).
+        $centerIdsInUse = $nowEvacuees
+            ->flatMap(fn ($e) => $e->evacuationRecords->where('status', 'currently_evacuated'))
+            ->pluck('evacuation_center_id')
+            ->filter()
+            ->unique();
+
+        $quickCounts = $centerIdsInUse->isEmpty()
+            ? collect()
+            : EvacuationCenterQuickCount::whereIn('evacuation_center_id', $centerIdsInUse)
+                ->where('evacuation_event_id', $event->id)
+                ->with('sectoralGroups')
+                ->get();
+
+        // Returns null (not 0) when none of this barangay's in-use centers
+        // has ever saved a quick-count row for this event, so callers can
+        // tell "genuinely reported as zero" apart from "never reported,
+        // fall back to counting Evacuee flags instead".
+        $sectoralNowTotal = fn (string $group) => $quickCounts->isEmpty() ? null : $quickCounts->sum(
+            fn ($qc) => ($qc->sectoralGroups->firstWhere('sectoral_group', $group)->male_count ?? 0)
+                + ($qc->sectoralGroups->firstWhere('sectoral_group', $group)->female_count ?? 0)
+        );
+        $sectoralNowBySex = fn (string $group, string $sex) => $quickCounts->isEmpty() ? null : $quickCounts->sum(
+            fn ($qc) => $qc->sectoralGroups->firstWhere('sectoral_group', $group)?->{"{$sex}_count"} ?? 0
+        );
+
         // The one evacuation center actually used by this barangay's
         // families, picked by highest current occupancy when more than one
         // was used -- the template has room for only one center's detail
@@ -420,18 +470,22 @@ class DromicRegionVReportService
             'BI' => $bracketSex($cumEvacuees, 'senior_citizen', 'female'), 'BJ' => $bracketSex($nowEvacuees, 'senior_citizen', 'female'),
             'BK' => $cumEvacuees->where('sex', 'male')->count(), 'BL' => $nowEvacuees->where('sex', 'male')->count(),
             'BM' => $cumEvacuees->where('sex', 'female')->count(), 'BN' => $nowEvacuees->where('sex', 'female')->count(),
-            // -- Sectoral --
-            'BO' => $cumEvacuees->where('is_pregnant', true)->count(), 'BP' => $nowEvacuees->where('is_pregnant', true)->count(),
-            'BQ' => $cumEvacuees->where('is_lactating', true)->count(), 'BR' => $nowEvacuees->where('is_lactating', true)->count(),
+            // -- Sectoral -- NOW columns prefer quick-count sectoralGroups()
+            // (summed across every center this barangay is actually using),
+            // falling back to Evacuee flags only when none of those centers
+            // has ever reported one. CUM stays Evacuee-flag-computed always
+            // -- see this class's docblock for why.
+            'BO' => $cumEvacuees->where('is_pregnant', true)->count(), 'BP' => $sectoralNowTotal('pregnant_women') ?? $nowEvacuees->where('is_pregnant', true)->count(),
+            'BQ' => $cumEvacuees->where('is_lactating', true)->count(), 'BR' => $sectoralNowTotal('lactating_mothers') ?? $nowEvacuees->where('is_lactating', true)->count(),
             // BS-BZ (Child-Headed / Single-Headed Family) intentionally omitted -- not tracked (see class docblock)
-            'CA' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(), 'CB' => $nowEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(),
-            'CC' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(), 'CD' => $nowEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(),
-            'CE' => $cumEvacuees->where('is_pwd', true)->where('sex', 'male')->count(), 'CF' => $nowEvacuees->where('is_pwd', true)->where('sex', 'male')->count(),
-            'CG' => $cumEvacuees->where('is_pwd', true)->where('sex', 'female')->count(), 'CH' => $nowEvacuees->where('is_pwd', true)->where('sex', 'female')->count(),
-            'CI' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(), 'CJ' => $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(),
-            'CK' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(), 'CL' => $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(),
-            'CM' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(), 'CN' => $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(),
-            'CO' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(), 'CP' => $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(),
+            'CA' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(), 'CB' => $sectoralNowBySex('solo_parent', 'male') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(),
+            'CC' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(), 'CD' => $sectoralNowBySex('solo_parent', 'female') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(),
+            'CE' => $cumEvacuees->where('is_pwd', true)->where('sex', 'male')->count(), 'CF' => $sectoralNowBySex('pwd', 'male') ?? $nowEvacuees->where('is_pwd', true)->where('sex', 'male')->count(),
+            'CG' => $cumEvacuees->where('is_pwd', true)->where('sex', 'female')->count(), 'CH' => $sectoralNowBySex('pwd', 'female') ?? $nowEvacuees->where('is_pwd', true)->where('sex', 'female')->count(),
+            'CI' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(), 'CJ' => $sectoralNowBySex('indigenous_peoples', 'male') ?? $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(),
+            'CK' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(), 'CL' => $sectoralNowBySex('indigenous_peoples', 'female') ?? $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(),
+            'CM' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(), 'CN' => $sectoralNowBySex('four_ps_beneficiary', 'male') ?? $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(),
+            'CO' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(), 'CP' => $sectoralNowBySex('four_ps_beneficiary', 'female') ?? $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(),
             // -- Facilities (primary center) --
             'CQ' => $facilityQty('latrine_compost_pit'), 'CR' => $facilityQty('latrine_sealed'),
             'CS' => $facilityQty('toilet_male'), 'CT' => $facilityQty('toilet_female'), 'CU' => $facilityQty('toilet_common'),
