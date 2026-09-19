@@ -62,18 +62,20 @@ class EvacuationCenterQuickCount extends Model
 
     /**
      * The one shared hook for keeping families_cumulative/persons_cumulative
-     * accurate: call this once, right after creating a NEW EvacuationRecord
-     * for $evacuee at $evacuationCenterId/$eventId, from EVERY place in the
-     * app that does that -- currently FamilyController::store() (both its
-     * detailed-members and fast-headcount paths), EvacueeController::addMember(),
-     * and EvacuationCenterController::addEvacuee(). One shared method
-     * (not duplicated increment logic in each of those, and not a model
-     * observer either) so "who counts as a cumulative arrival here" can
-     * only ever be defined in one place, matching this codebase's existing
-     * preference for explicit, traceable calls over implicit event hooks.
-     * Takes plain IDs rather than model instances -- every call site
-     * already has the ID on hand (from validated request input or a
-     * just-created record) without needing to fetch a model just for this.
+     * accurate: call this once, right after $evacuee ends up with an active
+     * EvacuationRecord at $evacuationCenterId/$eventId that center hadn't
+     * already counted -- whether that record was just CREATED
+     * (FamilyController::store(), EvacueeController::addMember(),
+     * EvacuationCenterController::addEvacuee()) or an existing one was
+     * REPOINTED to a different center (FamilyController::updateEvacuationCenter()).
+     * One shared method (not duplicated increment logic in each of those,
+     * and not a model observer either) so "who counts as a cumulative
+     * arrival here" can only ever be defined in one place, matching this
+     * codebase's existing preference for explicit, traceable calls over
+     * implicit event hooks. Takes plain IDs rather than model instances --
+     * every call site already has the ID on hand (from validated request
+     * input or a just-created/just-updated record) without needing to
+     * fetch a model just for this.
      *
      * No-op for 'outside_center' displacement ($evacuationCenterId null) --
      * cumulative is inherently a per-CENTER figure, nothing to attribute it

@@ -279,9 +279,25 @@ class FamilyController extends Controller
      * is being swapped for a real verified one. evacuation_center_id lives
      * per-evacuee on evacuation_records (not on Family itself), so this
      * updates every member's currently-active record (date_out still null)
-     * in one bulk update -- matches the same "whole family, one center"
-     * assumption FamilyController::store() and FamilyResource already make.
-     * Members who already checked out are left untouched.
+     * -- matches the same "whole family, one center" assumption
+     * FamilyController::store() and FamilyResource already make. Members
+     * who already checked out are left untouched.
+     *
+     * The destination center's families_cumulative/persons_cumulative has
+     * never counted these members before now, so each repointed record
+     * calls EvacuationCenterQuickCount::recordArrival() for the
+     * destination -- same "one shared hook, once per evacuee" pattern used
+     * by every other evacuee-arriving path (see that method's own
+     * docblock). Skipped when a record's center isn't actually changing
+     * (re-saving the same center it's already at), so that isn't
+     * mis-double-counted as a fresh arrival.
+     *
+     * The ORIGIN center's cumulative is deliberately left untouched:
+     * cumulative is a historical "everyone who was ever recorded here"
+     * ceiling that never decrements for check-out or deletion either (see
+     * EvacuationCenterQuickCount's own docblock) -- this family genuinely
+     * did arrive at and occupy that center for real, regardless of being
+     * moved afterward, so that history stays.
      */
     public function updateEvacuationCenter(Request $request, Family $family)
     {
@@ -295,19 +311,36 @@ class FamilyController extends Controller
 
         $memberIds = $family->members()->pluck('id');
 
-        $updated = EvacuationRecord::whereIn('evacuee_id', $memberIds)
+        $activeRecords = EvacuationRecord::whereIn('evacuee_id', $memberIds)
             ->whereNull('date_out')
-            ->update([
-                'evacuation_center_id' => $validated['evacuation_center_id'],
-                'displacement_type' => 'inside_center',
-            ]);
+            ->with('evacuee')
+            ->get();
 
-        if ($updated === 0) {
+        if ($activeRecords->isEmpty()) {
             return $this->error(
                 'This family has no active evacuation records to reassign -- every member has already checked out.',
                 422
             );
         }
+
+        DB::transaction(function () use ($activeRecords, $validated) {
+            foreach ($activeRecords as $record) {
+                $isActualMove = (int) $record->evacuation_center_id !== (int) $validated['evacuation_center_id'];
+
+                $record->update([
+                    'evacuation_center_id' => $validated['evacuation_center_id'],
+                    'displacement_type' => 'inside_center',
+                ]);
+
+                if ($isActualMove) {
+                    EvacuationCenterQuickCount::recordArrival(
+                        $validated['evacuation_center_id'],
+                        $record->evacuation_event_id,
+                        $record->evacuee
+                    );
+                }
+            }
+        });
 
         SystemLog::create([
             'user_id' => $request->user()->id,
@@ -316,7 +349,7 @@ class FamilyController extends Controller
                 '%s reassigned family #%d (%d active member(s)) to evacuation center #%d.',
                 $request->user()->name,
                 $family->id,
-                $updated,
+                $activeRecords->count(),
                 $validated['evacuation_center_id']
             ),
             'ip_address' => $request->ip(),
