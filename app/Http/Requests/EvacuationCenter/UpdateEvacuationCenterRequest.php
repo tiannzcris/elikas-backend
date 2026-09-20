@@ -27,6 +27,8 @@ class UpdateEvacuationCenterRequest extends FormRequest
             'capacity_persons' => ['nullable', 'integer', 'min:0'],
             'camp_manager_name' => ['nullable', 'string', 'max:150'],
             'camp_manager_contact' => ['nullable', 'string', 'max:20'],
+            'assistant_camp_manager_name' => ['nullable', 'string', 'max:150'],
+            'assistant_camp_manager_contact' => ['nullable', 'string', 'max:20'],
             'status' => ['sometimes', 'in:active,full,closed,on_standby'],
             'photo' => ['nullable', 'image', 'max:5120'],
         ];

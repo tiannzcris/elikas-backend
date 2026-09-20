@@ -188,6 +188,14 @@
                         <input type="text" id="center-camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
                     <div>
+                        <label class="text-sm text-gray-600 block mb-1">Assistant camp manager name</label>
+                        <input type="text" id="center-assistant_camp_manager_name" placeholder="e.g. Maria Santos" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600 block mb-1">Assistant camp manager contact</label>
+                        <input type="text" id="center-assistant_camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
                         <label class="text-sm text-gray-600 block mb-1">Status</label>
                         <select id="center-status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                             <option value="on_standby">On standby</option>
@@ -801,6 +809,8 @@
             document.getElementById('center-capacity_persons').value = center.capacity_persons ?? '';
             document.getElementById('center-camp_manager_name').value = center.camp_manager_name ?? '';
             document.getElementById('center-camp_manager_contact').value = center.camp_manager_contact ?? '';
+            document.getElementById('center-assistant_camp_manager_name').value = center.assistant_camp_manager_name ?? '';
+            document.getElementById('center-assistant_camp_manager_contact').value = center.assistant_camp_manager_contact ?? '';
             document.getElementById('center-status').value = center.status;
 
             if (center.photo_url) {
@@ -902,6 +912,8 @@
         formData.append('capacity_persons', document.getElementById('center-capacity_persons').value);
         formData.append('camp_manager_name', document.getElementById('center-camp_manager_name').value);
         formData.append('camp_manager_contact', document.getElementById('center-camp_manager_contact').value);
+        formData.append('assistant_camp_manager_name', document.getElementById('center-assistant_camp_manager_name').value);
+        formData.append('assistant_camp_manager_contact', document.getElementById('center-assistant_camp_manager_contact').value);
         formData.append('status', document.getElementById('center-status').value);
 
         const photoFile = document.getElementById('center-photo').files[0];

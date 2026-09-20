@@ -35,6 +35,8 @@ class EvacuationCenterResource extends JsonResource
             'occupancy_percent' => $this->occupancyPercent(),
             'camp_manager_name' => $this->camp_manager_name,
             'camp_manager_contact' => $this->camp_manager_contact,
+            'assistant_camp_manager_name' => $this->assistant_camp_manager_name,
+            'assistant_camp_manager_contact' => $this->assistant_camp_manager_contact,
             'status' => $this->status,
             'photo_path' => $this->photo_path,
             'photo_url' => $this->photo_url,

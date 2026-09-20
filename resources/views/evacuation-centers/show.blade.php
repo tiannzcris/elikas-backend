@@ -25,18 +25,28 @@
                 </div>
                 <span id="center-status" class="text-xs px-2 py-1 rounded-lg"></span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-sm">
+            <div class="mt-4 text-sm">
+                <p class="text-xs text-gray-500 mb-1">Occupancy</p>
+                <p id="center-occupancy" class="font-medium"></p>
+            </div>
+            {{-- Two separate contact people, clearly labeled -- matches the
+                real EC Information Board template's own structure (a
+                primary Camp Manager plus a separate Assistant Camp
+                Manager), not just one name split across two inputs. --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm">
                 <div>
-                    <p class="text-xs text-gray-500">Occupancy</p>
-                    <p id="center-occupancy" class="font-medium"></p>
+                    <p class="text-xs font-semibold text-gray-600 mb-2">Camp manager</p>
+                    <div class="flex flex-col gap-2">
+                        <input type="text" id="cm-name-input" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                        <input type="text" id="cm-contact-input" placeholder="Contact number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                    </div>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Camp manager</p>
-                    <input type="text" id="cm-name-input" placeholder="Camp manager name" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 mb-1">Contact</p>
-                    <input type="text" id="cm-contact-input" placeholder="Contact number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                    <p class="text-xs font-semibold text-gray-600 mb-2">Assistant camp manager</p>
+                    <div class="flex flex-col gap-2">
+                        <input type="text" id="acm-name-input" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                        <input type="text" id="acm-contact-input" placeholder="Contact number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                    </div>
                 </div>
             </div>
             <div class="flex items-center gap-2 mt-3">
@@ -117,6 +127,8 @@
                 c.capacity_persons ? `${c.current_occupancy} / ${c.capacity_persons} persons` : 'No capacity set';
             document.getElementById('cm-name-input').value = c.camp_manager_name || '';
             document.getElementById('cm-contact-input').value = c.camp_manager_contact || '';
+            document.getElementById('acm-name-input').value = c.assistant_camp_manager_name || '';
+            document.getElementById('acm-contact-input').value = c.assistant_camp_manager_contact || '';
 
             if (c.photo_url) {
                 document.getElementById('center-photo').src = c.photo_url;
@@ -177,6 +189,8 @@
                 body: JSON.stringify({
                     camp_manager_name: document.getElementById('cm-name-input').value || null,
                     camp_manager_contact: document.getElementById('cm-contact-input').value || null,
+                    assistant_camp_manager_name: document.getElementById('acm-name-input').value || null,
+                    assistant_camp_manager_contact: document.getElementById('acm-contact-input').value || null,
                 }),
             });
             const msg = document.getElementById('cm-saved-msg');
