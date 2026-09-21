@@ -13,8 +13,17 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-8">
-    <div class="w-full max-w-md">
+<body class="bg-gray-50 min-h-screen p-6 sm:p-8">
+    {{-- Was min-h-screen + flex items-center justify-center: vertically
+        centering against the FULL viewport height is unstable on mobile --
+        the browser's address bar shows/hides as the page loads/scrolls,
+        changing the effective viewport height AFTER the layout already
+        rendered, which shifts this centered content (including the
+        Download button) out from under a tap that was aimed a moment
+        earlier. A simple top-anchored layout with its own top padding
+        doesn't have that problem, since it's never computed from the
+        viewport height at all. --}}
+    <div class="w-full max-w-md mx-auto pt-6 sm:pt-16">
         <p class="text-xs font-semibold tracking-widest text-brand uppercase mb-2 text-center">E-LIKAS</p>
 
         <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
