@@ -282,6 +282,19 @@
             if (url.pathname === window.location.pathname && url.hash) return;
 
             e.preventDefault();
+
+            // Tear down the Leaflet map THE INSTANT the user commits to
+            // leaving, not after the 120ms delay below -- that gap is
+            // otherwise a real window where this page (map fully live and
+            // rendered) is still on screen mid-transition. `map` is defined
+            // later in this same document but already exists by click time
+            // (every <script> tag has run before a user can click anything);
+            // guarded anyway since this same handler is reused on public
+            // pages that have no map at all. See this page's 'pagehide'
+            // listener (near the map's own init code) for the fallback path
+            // -- back/forward-cache eviction, tab close, etc.
+            if (typeof map !== 'undefined') map.remove();
+
             document.getElementById('page-loading-bar').classList.add('active');
             setTimeout(() => { window.location.href = link.href; }, 120);
         });
@@ -372,6 +385,21 @@
 
         window.addEventListener('resize', () => map.invalidateSize());
         document.getElementById('reset-view-btn').addEventListener('click', () => map.setView(MAP_CENTER, MAP_ZOOM));
+
+        // Leaflet never tears down its own tile/pane DOM and event listeners
+        // on its own -- without this, navigating away leaves them fully
+        // alive. 'pagehide' fires both on a normal navigation and when the
+        // browser instead FREEZES this page into its back/forward cache
+        // (bfcache) rather than destroying it -- exactly the case where a
+        // leftover live map can resurface stale/broken later. This page's
+        // own link-click handler (near the top of this file) ALSO calls
+        // map.remove() synchronously, since it delays real navigation by
+        // 120ms for the loading-bar animation -- during that window the
+        // page (and its live map) is still fully rendered, so relying on
+        // 'pagehide' alone would leave the map alive for that entire delay
+        // instead of torn down the instant the user actually commits to
+        // leaving.
+        window.addEventListener('pagehide', () => map.remove());
 
         let centerLayer = null;
         let hazardLayer = null;

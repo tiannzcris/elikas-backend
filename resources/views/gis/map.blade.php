@@ -242,6 +242,16 @@
     // desktop window across the breakpoint) without being told.
     window.addEventListener('resize', () => map.invalidateSize());
 
+    // Leaflet never tears down its own tile/pane DOM and event listeners on
+    // its own -- without this, navigating away leaves them fully alive.
+    // Under a normal full-page navigation the browser destroys the whole
+    // document anyway, but 'pagehide' also fires when the browser instead
+    // FREEZES this page into its back/forward cache (bfcache) rather than
+    // destroying it -- exactly the case where a leftover live map can
+    // resurface stale/broken (or, on some browsers, visibly bleed into the
+    // next page during the transition) if it was never explicitly removed.
+    window.addEventListener('pagehide', () => map.remove());
+
     document.getElementById('reset-view-btn').addEventListener('click', () => map.setView(MAP_CENTER, MAP_ZOOM));
 
     document.getElementById('fullscreen-btn').addEventListener('click', () => {
