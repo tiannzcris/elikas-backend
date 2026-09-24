@@ -83,6 +83,35 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div class="order-2 lg:order-none lg:col-span-1 flex flex-col gap-4">
+                    {{-- Barangay -> center drill-down, same pattern as the staff
+                        Evacuees page (resources/views/families/index.blade.php):
+                        a barangay list is the landing view, clicking one shows
+                        that barangay's centers. The search box above it is
+                        global -- it finds a center by name across EVERY
+                        barangay, so a resident who already knows the center's
+                        name never has to drill down to reach it. --}}
+                    <div class="bg-white border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Find a center</p>
+                        <button type="button" id="find-near-me-btn" class="w-full flex items-center justify-center gap-2 bg-brand-light hover:bg-blue-100 text-brand text-xs font-semibold rounded-lg py-2 mb-2">
+                            <i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Find centers near me
+                        </button>
+                        <p id="location-status" class="hidden text-xs text-gray-500 mb-3"></p>
+                        <div class="relative mb-2">
+                            <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
+                            <input id="center-search" type="text" autocomplete="off" placeholder="Search any center by name..."
+                                class="w-full border border-gray-300 rounded-lg pl-8 pr-2 py-1.5 text-xs">
+                        </div>
+                        <select id="center-status-filter" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs mb-3">
+                            <option value="">All status</option>
+                            <option value="active">Active</option>
+                            <option value="on_standby">On standby</option>
+                            <option value="full">Full</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <nav id="drill-breadcrumb" class="flex flex-wrap items-center gap-1 text-xs text-gray-500 mb-2"></nav>
+                        <div id="center-list" class="flex flex-col gap-1 text-sm max-h-96 overflow-y-auto"></div>
+                    </div>
+
                     <div class="bg-white border border-gray-200 rounded-xl p-4">
                         <label class="flex items-center justify-between mb-2 cursor-pointer">
                             <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Evacuation centers</span>
@@ -121,26 +150,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-white border border-gray-200 rounded-xl p-4">
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Search centers</p>
-                        <button type="button" id="find-near-me-btn" class="w-full flex items-center justify-center gap-2 bg-brand-light hover:bg-blue-100 text-brand text-xs font-semibold rounded-lg py-2 mb-2">
-                            <i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Find centers near me
-                        </button>
-                        <p id="location-status" class="hidden text-xs text-gray-500 mb-3"></p>
-                        <div class="relative mb-2">
-                            <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
-                            <input id="center-search" type="text" placeholder="Search by name or barangay..."
-                                class="w-full border border-gray-300 rounded-lg pl-8 pr-2 py-1.5 text-xs">
-                        </div>
-                        <select id="center-status-filter" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs mb-3">
-                            <option value="">All status</option>
-                            <option value="active">Active</option>
-                            <option value="on_standby">On standby</option>
-                            <option value="full">Full</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                        <div id="center-list" class="flex flex-col gap-3 text-sm max-h-96 overflow-y-auto"></div>
-                    </div>
                 </div>
 
                 <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
@@ -466,47 +475,185 @@
             if (showLayer) hazardLayer.addTo(map);
         }
 
-        function renderCenterList() {
-            const query = document.getElementById('center-search').value.trim().toLowerCase();
+        // --- Barangay -> center drill-down ---------------------------------
+        // Two mutually-exclusive levels, like the staff Evacuees page:
+        // currentBarangay === null is the landing view (one row per
+        // barangay); otherwise it's that barangay's name and the list shows
+        // its centers. A non-empty search box overrides both and shows
+        // matching centers from ALL barangays (global search). Centers with
+        // no barangay set are grouped under UNASSIGNED_BARANGAY rather than
+        // silently dropped from the drill-down.
+        const UNASSIGNED_BARANGAY = 'Other / unassigned';
+        let currentBarangay = null;
+
+        function barangayOf(c) {
+            return c.barangay || UNASSIGNED_BARANGAY;
+        }
+
+        // Only actually sorts once userLocation is set -- distance_meters is
+        // attached to every item in allCentersList by findCentersNearMe()
+        // below, independent of the search/status filter, so it survives
+        // re-filtering.
+        function sortByDistance(centers) {
+            return userLocation
+                ? [...centers].sort((a, b) => (a.distance_meters ?? Infinity) - (b.distance_meters ?? Infinity))
+                : centers;
+        }
+
+        function centersMatchingStatus() {
             const status = document.getElementById('center-status-filter').value;
+            return allCentersList.filter((c) => !status || c.status === status);
+        }
 
-            let filtered = allCentersList.filter((c) => {
-                const matchesQuery = !query || c.name.toLowerCase().includes(query) || (c.barangay ?? '').toLowerCase().includes(query);
-                const matchesStatus = !status || c.status === status;
-                return matchesQuery && matchesStatus;
-            });
+        function renderBreadcrumb(searching) {
+            const breadcrumb = document.getElementById('drill-breadcrumb');
 
-            // Only actually sorts once userLocation is set -- distance_meters
-            // is attached to every item in allCentersList by
-            // findCentersNearMe() below, independent of the search/status
-            // filter above, so it survives re-filtering.
-            if (userLocation) {
-                filtered = [...filtered].sort((a, b) => (a.distance_meters ?? Infinity) - (b.distance_meters ?? Infinity));
+            if (searching) {
+                breadcrumb.innerHTML = '<span class="text-gray-700 font-medium">Search results · all barangays</span>';
+                return;
             }
 
-            document.getElementById('center-list').innerHTML = filtered.length === 0
-                ? '<p class="text-xs text-gray-400 text-center py-6">No centers match this filter.</p>'
-                : filtered.map((c) => `
-                    <button class="center-list-item text-left w-full" data-id="${c.id}" data-lat="${c.latitude ?? ''}" data-lng="${c.longitude ?? ''}">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[c.status] ?? '#666'}"></span>
-                            <span class="font-medium text-gray-700">${escapeHtml(c.name)}</span>
-                        </span>
-                        <p class="text-xs text-gray-400 pl-4">
-                            ${escapeHtml(c.barangay ?? '')}${c.capacity_persons ? ` · ${c.current_occupancy} / ${c.capacity_persons}` : ''}
-                            ${c.distance_meters != null ? ` · <span class="text-brand font-medium">${formatDistance(c.distance_meters)}</span>` : ''}
-                        </p>
-                    </button>`).join('');
+            const parts = [currentBarangay === null
+                ? '<span class="text-gray-700 font-medium">All barangays</span>'
+                : '<a href="#" data-goto="barangay" class="hover:text-brand hover:underline">All barangays</a>'];
 
-            document.querySelectorAll('.center-list-item').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const lat = Number(btn.dataset.lat);
-                    const lng = Number(btn.dataset.lng);
-                    if (lat && lng) map.setView([lat, lng], 16);
-                    openCenterDetail(Number(btn.dataset.id));
-                });
-            });
+            if (currentBarangay !== null) {
+                parts.push('<i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>');
+                parts.push(`<span class="text-gray-700 font-medium">${escapeHtml(currentBarangay)}</span>`);
+            }
+
+            breadcrumb.innerHTML = parts.join(' ');
         }
+
+        function centerListItemHtml(c, showBarangay) {
+            const details = [
+                showBarangay ? escapeHtml(barangayOf(c)) : '',
+                c.capacity_persons ? `${c.current_occupancy} / ${c.capacity_persons}` : '',
+            ].filter(Boolean).join(' · ');
+
+            return `
+                <button class="center-list-item text-left w-full rounded-lg px-2 py-1.5 hover:bg-gray-50" data-id="${c.id}" data-lat="${c.latitude ?? ''}" data-lng="${c.longitude ?? ''}">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[c.status] ?? '#666'}"></span>
+                        <span class="font-medium text-gray-700">${escapeHtml(c.name)}</span>
+                    </span>
+                    <p class="text-xs text-gray-400 pl-4">
+                        ${details}
+                        ${c.distance_meters != null ? `${details ? ' · ' : ''}<span class="text-brand font-medium">${formatDistance(c.distance_meters)}</span>` : ''}
+                    </p>
+                </button>`;
+        }
+
+        function renderBarangayLevel(centers) {
+            const groups = new Map();
+            centers.forEach((c) => {
+                const name = barangayOf(c);
+                if (!groups.has(name)) groups.set(name, []);
+                groups.get(name).push(c);
+            });
+
+            let rows = [...groups.entries()].map(([name, list]) => ({
+                name,
+                total: list.length,
+                active: list.filter((c) => c.status === 'active').length,
+                nearest: Math.min(...list.map((c) => c.distance_meters ?? Infinity)),
+            }));
+
+            // Alphabetical by default (unassigned bucket last); nearest
+            // barangay first once the resident has shared their location.
+            rows.sort((a, b) => {
+                if (userLocation && a.nearest !== b.nearest) return a.nearest - b.nearest;
+                if (a.name === UNASSIGNED_BARANGAY) return 1;
+                if (b.name === UNASSIGNED_BARANGAY) return -1;
+                return a.name.localeCompare(b.name);
+            });
+
+            return rows.length === 0
+                ? '<p class="text-xs text-gray-400 text-center py-6">No centers match this filter.</p>'
+                : rows.map((r) => `
+                    <button class="barangay-list-item flex items-center justify-between gap-2 text-left w-full rounded-lg px-2 py-2 hover:bg-gray-50" data-barangay="${escapeHtml(r.name).replace(/"/g, '&quot;')}">
+                        <span class="min-w-0">
+                            <span class="block font-medium text-gray-700">${escapeHtml(r.name)}</span>
+                            <span class="block text-xs text-gray-400">
+                                ${r.total} center${r.total === 1 ? '' : 's'}${r.active ? ` · <span class="text-green-700">${r.active} active</span>` : ''}
+                                ${Number.isFinite(r.nearest) ? ` · <span class="text-brand font-medium">nearest ${formatDistance(r.nearest)}</span>` : ''}
+                            </span>
+                        </span>
+                        <i class="ti ti-chevron-right text-gray-400 shrink-0" aria-hidden="true"></i>
+                    </button>`).join('');
+        }
+
+        function renderCenterList() {
+            const query = document.getElementById('center-search').value.trim().toLowerCase();
+            const centers = centersMatchingStatus();
+            const listEl = document.getElementById('center-list');
+
+            renderBreadcrumb(Boolean(query));
+
+            if (query) {
+                // Global search: by center name, across every barangay,
+                // regardless of which barangay (if any) is drilled into.
+                const matches = sortByDistance(centers.filter((c) => c.name.toLowerCase().includes(query)));
+                listEl.innerHTML = matches.length === 0
+                    ? '<p class="text-xs text-gray-400 text-center py-6">No centers match that name.</p>'
+                    : matches.map((c) => centerListItemHtml(c, true)).join('');
+            } else if (currentBarangay === null) {
+                listEl.innerHTML = renderBarangayLevel(centers);
+            } else {
+                const inBarangay = sortByDistance(centers.filter((c) => barangayOf(c) === currentBarangay));
+                listEl.innerHTML = inBarangay.length === 0
+                    ? `<p class="text-xs text-gray-400 text-center py-6">No centers in ${escapeHtml(currentBarangay)} match this filter.</p>`
+                    : inBarangay.map((c) => centerListItemHtml(c, false)).join('');
+            }
+        }
+
+        // Zooms the map to the selected barangay's centers (those that have
+        // a location set) so the list and map stay in step.
+        function fitMapToBarangay(name) {
+            const points = allCentersList
+                .filter((c) => barangayOf(c) === name && c.latitude != null && c.longitude != null)
+                .map((c) => [c.latitude, c.longitude]);
+
+            if (points.length === 1) map.setView(points[0], 16);
+            else if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 16 });
+        }
+
+        function drillIntoBarangay(name) {
+            currentBarangay = name;
+            renderCenterList();
+            document.getElementById('center-list').scrollTop = 0;
+            fitMapToBarangay(name);
+        }
+
+        function goToBarangayLevel() {
+            currentBarangay = null;
+            renderCenterList();
+            document.getElementById('center-list').scrollTop = 0;
+        }
+
+        // Delegated once here rather than re-bound on every render -- the
+        // list's contents are replaced wholesale each time it re-renders.
+        document.getElementById('center-list').addEventListener('click', (e) => {
+            const barangayBtn = e.target.closest('.barangay-list-item');
+            if (barangayBtn) {
+                drillIntoBarangay(barangayBtn.dataset.barangay);
+                return;
+            }
+
+            const centerBtn = e.target.closest('.center-list-item');
+            if (!centerBtn) return;
+            const lat = Number(centerBtn.dataset.lat);
+            const lng = Number(centerBtn.dataset.lng);
+            if (lat && lng) map.setView([lat, lng], 16);
+            openCenterDetail(Number(centerBtn.dataset.id));
+        });
+
+        document.getElementById('drill-breadcrumb').addEventListener('click', (e) => {
+            const link = e.target.closest('[data-goto]');
+            if (!link) return;
+            e.preventDefault();
+            if (link.dataset.goto === 'barangay') goToBarangayLevel();
+        });
 
         function findCentersNearMe() {
             const btn = document.getElementById('find-near-me-btn');
@@ -530,7 +677,7 @@
                             : null;
                     });
 
-                    status.textContent = 'Showing distances from your current location, nearest first.';
+                    status.textContent = 'Showing distances from your current location -- nearest barangays and centers first.';
                     status.classList.remove('hidden');
                     btn.disabled = false;
                     btn.innerHTML = '<i class="ti ti-current-location-filled" style="font-size: 15px;" aria-hidden="true"></i> Location found';
