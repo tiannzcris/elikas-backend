@@ -385,7 +385,11 @@
         }).join('');
     }
 
-    function renderSidebar(families) {
+    // sectoralQuickCount: { child_headed_family: {male, female}, single_headed_family: {male, female} }
+    // -- see fetchSectoralQuickCountSummary() and the endpoint's own
+    // docblock for why these two specifically come from a different source
+    // than the other six.
+    function renderSidebar(families, sectoralQuickCount) {
         const members = allMembers(families);
         const total = members.length || 1;
 
@@ -447,7 +451,13 @@
                 </div>`).join('')
             : '<p class="text-gray-500">No data yet.</p>';
 
-        // Sectoral summary
+        // Sectoral summary -- the first six are live, per-evacuee flags
+        // (scoped automatically since they're computed from `members`,
+        // whatever set that is). The last two (Child/Single-Headed Family)
+        // have no such flag anywhere on Family/Evacuee at all -- they only
+        // exist as an EC-Board-reported aggregate (see
+        // sectoralQuickCountSummary()'s own docblock), so they're summed
+        // from sectoralQuickCount instead of filtered from `members`.
         const sectoral = [
             ['is_4ps_beneficiary', '4Ps beneficiary', 'ti-gift', 'text-blue-500', 'bg-blue-50'],
             ['is_pwd', 'PWD', 'ti-wheelchair', 'text-red-500', 'bg-red-50'],
@@ -456,19 +466,44 @@
             ['is_solo_parent', 'Solo parent', 'ti-user-check', 'text-purple-500', 'bg-purple-50'],
             ['is_indigenous_person', 'Indigenous', 'ti-leaf', 'text-green-500', 'bg-green-50'],
         ];
-        document.getElementById('sectoral-summary').innerHTML = sectoral.map(([key, label, icon, color, bg]) => {
-            const count = members.filter((m) => m.sectoral?.[key]).length;
-            return `
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-md ${bg} flex items-center justify-center shrink-0">
-                        <i class="ti ${icon} ${color}" style="font-size:14px;" aria-hidden="true"></i>
-                    </div>
-                    <div class="leading-tight">
-                        <p class="text-sm font-semibold text-gray-800">${count}</p>
-                        <p class="text-[11px] text-gray-500">${label}</p>
-                    </div>
-                </div>`;
-        }).join('');
+        const sectoralCards = sectoral.map(([key, label, icon, color, bg]) =>
+            sectoralCardHtml(members.filter((m) => m.sectoral?.[key]).length, label, icon, color, bg));
+
+        const childHeaded = sectoralQuickCount?.child_headed_family ?? { male: 0, female: 0 };
+        const singleHeaded = sectoralQuickCount?.single_headed_family ?? { male: 0, female: 0 };
+        sectoralCards.push(sectoralCardHtml(childHeaded.male + childHeaded.female, 'Child-headed family', 'ti-baby', 'text-cyan-500', 'bg-cyan-50'));
+        sectoralCards.push(sectoralCardHtml(singleHeaded.male + singleHeaded.female, 'Single-headed family', 'ti-user', 'text-teal-500', 'bg-teal-50'));
+
+        document.getElementById('sectoral-summary').innerHTML = sectoralCards.join('');
+    }
+
+    function sectoralCardHtml(count, label, icon, color, bg) {
+        return `
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md ${bg} flex items-center justify-center shrink-0">
+                    <i class="ti ${icon} ${color}" style="font-size:14px;" aria-hidden="true"></i>
+                </div>
+                <div class="leading-tight">
+                    <p class="text-sm font-semibold text-gray-800">${count}</p>
+                    <p class="text-[11px] text-gray-500">${label}</p>
+                </div>
+            </div>`;
+    }
+
+    // Fire-and-forget-safe: falls back to zeros on any error, same
+    // defensive convention as every other summary fetch on this page, so a
+    // failure here never blocks the rest of the sidebar from rendering.
+    async function fetchSectoralQuickCountSummary(params = {}) {
+        const fallback = { child_headed_family: { male: 0, female: 0 }, single_headed_family: { male: 0, female: 0 } };
+        try {
+            const query = new URLSearchParams(
+                Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+            ).toString();
+            const result = await Api.get(`/families/sectoral-quick-count-summary${query ? `?${query}` : ''}`);
+            return result.data;
+        } catch (error) {
+            return fallback;
+        }
     }
 
     function renderStatCards(families) {
@@ -569,7 +604,7 @@
             totalHouseholds = statsResult.data.households;
             totalPersonsCount = statsResult.data.total_persons;
             renderStatCards(allFamilies);
-            renderSidebar(allFamilies);
+            renderSidebar(allFamilies, await fetchSectoralQuickCountSummary());
         } catch (error) {
             showFormErrors(error);
         }

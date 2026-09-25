@@ -8,6 +8,7 @@ use App\Http\Requests\Evacuee\RegisterFamilyRequest;
 use App\Http\Resources\FamilyResource;
 use App\Models\Evacuee;
 use App\Models\EvacuationCenterQuickCount;
+use App\Models\EvacuationCenterQuickCountSectoralGroup;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
 use App\Models\SystemLog;
@@ -258,6 +259,70 @@ class FamilyController extends Controller
             ->values();
 
         return $this->success($rows);
+    }
+
+    /**
+     * Child-Headed Family/ies and Single-Headed Family/ies totals for the
+     * Evacuees page's Sectoral Summary card. Unlike every other category on
+     * that card, these two are NOT an Evacuee-level flag -- there is no
+     * such column on families/evacuees at all. They only exist as a
+     * manually-reported EC Board headcount, per (center, event), in
+     * evacuation_center_quick_count_sectoral_groups (see that table's own
+     * SECTORAL_GROUPS constant on EvacuationCenterQuickCount and the
+     * "Sectoral group breakdown" form on the EC Board page, which already
+     * collects both). So this deliberately does NOT touch the Family/
+     * Evacuee tables at all -- it sums whatever staff have reported through
+     * that form, scoped the same way as every other endpoint on this page:
+     * barangay officials restricted to their own barangay (via the
+     * evacuation center's barangay_id, since quick counts belong to a
+     * center, not a family), and current (non-closed) events by default
+     * unless a specific evacuation_event_id is given -- same convention as
+     * scopeToRequest() above.
+     */
+    public function sectoralQuickCountSummary(Request $request)
+    {
+        $validated = $request->validate([
+            'barangay_id' => ['nullable', 'integer', 'exists:barangays,id'],
+            'evacuation_center_id' => ['nullable', 'integer', 'exists:evacuation_centers,id'],
+            'evacuation_event_id' => ['nullable', 'integer', 'exists:evacuation_events,id'],
+        ]);
+
+        $user = $request->user();
+        if ($user->isBarangayOfficial() && ! empty($validated['barangay_id'])
+            && ! $this->userMayAccessBarangay($user, $validated['barangay_id'])) {
+            return $this->error('You may not view figures outside your barangay.', 403);
+        }
+
+        $rows = EvacuationCenterQuickCountSectoralGroup::query()
+            ->whereIn('sectoral_group', ['child_headed_family', 'single_headed_family'])
+            ->whereHas('quickCount', function (Builder $q) use ($request, $validated, $user) {
+                if ($user->isBarangayOfficial()) {
+                    $q->whereHas('evacuationCenter', fn (Builder $c) => $c->where('barangay_id', $user->barangay_id));
+                } elseif (! empty($validated['barangay_id'])) {
+                    $q->whereHas('evacuationCenter', fn (Builder $c) => $c->where('barangay_id', $validated['barangay_id']));
+                }
+
+                if (! empty($validated['evacuation_center_id'])) {
+                    $q->where('evacuation_center_id', $validated['evacuation_center_id']);
+                }
+
+                if (! empty($validated['evacuation_event_id'])) {
+                    $q->where('evacuation_event_id', $validated['evacuation_event_id']);
+                } else {
+                    $q->whereHas('evacuationEvent', fn (Builder $e) => $e->where('status', '!=', 'closed'));
+                }
+            })
+            ->get();
+
+        $summarize = fn (string $group) => [
+            'male' => (int) $rows->where('sectoral_group', $group)->sum('male_count'),
+            'female' => (int) $rows->where('sectoral_group', $group)->sum('female_count'),
+        ];
+
+        return $this->success([
+            'child_headed_family' => $summarize('child_headed_family'),
+            'single_headed_family' => $summarize('single_headed_family'),
+        ]);
     }
 
     public function show(Request $request, Family $family)
