@@ -7,7 +7,7 @@
     <div class="flex items-start justify-between mb-6 gap-4">
         <div>
             <h1 class="text-xl font-semibold mb-1">Evacuees</h1>
-            <p class="text-sm text-gray-500">List of registered evacuee households and their members.</p>
+            <p class="text-sm text-gray-500">List of registered evacuee families and their members.</p>
         </div>
         {{-- Opens the modal below instead of navigating to /families/create --
             that route/page still exists untouched as a fallback, following
@@ -17,7 +17,7 @@
                 class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
                 + Register a family
             </button>
-            <p class="text-xs text-gray-500 mt-1 max-w-[220px]">For households outside a center, or to enter full details directly</p>
+            <p class="text-xs text-gray-500 mt-1 max-w-[220px]">For families outside a center, or to enter full details directly</p>
         </div>
     </div>
 
@@ -38,8 +38,8 @@
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Households</p>
-                <p id="stat-households" class="text-2xl font-bold text-gray-800">&mdash;</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families</p>
+                <p id="stat-families" class="text-2xl font-bold text-gray-800">&mdash;</p>
                 <p class="text-xs text-gray-500 italic mt-1">Currently registered, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -173,7 +173,7 @@
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
                                 <tr>
-                                    <th class="text-left px-4 py-3">Household head</th>
+                                    <th class="text-left px-4 py-3">Family head</th>
                                     <th class="text-left px-4 py-3">Barangay</th>
                                     <th class="text-left px-4 py-3">Persons</th>
                                     <th class="text-left px-4 py-3">Evacuation center</th>
@@ -208,9 +208,14 @@
                 <div id="age-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Top barangays by evacuees</p>
-                <div id="barangay-distribution" class="space-y-2.5 text-xs"></div>
+            {{-- Swaps between "Top barangays" (city-wide), "Top evacuation
+                centers" (drilled into one barangay -- ranking barangays
+                when there's only one in scope is meaningless), and hidden
+                entirely (drilled into one center -- nothing left to rank).
+                See renderRankingCard(). --}}
+            <div id="ranking-card" class="bg-white border border-gray-200 rounded-xl p-4">
+                <p id="ranking-card-title" class="text-sm font-semibold text-gray-700 mb-3">Top barangays by evacuees</p>
+                <div id="ranking-card-body" class="space-y-2.5 text-xs"></div>
             </div>
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -264,7 +269,7 @@
                         <select id="f-evacuation_center_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
                     </div>
                     <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
-                        <input type="checkbox" id="f-is_4ps_beneficiary"> Household is a 4Ps beneficiary
+                        <input type="checkbox" id="f-is_4ps_beneficiary"> Family is a 4Ps beneficiary
                     </label>
                 </div>
 
@@ -276,7 +281,7 @@
                     Full-detail registration is the only path here. --}}
                 <div id="f-full-mode-section">
                     <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-sm font-medium text-gray-700">Household members</h2>
+                        <h2 class="text-sm font-medium text-gray-700">Family members</h2>
                         <button type="button" id="f-add-member-btn" class="text-sm text-brand hover:underline">+ Add another member</button>
                     </div>
                     <div id="f-members-container" class="flex flex-col gap-4"></div>
@@ -303,9 +308,9 @@
 
     // Real, non-truncated totals from /families/stats -- allFamilies (below)
     // is capped at per_page=200 for the table/breakdown cards, so the true
-    // household/person counts (and "Showing X of Y") are tracked separately
+    // family/person counts (and "Showing X of Y") are tracked separately
     // rather than derived from that array's length.
-    let totalHouseholds = 0;
+    let totalFamilies = 0;
     let totalPersonsCount = 0;
 
     const AVATAR_COLORS = ['#2563EB', '#16A34A', '#D97706', '#DB2777', '#7C3AED', '#0891B2'];
@@ -430,27 +435,6 @@
                 </div>
             </div>`).join('');
 
-        // Barangay distribution (top 5 by member count)
-        const byBarangay = {};
-        families.forEach((f) => {
-            const name = f.barangay?.name ?? 'Unassigned';
-            byBarangay[name] = (byBarangay[name] ?? 0) + (f.member_count ?? 0);
-        });
-        const topBarangays = Object.entries(byBarangay).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        const maxBrgy = Math.max(...topBarangays.map(([, c]) => c), 1);
-        document.getElementById('barangay-distribution').innerHTML = topBarangays.length
-            ? topBarangays.map(([name, count]) => `
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-gray-600">${name}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-green-500 h-1.5 rounded-full" style="width:${count / maxBrgy * 100}%"></div>
-                    </div>
-                </div>`).join('')
-            : '<p class="text-gray-500">No data yet.</p>';
-
         // Sectoral summary -- the first six are live, per-evacuee flags
         // (scoped automatically since they're computed from `members`,
         // whatever set that is). The last two (Child/Single-Headed Family)
@@ -490,6 +474,54 @@
             </div>`;
     }
 
+    // Swaps the sidebar's 4th card between "Top barangays" (city-wide --
+    // ranking barangays only makes sense when several are in view),
+    // "Top evacuation centers" (drilled into one barangay -- ranking ITS
+    // centers is the equivalent question one level down), and hidden
+    // entirely (drilled into one center -- nothing left to rank).
+    // mode: 'barangays' | 'centers' | 'hidden'.
+    function renderRankingCard(mode, families, centerRows) {
+        const card = document.getElementById('ranking-card');
+
+        if (mode === 'hidden') {
+            card.classList.add('hidden');
+            return;
+        }
+        card.classList.remove('hidden');
+
+        let entries; // [label, count][]
+        if (mode === 'barangays') {
+            document.getElementById('ranking-card-title').textContent = 'Top barangays by evacuees';
+            const byBarangay = {};
+            families.forEach((f) => {
+                const name = f.barangay?.name ?? 'Unassigned';
+                byBarangay[name] = (byBarangay[name] ?? 0) + (f.member_count ?? 0);
+            });
+            entries = Object.entries(byBarangay).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        } else {
+            document.getElementById('ranking-card-title').textContent = 'Top evacuation centers';
+            entries = (centerRows ?? [])
+                .filter((r) => r.evacuation_center_id) // excludes the "Outside center / unassigned" bucket from a ranking of CENTERS
+                .map((r) => [r.evacuation_center_name, r.person_count])
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+        }
+
+        const max = Math.max(...entries.map(([, c]) => c), 1);
+        document.getElementById('ranking-card-body').innerHTML = entries.length
+            ? entries.map(([name, count]) => `
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-gray-600">${name}</span>
+                        <span class="font-medium text-gray-800">${count}</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="bg-green-500 h-1.5 rounded-full" style="width:${count / max * 100}%"></div>
+                    </div>
+                </div>`).join('')
+            : '<p class="text-gray-500">No data yet.</p>';
+    }
+
     // Fire-and-forget-safe: falls back to zeros on any error, same
     // defensive convention as every other summary fetch on this page, so a
     // failure here never blocks the rest of the sidebar from rendering.
@@ -512,12 +544,13 @@
         const seniors = members.filter((m) => m.age_bracket === 'senior_citizen').length;
         const pwd = members.filter((m) => m.sectoral?.is_pwd).length;
 
-        // Households/Total persons use the real counts from /families/stats
-        // (totalHouseholds/totalPersonsCount, set in loadFamilies()) rather
-        // than families.length/members.length -- this page's fetched
-        // families array is capped at per_page=200, so those would silently
-        // undercount past 200 with no indication anything was truncated.
-        document.getElementById('stat-households').textContent = totalHouseholds;
+        // Families/Total persons use the real counts already resolved for
+        // the current scope (totalFamilies/totalPersonsCount -- see
+        // refreshScopedSummary()) rather than families.length/members.length
+        // -- this page's fetched families arrays are capped at per_page=200,
+        // so those would silently undercount past 200 with no indication
+        // anything was truncated.
+        document.getElementById('stat-families').textContent = totalFamilies;
         document.getElementById('stat-persons').textContent = totalPersonsCount;
         document.getElementById('stat-children').textContent = children;
         document.getElementById('stat-seniors').textContent = seniors;
@@ -565,7 +598,7 @@
     // currently showing (i.e. respects the barangay/center drill-down and
     // the sectoral filter), not every family in the system.
     document.getElementById('export-btn').addEventListener('click', () => {
-        const rows = [['Household Head', 'Barangay', 'Persons', 'Evacuation Center', '4Ps', 'PWD', 'Senior', 'Lactating', 'Date Registered']];
+        const rows = [['Family Head', 'Barangay', 'Persons', 'Evacuation Center', '4Ps', 'PWD', 'Senior', 'Lactating', 'Date Registered']];
         familiesInCurrentDrill.forEach((f) => {
             rows.push([
                 f.name || f.head_of_family?.full_name || '', f.barangay?.name ?? '', f.member_count ?? 0,
@@ -583,28 +616,25 @@
     });
 
     // Named (not an inline IIFE) so it can be called again after a
-    // successful registration from the modal, refreshing the stat
-    // cards/sidebar in place instead of a full page reload. Drill-down
-    // views (barangay/center/family-list) are refreshed separately by
-    // refreshCurrentDrillView(), since which of those is even visible
-    // depends on where the user currently is.
+    // successful registration from the modal. Only fetches the city-wide
+    // data + totals and caches them -- doesn't render anything itself
+    // anymore; refreshScopedSummary() does that, since which set of
+    // families/totals actually needs rendering depends on the current
+    // drill level, not just the city-wide one.
     async function loadFamilies() {
         try {
             // /families/stats returns real, non-paginated counts (and
             // defaults to CURRENT state only -- non-closed events) --
             // decoupled from /families?per_page=200's own page size, so the
             // stat cards below are never silently truncated once total
-            // households pass 200.
+            // families pass 200.
             const [familiesResult, statsResult] = await Promise.all([
                 Api.get('/families?per_page=200'),
                 Api.get('/families/stats'),
             ]);
 
             allFamilies = familiesResult.data.data;
-            totalHouseholds = statsResult.data.households;
-            totalPersonsCount = statsResult.data.total_persons;
-            renderStatCards(allFamilies);
-            renderSidebar(allFamilies, await fetchSectoralQuickCountSummary());
+            cityWideTotals = statsResult.data;
         } catch (error) {
             showFormErrors(error);
         }
@@ -621,6 +651,16 @@
     let currentCenterId = null;
     let currentCenterName = '';
     let familiesInCurrentDrill = [];
+    // Barangay-scoped source familiesInCurrentDrill filters from once
+    // drilled in -- fetched fresh per barangay (not sliced from allFamilies,
+    // which is capped at per_page=200 city-wide) so a single barangay's own
+    // families/summary cards are never silently truncated either.
+    let familiesInCurrentBarangay = [];
+    // Cached so the barangay-level ranking card ("Top evacuation centers")
+    // and the center-level stat totals can both reuse it without a second
+    // fetch -- see refreshScopedSummary().
+    let centerSummaryRowsCache = [];
+    let cityWideTotals = { households: 0, total_persons: 0 };
 
     function showDrillLevel(level) {
         document.getElementById('barangay-summary-view').classList.toggle('hidden', level !== 'barangay');
@@ -732,11 +772,20 @@
         document.getElementById('register-in-barangay-btn').textContent = `+ Register a family in ${barangayName}`;
 
         try {
-            const result = await Api.get(`/families/center-summary?barangay_id=${barangayId}`);
-            renderCenterSummaryTable(result.data);
+            const [familiesResult, centerSummaryResult] = await Promise.all([
+                Api.get(`/families?barangay_id=${barangayId}&per_page=200`),
+                Api.get(`/families/center-summary?barangay_id=${barangayId}`),
+            ]);
+            familiesInCurrentBarangay = familiesResult.data.data;
+            centerSummaryRowsCache = centerSummaryResult.data;
+            renderCenterSummaryTable(centerSummaryRowsCache);
         } catch (error) {
+            familiesInCurrentBarangay = [];
+            centerSummaryRowsCache = [];
             showFormErrors(error);
         }
+
+        await refreshScopedSummary();
     }
 
     document.getElementById('center-summary-tbody').addEventListener('click', (e) => {
@@ -745,7 +794,7 @@
         drillIntoCenter(row.dataset.centerId === 'none' ? 'none' : Number(row.dataset.centerId), row.dataset.centerName);
     });
 
-    function drillIntoCenter(centerId, centerName) {
+    async function drillIntoCenter(centerId, centerName) {
         currentCenterId = centerId;
         currentCenterName = centerName;
 
@@ -759,27 +808,34 @@
             ? `+ Register a family at ${centerName}`
             : `+ Register a family in ${currentBarangayName}`;
 
-        familiesInCurrentDrill = allFamilies.filter((f) => {
-            if (f.barangay?.id !== currentBarangayId) return false;
-            return centerId === 'none' ? ! f.evacuation_center : f.evacuation_center?.id === centerId;
-        });
+        // Filters from familiesInCurrentBarangay (fetched fresh, scoped to
+        // exactly this barangay -- see drillIntoBarangay()), not the
+        // city-wide allFamilies -- no barangay check needed here anymore,
+        // that scoping already happened server-side.
+        familiesInCurrentDrill = familiesInCurrentBarangay.filter((f) => (
+            centerId === 'none' ? ! f.evacuation_center : f.evacuation_center?.id === centerId
+        ));
 
         document.getElementById('sectoral-filter').value = '';
         applyFilters();
+
+        await refreshScopedSummary();
     }
 
-    function goToBarangayLevel() {
+    async function goToBarangayLevel() {
         currentBarangayId = null;
         currentCenterId = null;
         renderBreadcrumb();
         showDrillLevel('barangay');
+        await refreshScopedSummary();
     }
 
-    function goToCenterLevel() {
+    async function goToCenterLevel() {
         currentCenterId = null;
         currentCenterName = '';
         renderBreadcrumb();
         showDrillLevel('center');
+        await refreshScopedSummary();
     }
 
     // Refreshes whichever drill level is currently visible (plus the
@@ -790,13 +846,79 @@
         await loadBarangaySummary();
 
         if (currentBarangayId !== null) {
-            const result = await Api.get(`/families/center-summary?barangay_id=${currentBarangayId}`);
-            renderCenterSummaryTable(result.data);
+            try {
+                const [familiesResult, centerSummaryResult] = await Promise.all([
+                    Api.get(`/families?barangay_id=${currentBarangayId}&per_page=200`),
+                    Api.get(`/families/center-summary?barangay_id=${currentBarangayId}`),
+                ]);
+                familiesInCurrentBarangay = familiesResult.data.data;
+                centerSummaryRowsCache = centerSummaryResult.data;
+                renderCenterSummaryTable(centerSummaryRowsCache);
+            } catch (error) {
+                // Leaves the previous (now slightly stale) data in place --
+                // the rest of the page is still usable.
+            }
         }
 
         if (currentCenterId !== null) {
-            drillIntoCenter(currentCenterId, currentCenterName);
+            await drillIntoCenter(currentCenterId, currentCenterName);
+        } else {
+            await refreshScopedSummary();
         }
+    }
+
+    // The single place that decides WHICH families/totals/sectoral-quick-
+    // count figures belong to the current drill level, and renders the top
+    // stat row + every sidebar card against exactly that scope -- city-wide
+    // at the top level (unchanged from before this fix), one barangay's
+    // worth once drilled in, or one center's worth at the deepest level.
+    // Called after every drill-level change (including the initial load).
+    async function refreshScopedSummary() {
+        let scopedFamilies;
+        let totals;
+        let sectoralParams;
+        let rankingMode;
+
+        if (currentBarangayId === null) {
+            scopedFamilies = allFamilies;
+            totals = cityWideTotals;
+            sectoralParams = {};
+            rankingMode = 'barangays';
+        } else if (currentCenterId === null) {
+            scopedFamilies = familiesInCurrentBarangay;
+            sectoralParams = { barangay_id: currentBarangayId };
+            rankingMode = 'centers';
+
+            try {
+                const statsResult = await Api.get(`/families/stats?barangay_id=${currentBarangayId}`);
+                totals = statsResult.data;
+            } catch (error) {
+                totals = { households: scopedFamilies.length, total_persons: allMembers(scopedFamilies).length };
+            }
+        } else {
+            scopedFamilies = familiesInCurrentDrill;
+            sectoralParams = { barangay_id: currentBarangayId };
+            if (currentCenterId !== 'none') sectoralParams.evacuation_center_id = currentCenterId;
+            rankingMode = 'hidden';
+
+            // Authoritative counts from the already-fetched center-summary
+            // row -- exact, not re-derived from familiesInCurrentDrill,
+            // which is safe here anyway but this avoids a second source of
+            // truth for the same two numbers.
+            const row = centerSummaryRowsCache.find((r) => String(r.evacuation_center_id ?? 'none') === String(currentCenterId));
+            totals = row
+                ? { households: row.family_count, total_persons: row.person_count }
+                : { households: scopedFamilies.length, total_persons: allMembers(scopedFamilies).length };
+        }
+
+        totalFamilies = totals.households;
+        totalPersonsCount = totals.total_persons;
+
+        const sectoralQuickCount = await fetchSectoralQuickCountSummary(sectoralParams);
+
+        renderStatCards(scopedFamilies);
+        renderSidebar(scopedFamilies, sectoralQuickCount);
+        renderRankingCard(rankingMode, scopedFamilies, centerSummaryRowsCache);
     }
 
     document.getElementById('register-in-barangay-btn').addEventListener('click', () => {
@@ -868,6 +990,8 @@
     (async () => {
         await loadFamilies();
         await loadBarangaySummary();
+
+        await refreshScopedSummary();
     })();
 
     // --- Register-family modal --------------------------------------------
@@ -907,7 +1031,7 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the household's number.</p>
+            <p class="text-xs text-gray-500 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the family's number.</p>
         </div>`;
     }
 
