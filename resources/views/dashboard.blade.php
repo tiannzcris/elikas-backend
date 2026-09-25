@@ -38,14 +38,20 @@
                 <i class="ti ti-trending-up text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
             </div>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
+        {{-- Border/icon color are set by setAtRiskTile() below, not fixed here
+            like the other three cards -- this is the one stat that's a binary
+            risk signal, not a neutral count, so it needs to look calm at 0
+            and only escalate to red once there's a real problem. A hardcoded
+            red border made 0 look just as alarming as an actual at-risk
+            center, and left a real one nothing further to escalate to. --}}
+        <div id="at-risk-card" class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #D1D5DB;">
             <div>
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Centers at risk</p>
                 <p id="stat-at-risk" class="text-2xl font-bold text-gray-800">&mdash;</p>
                 <p class="text-xs text-gray-400 italic mt-1">Near or above capacity</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-alert-triangle text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
+            <div id="at-risk-icon-badge" class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <i class="ti ti-alert-triangle text-gray-400" style="font-size: 20px;" aria-hidden="true"></i>
             </div>
         </div>
     </div>
@@ -169,6 +175,24 @@
     };
     const eventStatusLabels = { active: 'Active', monitoring: 'Monitoring', closed: 'Closed' };
 
+    // Shared by both the success and error paths below (error treats it as
+    // 0, same as every other stat on this page) so the tile can never end
+    // up red from a stale previous load while showing "0".
+    function setAtRiskTile(count) {
+        document.getElementById('stat-at-risk').textContent = count;
+        const badge = document.getElementById('at-risk-icon-badge');
+        const icon = badge.querySelector('i');
+        if (count > 0) {
+            document.getElementById('at-risk-card').style.borderLeftColor = '#EF4444';
+            badge.className = 'w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0';
+            icon.className = 'ti ti-alert-triangle text-red-500';
+        } else {
+            document.getElementById('at-risk-card').style.borderLeftColor = '#D1D5DB';
+            badge.className = 'w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0';
+            icon.className = 'ti ti-alert-triangle text-gray-400';
+        }
+    }
+
     (async () => {
         try {
             // /families/stats defaults to CURRENT state only (non-closed
@@ -196,7 +220,7 @@
             document.getElementById('stat-centers').textContent = `${activeCount} / ${centers.length}`;
 
             const atRiskCount = centers.filter((c) => c.occupancy_percent !== null && c.occupancy_percent >= 90).length;
-            document.getElementById('stat-at-risk').textContent = atRiskCount;
+            setAtRiskTile(atRiskCount);
 
             // Evacuation centers overview donut -- three mutually exclusive
             // buckets derived from real occupancy fields already above.
@@ -233,7 +257,7 @@
                     : 'No centers currently available -- all in use or at risk.';
         } catch (error) {
             document.getElementById('stat-centers').textContent = '0';
-            document.getElementById('stat-at-risk').textContent = '0';
+            setAtRiskTile(0);
             document.getElementById('centers-banner-text').textContent = 'Could not load center data.';
         }
     })();
@@ -304,13 +328,31 @@
                 return;
             }
 
+            // Severity color families mirror alerts/index.blade.php's own
+            // severityStyles (mandatory=red, advisory=orange, info=blue,
+            // all_clear=green) -- keep both in sync if severities ever
+            // change. Previously every severity rendered in the same
+            // neutral gray box, so a mandatory evacuation order looked no
+            // different here from a routine advisory; the two small tiles
+            // below already color-code advisories/critical counts, this
+            // card just wasn't using the same vocabulary for the one alert
+            // it actually shows.
+            const severityTint = {
+                mandatory: { bg: 'bg-red-50', icon: 'ti-alert-triangle', iconColor: 'text-red-600', title: 'text-red-800', body: 'text-red-700', badge: 'bg-red-100 text-red-700', label: 'Mandatory' },
+                advisory: { bg: 'bg-orange-50', icon: 'ti-speakerphone', iconColor: 'text-orange-600', title: 'text-orange-800', body: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Advisory' },
+                info: { bg: 'bg-blue-50', icon: 'ti-info-circle', iconColor: 'text-blue-600', title: 'text-blue-800', body: 'text-blue-700', badge: 'bg-blue-100 text-blue-700', label: 'Info' },
+                all_clear: { bg: 'bg-green-50', icon: 'ti-circle-check', iconColor: 'text-green-600', title: 'text-green-800', body: 'text-green-700', badge: 'bg-green-100 text-green-700', label: 'All clear' },
+            };
+
             const latest = alerts[0];
+            const sev = severityTint[latest.severity] ?? severityTint.info;
             summary.innerHTML = `
-                <div class="flex items-start gap-2 bg-gray-50 rounded-lg p-3">
-                    <i class="ti ti-speakerphone text-gray-500 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="flex items-start gap-2 ${sev.bg} rounded-lg p-3">
+                    <i class="ti ${sev.icon} ${sev.iconColor} shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
                     <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate">${latest.title}</p>
-                        <p class="text-xs text-gray-500">${new Date(latest.created_at).toLocaleString()}</p>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold ${sev.badge}">${sev.label.toUpperCase()}</span>
+                        <p class="text-sm font-medium ${sev.title} truncate mt-1">${latest.title}</p>
+                        <p class="text-xs ${sev.body}">${new Date(latest.created_at).toLocaleString()}</p>
                     </div>
                 </div>`;
         } catch (error) {
