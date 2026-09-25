@@ -36,8 +36,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * to fall back to (no such column exists on families or evacuees), so
  * when no quick-count row exists yet they stay 0 -- meaning "not yet
  * reported", same as every other row in that situation, not "confirmed
- * zero". DromicRegionVReportService still has its own separate, older
- * version of this same gap -- not changed here.
+ * zero". DromicRegionVReportService reads the same source for its BS-BZ
+ * columns (see its own docblock for how it handles the no-quick-count case).
  *
 
  * PLACEHOLDER EVACUEES: a placeholder's age_bracket and/or sex can be null

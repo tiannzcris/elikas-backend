@@ -45,8 +45,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  *    destroy correct pre-existing data.
  *
  * 3. KNOWN GAPS -- left blank, NOT fabricated:
- *    - "Child-Headed Family" and "Single-Headed Family" sectoral columns
- *      (BS-BZ): this system's evacuees table does not track these two flags.
+ *    - "Child-Headed Family" and "Single-Headed Family" CUM columns (BS,
+ *      BU, BW, BY), and their NOW columns (BT, BV, BX, BZ) for any
+ *      barangay whose centers have no EC Board quick count yet: see
+ *      SECTORAL COLUMNS' DATA SOURCE below.
  *    - "Origin of IDPs" (S/T): this system groups each row by the family's
  *      registering/home barangay, which makes a separate "origin barangay"
  *      column redundant under this grouping convention -- left blank rather
@@ -87,7 +89,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * overlap (a solo parent can also be a PWD), so there's no single
  * meaningful "total" for them to reconcile against in the first place.
  *
- * SECTORAL COLUMNS' DATA SOURCE (BO-CP except the untracked BS-BZ pair):
+ * SECTORAL COLUMNS' DATA SOURCE (BO-CP):
  * the NOW half of each pair (BP, BR, CB, CD, CF, CH, CJ, CL, CN, CP)
  * prefers each EvacuationCenterQuickCount's staff-reported sectoralGroups()
  * -- same reasoning as EvacuationCenterQuickCount's own docblock, most
@@ -103,6 +105,16 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * single current snapshot, not tracked cumulatively the way
  * families_cumulative/persons_cumulative are -- so it always stays
  * computed from Evacuee flags, same as before this fix.
+ *
+ * CHILD-HEADED / SINGLE-HEADED FAMILY (BS-BZ) follow the same NOW
+ * precedence -- quick-count sectoralGroups() summed across the barangay's
+ * in-use centers -- but have no fallback: neither families nor evacuees
+ * carry a child/single-headed flag, so there's nothing to count instead.
+ * Where no in-use center has a quick count, their NOW columns are simply
+ * left blank (as the whole BS-BZ block used to be), and the city total
+ * sums only the barangays that did report. Their CUM columns stay blank
+ * everywhere: quick counts have no cumulative equivalent (above), and
+ * there are no flags to compute one from.
  */
 class DromicRegionVReportService
 {
@@ -387,6 +399,24 @@ class DromicRegionVReportService
             fn ($qc) => $qc->sectoralGroups->firstWhere('sectoral_group', $group)?->{"{$sex}_count"} ?? 0
         );
 
+        // Child-Headed / Single-Headed Family (BS-BZ): only the NOW columns
+        // (BT, BV, BX, BZ) can be filled, and only from quick-count data --
+        // unlike every other sectoral category, no family or evacuee record
+        // carries a child/single-headed flag, so there's nothing to fall
+        // back to counting. When none of this barangay's in-use centers has
+        // a quick count for this event, the keys are left out entirely (not
+        // null, not 0): writeRow() then leaves those cells blank exactly as
+        // before, and sumRows() can't turn "never reported" into a
+        // fabricated 0 in the city total. CUM (BS, BU, BW, BY) always stays
+        // blank -- see the class docblock.
+        $headedFamilyNow = [];
+        if ($quickCounts->isNotEmpty()) {
+            foreach (['child_headed_family' => ['BT', 'BV'], 'single_headed_family' => ['BX', 'BZ']] as $group => [$maleCol, $femaleCol]) {
+                $headedFamilyNow[$maleCol] = $sectoralNowBySex($group, 'male');
+                $headedFamilyNow[$femaleCol] = $sectoralNowBySex($group, 'female');
+            }
+        }
+
         // The one evacuation center actually used by this barangay's
         // families, picked by highest current occupancy when more than one
         // was used -- the template has room for only one center's detail
@@ -477,7 +507,9 @@ class DromicRegionVReportService
             // -- see this class's docblock for why.
             'BO' => $cumEvacuees->where('is_pregnant', true)->count(), 'BP' => $sectoralNowTotal('pregnant_women') ?? $nowEvacuees->where('is_pregnant', true)->count(),
             'BQ' => $cumEvacuees->where('is_lactating', true)->count(), 'BR' => $sectoralNowTotal('lactating_mothers') ?? $nowEvacuees->where('is_lactating', true)->count(),
-            // BS-BZ (Child-Headed / Single-Headed Family) intentionally omitted -- not tracked (see class docblock)
+            // BS-BZ (Child-Headed / Single-Headed Family): NOW columns only,
+            // and only when a quick count exists -- see $headedFamilyNow above.
+            ...$headedFamilyNow,
             'CA' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(), 'CB' => $sectoralNowBySex('solo_parent', 'male') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(),
             'CC' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(), 'CD' => $sectoralNowBySex('solo_parent', 'female') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(),
             'CE' => $cumEvacuees->where('is_pwd', true)->where('sex', 'male')->count(), 'CF' => $sectoralNowBySex('pwd', 'male') ?? $nowEvacuees->where('is_pwd', true)->where('sex', 'male')->count(),
