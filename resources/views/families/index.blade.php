@@ -9,10 +9,15 @@
             <h1 class="text-xl font-semibold mb-1">Evacuees</h1>
             <p class="text-sm text-gray-500">List of registered evacuee families and their members.</p>
         </div>
-        {{-- Opens the modal below instead of navigating to /families/create --
-            that route/page still exists untouched as a fallback, following
-            the same pattern established for the alerts page. --}}
-        <div class="shrink-0 text-right">
+        {{-- Hidden per CSWDO: outside_center registration has no real
+            operational use for them (people not physically at a center
+            aren't covered by relief distribution, so this was never
+            actually used in practice) -- EC Board's "Add Evacuee" already
+            fully covers inside_center registration. UI visibility only:
+            the modal below, /families/register, and /families/create all
+            stay fully intact and reachable directly, in case this is
+            needed again later. --}}
+        <div class="hidden shrink-0 text-right">
             <button type="button" id="register-family-btn"
                 class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
                 + Register a family
@@ -101,7 +106,8 @@
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                     <p class="text-sm font-medium text-gray-600 mb-1">No families registered yet</p>
                     <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
-                    <button type="button" id="register-family-empty-btn" class="text-sm text-brand hover:underline">+ Register the first family</button>
+                    {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
+                    <button type="button" id="register-family-empty-btn" class="hidden text-sm text-brand hover:underline">+ Register the first family</button>
                 </div>
                 <div id="barangay-table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
                     <div class="overflow-x-auto">
@@ -123,7 +129,8 @@
 
             {{-- Level 2: evacuation centers within the selected barangay. --}}
             <div id="center-summary-view" class="hidden">
-                <button type="button" id="register-in-barangay-btn" class="text-sm text-brand hover:underline mb-3"></button>
+                {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
+                <button type="button" id="register-in-barangay-btn" class="hidden text-sm text-brand hover:underline mb-3"></button>
                 <div id="center-table-wrap" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -145,8 +152,9 @@
             {{-- Level 3: the actual family list -- unchanged from before,
                 just reached via drill-down instead of being the landing view. --}}
             <div id="family-list-view" class="hidden">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <button type="button" id="register-at-center-btn" class="text-sm text-brand hover:underline"></button>
+                <div class="flex flex-wrap items-center justify-end gap-3 mb-4">
+                    {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
+                    <button type="button" id="register-at-center-btn" class="hidden text-sm text-brand hover:underline"></button>
                     <select id="sectoral-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
                         <option value="">All sectoral groups</option>
                         <option value="is_4ps_beneficiary">4Ps beneficiary</option>
@@ -769,6 +777,8 @@
 
         renderBreadcrumb();
         showDrillLevel('center');
+        // register-in-barangay-btn is hidden (see CSWDO note above), but its
+        // text is still kept in sync in case that's ever reversed.
         document.getElementById('register-in-barangay-btn').textContent = `+ Register a family in ${barangayName}`;
 
         try {
@@ -801,9 +811,11 @@
         renderBreadcrumb();
         showDrillLevel('family');
 
+        // register-at-center-btn is hidden (see CSWDO note above), but its
+        // text is still kept in sync in case that's ever reversed. No real
+        // center to prefill for the "unassigned" bucket -- offer the
+        // barangay-level prefill instead.
         const registerBtn = document.getElementById('register-at-center-btn');
-        // No real center to prefill for the "unassigned" bucket -- offer
-        // the barangay-level prefill instead rather than hiding the button.
         registerBtn.textContent = centerId !== 'none'
             ? `+ Register a family at ${centerName}`
             : `+ Register a family in ${currentBarangayName}`;

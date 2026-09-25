@@ -56,8 +56,12 @@
         </div>
     </div>
 
+    {{-- Hidden per CSWDO: outside_center registration has no real
+        operational use for them -- see families/index.blade.php's own
+        header button for the full reasoning. Route/page stay fully intact
+        and reachable directly; this is a UI visibility change only. --}}
     <a href="/families/create"
-        class="inline-block bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 mb-6">
+        class="hidden inline-block bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 mb-6">
         + Register a family
     </a>
 
