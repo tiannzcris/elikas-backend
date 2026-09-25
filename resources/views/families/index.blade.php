@@ -17,7 +17,7 @@
                 class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
                 + Register a family
             </button>
-            <p class="text-xs text-gray-400 mt-1 max-w-[220px]">For households outside a center, or to enter full details directly</p>
+            <p class="text-xs text-gray-500 mt-1 max-w-[220px]">For households outside a center, or to enter full details directly</p>
         </div>
     </div>
 
@@ -38,9 +38,9 @@
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Households</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Households</p>
                 <p id="stat-households" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Currently registered, active event(s)</p>
+                <p class="text-xs text-gray-500 italic mt-1">Currently registered, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-home text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -48,9 +48,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total persons</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total persons</p>
                 <p id="stat-persons" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Currently displaced, active event(s)</p>
+                <p class="text-xs text-gray-500 italic mt-1">Currently displaced, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -58,9 +58,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Children (0-17)</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Children (0-17)</p>
                 <p id="stat-children" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-children-pct" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-children-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-baby-carriage text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -68,9 +68,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #8B5CF6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Seniors (60+)</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Seniors (60+)</p>
                 <p id="stat-seniors" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-seniors-pct" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-seniors-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background: #F3EEFF;">
                 <i class="ti ti-walk text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -78,9 +78,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">PWD members</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">PWD members</p>
                 <p id="stat-pwd" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-pwd-pct" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-pwd-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-wheelchair text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -100,7 +100,7 @@
                 <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                     <p class="text-sm font-medium text-gray-600 mb-1">No families registered yet</p>
-                    <p class="text-sm text-gray-400 mb-4">Registrations will appear here as barangay officials add them.</p>
+                    <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                     <button type="button" id="register-family-empty-btn" class="text-sm text-brand hover:underline">+ Register the first family</button>
                 </div>
                 <div id="barangay-table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -165,7 +165,7 @@
                 <div id="empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                     <p class="text-sm font-medium text-gray-600 mb-1">No families here yet</p>
-                    <p class="text-sm text-gray-400 mb-4">Registrations will appear here as barangay officials add them.</p>
+                    <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                 </div>
 
                 <div id="table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -185,7 +185,7 @@
                             <tbody id="families-tbody"></tbody>
                         </table>
                     </div>
-                    <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+                    <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
                         Showing <span id="showing-count">0</span> of <span id="total-count">0</span> families
                     </div>
                 </div>
@@ -395,11 +395,11 @@
         document.getElementById('sex-legend').innerHTML = `
             <div class="flex items-center justify-between">
                 <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#3B82F6"></span>Male</span>
-                <span class="font-medium text-gray-800">${male} <span class="text-gray-400 font-normal">(${Math.round(male / total * 100)}%)</span></span>
+                <span class="font-medium text-gray-800">${male} <span class="text-gray-500 font-normal">(${Math.round(male / total * 100)}%)</span></span>
             </div>
             <div class="flex items-center justify-between">
                 <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#EC4899"></span>Female</span>
-                <span class="font-medium text-gray-800">${female} <span class="text-gray-400 font-normal">(${Math.round(female / total * 100)}%)</span></span>
+                <span class="font-medium text-gray-800">${female} <span class="text-gray-500 font-normal">(${Math.round(female / total * 100)}%)</span></span>
             </div>`;
 
         if (sexChartInstance) sexChartInstance.destroy();
@@ -445,7 +445,7 @@
                         <div class="bg-green-500 h-1.5 rounded-full" style="width:${count / maxBrgy * 100}%"></div>
                     </div>
                 </div>`).join('')
-            : '<p class="text-gray-400">No data yet.</p>';
+            : '<p class="text-gray-500">No data yet.</p>';
 
         // Sectoral summary
         const sectoral = [
@@ -683,7 +683,7 @@
                         : '<span class="text-gray-300">&mdash;</span>'}</td>
                     <td class="px-4 py-3 text-right"><i class="ti ti-chevron-right text-gray-400" aria-hidden="true"></i></td>
                 </tr>`).join('')
-            : `<tr><td colspan="5" class="px-4 py-10 text-center text-gray-400 text-sm">No families registered in this barangay yet.</td></tr>`;
+            : `<tr><td colspan="5" class="px-4 py-10 text-center text-gray-500 text-sm">No families registered in this barangay yet.</td></tr>`;
     }
 
     async function drillIntoBarangay(barangayId, barangayName) {
@@ -797,11 +797,11 @@
                             <span class="text-sm font-medium text-gray-800">
                                 ${ev.is_placeholder ? '<span class="text-amber-600">Member — details pending</span>' : ev.full_name}
                             </span>
-                            ${ev.barangay_name ? `<span class="block text-xs text-gray-400">${ev.barangay_name}</span>` : ''}
+                            ${ev.barangay_name ? `<span class="block text-xs text-gray-500">${ev.barangay_name}</span>` : ''}
                         </span>
                         <i class="ti ti-chevron-right text-gray-300 shrink-0" aria-hidden="true"></i>
                     </a>`).join('')
-                : '<p class="px-4 py-3 text-sm text-gray-400">No evacuees match that name.</p>';
+                : '<p class="px-4 py-3 text-sm text-gray-500">No evacuees match that name.</p>';
 
             resultsBox.classList.remove('hidden');
         } catch (error) {
@@ -872,7 +872,7 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
             </div>
-            <p class="text-xs text-gray-400 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the household's number.</p>
+            <p class="text-xs text-gray-500 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the household's number.</p>
         </div>`;
     }
 

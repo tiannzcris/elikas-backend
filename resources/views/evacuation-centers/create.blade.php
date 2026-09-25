@@ -18,7 +18,7 @@
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                 <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
-                <p id="barangay-lock-note" class="text-xs text-gray-400 mt-1 hidden">Locked to your own barangay.</p>
+                <p id="barangay-lock-note" class="text-xs text-gray-500 mt-1 hidden">Locked to your own barangay.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Type</label>
@@ -39,12 +39,12 @@
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
                 <input type="number" id="capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
                 <input type="number" id="capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
@@ -81,14 +81,14 @@
                 </div>
                 <div class="flex-1">
                     <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-light file:text-brand file:text-sm file:font-medium hover:file:bg-blue-100">
-                    <p class="text-xs text-gray-400 mt-1">JPG, PNG, etc. Max 5MB.</p>
+                    <p class="text-xs text-gray-500 mt-1">JPG, PNG, etc. Max 5MB.</p>
                 </div>
             </div>
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl p-4">
             <p class="text-sm text-gray-600 mb-2">
-                Location (optional) <span id="coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
+                Location (optional) <span id="coords-display" class="text-gray-500">(click the map to set, or leave unset for now)</span>
             </p>
             <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
                 <div class="flex-1">
@@ -124,7 +124,7 @@
                     Assign
                 </button>
             </div>
-            <p id="assign-owner-empty-note" class="text-xs text-gray-400 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
+            <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
             <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
         </div>
 
@@ -245,7 +245,7 @@
 
         document.getElementById('coords-display').textContent =
             `(${selectedLat.toFixed(6)}, ${selectedLng.toFixed(6)})`;
-        document.getElementById('coords-display').classList.remove('text-gray-400');
+        document.getElementById('coords-display').classList.remove('text-gray-500');
     }
 
     map.on('click', (e) => setMarker(e.latlng.lat, e.latlng.lng));

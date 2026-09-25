@@ -26,9 +26,9 @@
     <div id="stats-row" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total alerts</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total alerts</p>
                 <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">All time</p>
+                <p class="text-xs text-gray-500 italic mt-1">All time</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-speakerphone text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -36,9 +36,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">SMS delivered</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">SMS delivered</p>
                 <p id="stat-delivered" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-delivered-pct" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-delivered-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-check text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -46,9 +46,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">SMS failed</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">SMS failed</p>
                 <p id="stat-failed" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-failed-pct" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-failed-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-x text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -70,11 +70,11 @@
                 </select>
             </div>
 
-            <div id="empty-state" class="hidden text-center py-16 text-gray-400 text-sm bg-white border border-gray-200 rounded-xl">
+            <div id="empty-state" class="hidden text-center py-16 text-gray-500 text-sm bg-white border border-gray-200 rounded-xl">
                 No alerts sent yet.
             </div>
 
-            <div id="no-match-state" class="hidden text-center py-16 text-gray-400 text-sm bg-white border border-gray-200 rounded-xl">
+            <div id="no-match-state" class="hidden text-center py-16 text-gray-500 text-sm bg-white border border-gray-200 rounded-xl">
                 No alerts match this filter.
             </div>
 
@@ -144,7 +144,7 @@
                     <textarea id="alert-message" required maxlength="1000" rows="4"
                         placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
-                    <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
+                    <p class="text-xs text-gray-500 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
                     {{-- A plain <textarea> can't render partial bold/colored text
                         within its own value, so "highlight the remaining
                         bracketed option" is done via this callout below it
@@ -222,7 +222,7 @@
                             <option value="">All barangays</option>
                         </select>
                     </div>
-                    <p class="text-xs text-gray-400 mt-3">
+                    <p class="text-xs text-gray-500 mt-3">
                         SMS delivery depends on Semaphore's connection to each recipient's network -- the
                         alert always reaches the live dashboard regardless of SMS outcome.
                     </p>
@@ -319,7 +319,7 @@
                         <div>
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <span class="text-xs px-2 py-0.5 rounded-lg font-semibold ${sev.badge}">${sev.label.toUpperCase()}</span>
-                                <span class="text-xs text-gray-400">${typeLabels[a.alert_type] ?? a.alert_type} &middot; ${new Date(a.created_at).toLocaleString()}</span>
+                                <span class="text-xs text-gray-500">${typeLabels[a.alert_type] ?? a.alert_type} &middot; ${new Date(a.created_at).toLocaleString()}</span>
                                 ${a.evacuation_event ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600">${a.evacuation_event.name}</span>` : ''}
                             </div>
                             <p class="font-medium text-sm">${a.title}</p>
@@ -343,7 +343,7 @@
                         <span>&middot; ${a.recipient_summary.total} SMS recipient(s)</span>
                         <span class="text-green-600">${a.recipient_summary.sent} delivered</span>
                         ${a.recipient_summary.failed > 0 ? `<span class="text-red-500">${a.recipient_summary.failed} failed</span>` : ''}
-                        ${a.recipient_summary.pending > 0 ? `<span class="text-gray-400">${a.recipient_summary.pending} pending</span>` : ''}
+                        ${a.recipient_summary.pending > 0 ? `<span class="text-gray-500">${a.recipient_summary.pending} pending</span>` : ''}
                     ` : ''}
                 </div>
                 ${deliveryPct !== null ? `
@@ -405,7 +405,7 @@
         document.getElementById('delivery-legend').innerHTML = deliveryMeta.map(([key, label, color]) => `
             <div class="flex items-center justify-between">
                 <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>${label}</span>
-                <span class="font-medium text-gray-800">${totals[key]} <span class="text-gray-400 font-normal">(${Math.round(totals[key] / deliveryTotal * 100)}%)</span></span>
+                <span class="font-medium text-gray-800">${totals[key]} <span class="text-gray-500 font-normal">(${Math.round(totals[key] / deliveryTotal * 100)}%)</span></span>
             </div>`).join('');
 
         if (deliveryChartInstance) deliveryChartInstance.destroy();
@@ -461,11 +461,11 @@
                     <span class="w-2 h-2 rounded-full mt-1.5 shrink-0" style="background:${sev.dot}"></span>
                     <div class="min-w-0">
                         <p class="text-gray-700 font-medium truncate">${a.title}</p>
-                        <p class="text-gray-400">${a.sender?.name ?? 'System'} &middot; ${new Date(a.created_at).toLocaleString()}</p>
-                        ${a.recipient_summary && a.recipient_summary.total > 0 ? `<p class="text-gray-400">${a.recipient_summary.sent}/${a.recipient_summary.total} SMS delivered</p>` : ''}
+                        <p class="text-gray-500">${a.sender?.name ?? 'System'} &middot; ${new Date(a.created_at).toLocaleString()}</p>
+                        ${a.recipient_summary && a.recipient_summary.total > 0 ? `<p class="text-gray-500">${a.recipient_summary.sent}/${a.recipient_summary.total} SMS delivered</p>` : ''}
                     </div>
                 </div>`;
-        }).join('') : '<p class="text-gray-400">No activity yet.</p>';
+        }).join('') : '<p class="text-gray-500">No activity yet.</p>';
     }
 
     document.getElementById('type-filter').addEventListener('change', renderAlertsList);
@@ -577,11 +577,11 @@
                 const box = document.getElementById('evacuee-search-results');
 
                 box.innerHTML = evacuees.length === 0
-                    ? '<p class="text-xs text-gray-400 px-3 py-2">No matching evacuees.</p>'
+                    ? '<p class="text-xs text-gray-500 px-3 py-2">No matching evacuees.</p>'
                     : evacuees.map((ev) => `
                         <button type="button" class="evacuee-result-item block w-full text-left px-3 py-2 text-sm hover:bg-gray-50" data-id="${ev.id}">
                             <span class="font-medium text-gray-700">${ev.full_name}</span>
-                            <span class="text-xs text-gray-400 block">${ev.contact_number ?? 'No contact number on file'}</span>
+                            <span class="text-xs text-gray-500 block">${ev.contact_number ?? 'No contact number on file'}</span>
                         </button>`).join('');
 
                 document.querySelectorAll('.evacuee-result-item').forEach((btn) => {

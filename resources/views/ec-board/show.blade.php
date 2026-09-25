@@ -14,7 +14,7 @@
             <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i>
             <span id="back-to-center-label">Back to center info</span>
         </a>
-        <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-brand">
+        <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand">
             <i class="ti ti-building" style="font-size: 13px;" aria-hidden="true"></i> All evacuation centers
         </a>
     </div>
@@ -23,14 +23,14 @@
         <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
             <div class="flex items-center justify-between mb-1">
                 <p class="text-sm font-semibold text-gray-800">EC Information Board</p>
-                <span class="flex items-center gap-1 text-xs text-gray-400 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
+                <span class="flex items-center gap-1 text-xs text-gray-500 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
             </div>
             <p class="text-xs text-gray-500 mb-3">Add evacuees here first -- register full details later, as time allows.</p>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 border-t border-gray-100 pt-3">
-                <span><span class="text-gray-400">Barangay:</span> <span id="ecb-barangay" class="text-gray-700 font-medium"></span></span>
-                <span><span class="text-gray-400">Evacuation center:</span> <span id="ecb-center-name" class="text-gray-700 font-medium"></span></span>
+                <span><span class="text-gray-500">Barangay:</span> <span id="ecb-barangay" class="text-gray-700 font-medium"></span></span>
+                <span><span class="text-gray-500">Evacuation center:</span> <span id="ecb-center-name" class="text-gray-700 font-medium"></span></span>
                 <span class="flex items-center gap-1.5">
-                    <span class="text-gray-400">Event:</span>
+                    <span class="text-gray-500">Event:</span>
                     <select id="ecb-event-select" class="border border-gray-300 rounded-lg px-2 py-1 text-xs"></select>
                 </span>
                 {{-- Matches the real EC Information Board template's own row
@@ -44,7 +44,7 @@
                     via this element's id, regardless of where it sits in
                     the page. --}}
                 <span class="flex items-center gap-1.5">
-                    <span class="text-gray-400">4Ps beneficiary families:</span>
+                    <span class="text-gray-500">4Ps beneficiary families:</span>
                     <input type="number" min="0" id="ecb-beneficiaries-4ps"
                         title="Saved together with the sectoral breakdown further down the page"
                         class="w-16 border border-gray-300 rounded-lg px-2 py-1 text-xs">
@@ -58,23 +58,23 @@
             scan for first. --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
             <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #93C5FD;">
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Families cumulative</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families cumulative</p>
                 <p id="ecb-families-cumulative" class="text-2xl font-bold text-gray-800">0</p>
             </div>
             <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #3B82F6;">
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Families now</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families now</p>
                 <p id="ecb-families-now" class="text-2xl font-bold text-gray-800">0</p>
             </div>
             <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #FDBA74;">
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Persons cumulative</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons cumulative</p>
                 <p id="ecb-persons-cumulative" class="text-2xl font-bold text-gray-800">0</p>
             </div>
             <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #F97316;">
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Persons now</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons now</p>
                 <p id="ecb-persons-now" class="text-2xl font-bold text-gray-800">0</p>
             </div>
         </div>
-        <p class="text-xs text-gray-400 mb-6">"Now" reflects current records exactly; "Cumulative" is a running total from every evacuee added here and never drops when someone is later removed.</p>
+        <p class="text-xs text-gray-500 mb-6">"Now" reflects current records exactly; "Cumulative" is a running total from every evacuee added here and never drops when someone is later removed.</p>
 
         {{-- Two-column: the Add Evacuee form is the primary task on this
             page, so it gets the wider main column with generous padding;
@@ -140,7 +140,7 @@
                             + Add evacuee
                         </button>
                         <span id="add-evacuee-success-msg" class="hidden text-xs text-green-600 font-medium">&check; Added -- form's ready for the next one.</span>
-                        <span id="add-evacuee-disabled-note" class="hidden text-xs text-gray-400">No active disaster event -- can't add evacuees right now.</span>
+                        <span id="add-evacuee-disabled-note" class="hidden text-xs text-gray-500">No active disaster event -- can't add evacuees right now.</span>
                     </div>
                 </form>
             </div>
@@ -222,7 +222,7 @@
                             Mark as departed
                         </button>
                         <span id="quick-departure-success-msg" class="hidden text-xs text-green-600 font-medium">&check; Marked as departed.</span>
-                        <span id="quick-departure-disabled-note" class="hidden text-xs text-gray-400">No active disaster event -- can't log departures right now.</span>
+                        <span id="quick-departure-disabled-note" class="hidden text-xs text-gray-500">No active disaster event -- can't log departures right now.</span>
                     </div>
                 </form>
             </div>
@@ -251,7 +251,7 @@
                     </table>
                 </div>
 
-                <p id="ecb-updated-meta" class="text-xs text-gray-400 mb-3">Beneficiaries/sectoral figures not yet reported for this event.</p>
+                <p id="ecb-updated-meta" class="text-xs text-gray-500 mb-3">Beneficiaries/sectoral figures not yet reported for this event.</p>
 
                 <button type="submit" id="ecb-save-btn"
                     class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
@@ -363,7 +363,7 @@
         // than left as plain gray text regardless of state.
         const updatedMeta = document.getElementById('ecb-updated-meta');
         if (qc.updated_at) {
-            updatedMeta.className = 'text-xs text-gray-400 mb-3';
+            updatedMeta.className = 'text-xs text-gray-500 mb-3';
             updatedMeta.textContent = `Beneficiaries/sectoral figures last saved ${new Date(qc.updated_at).toLocaleString()}${qc.updated_by_name ? ` by ${qc.updated_by_name}` : ''}`;
         } else {
             updatedMeta.className = 'inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg mb-3';

@@ -24,7 +24,7 @@
         <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
             <i class="ti ti-building text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
             <p class="text-sm font-medium text-gray-600 mb-1">No evacuation centers yet</p>
-            <p class="text-sm text-gray-400">Centers will appear here once barangays register them.</p>
+            <p class="text-sm text-gray-500">Centers will appear here once barangays register them.</p>
         </div>
         <div id="barangay-list" class="hidden flex flex-col gap-2.5"></div>
     </div>

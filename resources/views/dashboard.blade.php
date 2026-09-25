@@ -10,9 +10,9 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total evacuees</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total evacuees</p>
                 <p id="stat-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Currently displaced, active event(s)</p>
+                <p class="text-xs text-gray-500 italic mt-1">Currently displaced, active event(s)</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -20,9 +20,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Active centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active centers</p>
                 <p id="stat-centers" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Facilities in use</p>
+                <p class="text-xs text-gray-500 italic mt-1">Facilities in use</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-building text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -30,9 +30,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Predicted influx</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted influx</p>
                 <p id="stat-predicted" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">AI forecast, latest</p>
+                <p class="text-xs text-gray-500 italic mt-1">AI forecast, latest</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-trending-up text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -46,9 +46,9 @@
             center, and left a real one nothing further to escalate to. --}}
         <div id="at-risk-card" class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #D1D5DB;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Centers at risk</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Centers at risk</p>
                 <p id="stat-at-risk" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Near or above capacity</p>
+                <p class="text-xs text-gray-500 italic mt-1">Near or above capacity</p>
             </div>
             <div id="at-risk-icon-badge" class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                 <i class="ti ti-alert-triangle text-gray-400" style="font-size: 20px;" aria-hidden="true"></i>
@@ -230,15 +230,15 @@
             document.getElementById('centers-legend').innerHTML = `
                 <div class="flex items-center justify-between">
                     <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-green-500"></span>In use</span>
-                    <span class="font-medium text-gray-800">${inUse} <span class="text-gray-400 font-normal">(${centers.length ? Math.round(inUse / centers.length * 100) : 0}%)</span></span>
+                    <span class="font-medium text-gray-800">${inUse} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(inUse / centers.length * 100) : 0}%)</span></span>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-blue-500"></span>Available</span>
-                    <span class="font-medium text-gray-800">${available} <span class="text-gray-400 font-normal">(${centers.length ? Math.round(available / centers.length * 100) : 0}%)</span></span>
+                    <span class="font-medium text-gray-800">${available} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(available / centers.length * 100) : 0}%)</span></span>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-red-500"></span>At risk</span>
-                    <span class="font-medium text-gray-800">${atRiskCount} <span class="text-gray-400 font-normal">(${centers.length ? Math.round(atRiskCount / centers.length * 100) : 0}%)</span></span>
+                    <span class="font-medium text-gray-800">${atRiskCount} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(atRiskCount / centers.length * 100) : 0}%)</span></span>
                 </div>`;
 
             new Chart(document.getElementById('centersChart'), {
@@ -274,7 +274,7 @@
                     <div class="flex flex-col items-center text-center py-8">
                         <i class="ti ti-cloud-off text-gray-300 mb-2" style="font-size: 32px;" aria-hidden="true"></i>
                         <p class="text-sm font-medium text-gray-500">No forecast data available yet.</p>
-                        <p class="text-xs text-gray-400 mt-1">Forecast will appear here when available.</p>
+                        <p class="text-xs text-gray-500 mt-1">Forecast will appear here when available.</p>
                         <a href="/predictive-analytics" class="text-xs text-brand hover:underline mt-2">Generate a forecast &rarr;</a>
                     </div>`;
                 return;
@@ -295,7 +295,7 @@
                         <p class="text-xl font-bold text-gray-800">₱${Number(latest.predicted_resources_needed ?? 0).toLocaleString()}</p>
                     </div>
                 </div>
-                <p class="text-xs text-gray-400">
+                <p class="text-xs text-gray-500">
                     Input: ${latest.input_payload.rainfall_mm}mm rainfall, ${latest.input_payload.wind_speed_kph}kph wind &middot;
                     generated ${new Date(latest.generated_at).toLocaleString()} &middot; ${latest.model_used}
                 </p>
@@ -303,7 +303,7 @@
         } catch (error) {
             document.getElementById('stat-predicted').textContent = 'None yet';
             document.getElementById('predicted-influx-content').innerHTML =
-                '<p class="text-sm text-gray-400 text-center py-8">Could not load forecast data.</p>';
+                '<p class="text-sm text-gray-500 text-center py-8">Could not load forecast data.</p>';
         }
     })();
 
@@ -367,7 +367,7 @@
             const events = result.data;
 
             document.getElementById('recent-events-list').innerHTML = events.length === 0
-                ? '<p class="text-gray-400 text-sm text-center py-6">No disaster events yet.</p>'
+                ? '<p class="text-gray-500 text-sm text-center py-6">No disaster events yet.</p>'
                 : events.slice(0, 3).map((e) => `
                     <a href="/evacuation-events" class="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg -mx-1 px-1 py-1">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -375,7 +375,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="font-medium text-gray-700 truncate">${e.name}</p>
-                            <p class="text-xs text-gray-400">${e.start_date}</p>
+                            <p class="text-xs text-gray-500">${e.start_date}</p>
                         </div>
                         <span class="text-xs px-2 py-0.5 rounded-lg shrink-0 ${eventStatusColors[e.status] ?? ''}">${eventStatusLabels[e.status] ?? e.status}</span>
                     </a>`).join('');
@@ -417,7 +417,7 @@
             });
         } catch (error) {
             document.getElementById('recent-events-list').innerHTML =
-                '<p class="text-gray-400 text-sm text-center py-6">Could not load events.</p>';
+                '<p class="text-gray-500 text-sm text-center py-6">Could not load events.</p>';
         }
     })();
 </script>

@@ -22,7 +22,7 @@
                 <textarea id="message" required maxlength="1000" rows="4"
                     placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
-                <p class="text-xs text-gray-400 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
+                <p class="text-xs text-gray-500 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -67,7 +67,7 @@
                     <option value="">All barangays</option>
                 </select>
             </div>
-            <p class="text-xs text-gray-400 mt-3">
+            <p class="text-xs text-gray-500 mt-3">
                 SMS delivery depends on Semaphore's connection to each recipient's network -- the
                 alert always reaches the live dashboard regardless of SMS outcome.
             </p>

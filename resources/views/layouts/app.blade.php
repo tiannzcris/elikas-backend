@@ -132,7 +132,7 @@
 
         <div class="flex-1 flex flex-col min-w-0">
             <div class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shrink-0">
-                <div class="flex items-center gap-3 text-xs text-gray-400 min-w-0">
+                <div class="flex items-center gap-3 text-xs text-gray-500 min-w-0">
                     {{-- The toggle button itself stays always-visible on
                         mobile (md:hidden only hides it on desktop) -- only
                         the date/location text next to it collapses away
@@ -177,7 +177,7 @@
                             <div id="topbar-avatar" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0" style="background:#2563EB"></div>
                             <div class="hidden sm:block text-left leading-tight">
                                 <p id="topbar-user-name" class="text-sm font-medium text-gray-700"></p>
-                                <p id="topbar-user-role" class="text-xs text-gray-400"></p>
+                                <p id="topbar-user-role" class="text-xs text-gray-500"></p>
                             </div>
                             <i class="ti ti-chevron-down text-gray-400 hidden sm:inline" style="font-size: 14px;" aria-hidden="true"></i>
                         </button>
@@ -311,7 +311,7 @@
                 <div class="p-3 text-sm">
                     <p class="font-medium">${alert.title}</p>
                     <p class="text-gray-500 text-xs mt-0.5">${alert.message}</p>
-                    <p class="text-gray-400 text-xs mt-1">${new Date(alert.created_at).toLocaleString()}</p>
+                    <p class="text-gray-500 text-xs mt-1">${new Date(alert.created_at).toLocaleString()}</p>
                 </div>`;
             const list = document.getElementById('notif-list');
             if (prepend) {

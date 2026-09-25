@@ -56,7 +56,7 @@
     <div id="preview-card" class="hidden bg-white border border-gray-200 rounded-xl p-4 mb-6 overflow-x-auto">
         <p class="text-sm font-medium mb-3">Preview &mdash; barangay breakdown</p>
         <table class="w-full text-sm">
-            <thead class="text-gray-400 text-xs uppercase">
+            <thead class="text-gray-500 text-xs uppercase">
                 <tr>
                     <th class="text-left px-2 py-2">Barangay</th>
                     <th class="text-right px-2 py-2">Affected fam.</th>
@@ -79,9 +79,9 @@
     <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total reports</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total reports</p>
                 <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">All time</p>
+                <p class="text-xs text-gray-500 italic mt-1">All time</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-file-report text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -89,9 +89,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">This month</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">This month</p>
                 <p id="stat-this-month" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Generated so far</p>
+                <p class="text-xs text-gray-500 italic mt-1">Generated so far</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-calendar-stats text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -99,9 +99,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Persons affected</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons affected</p>
                 <p id="stat-persons" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Live count, reported events</p>
+                <p class="text-xs text-gray-500 italic mt-1">Live count, reported events</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -109,9 +109,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Latest report</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Latest report</p>
                 <p id="stat-latest" class="text-lg font-bold text-gray-800">&mdash;</p>
-                <p id="stat-latest-date" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="stat-latest-date" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-clock text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -119,7 +119,7 @@
         </div>
     </div>
 
-    <p class="text-xs text-gray-400 mb-6 max-w-2xl">
+    <p class="text-xs text-gray-500 mb-6 max-w-2xl">
         These reports eliminate manual data entry and arithmetic, but a few columns in the official
         DROMIC template aren't tracked by this system yet (e.g. "Child-Headed Family" isn't a recorded
         field) and are left blank rather than guessed. Review before submitting anywhere official.
@@ -214,7 +214,7 @@
         });
 
         document.getElementById('reports-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-400 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No reports match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No reports match this filter.</p>'
             : filtered.map((r) => `
                 <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
@@ -298,7 +298,7 @@
         })).filter((t) => t.count > 0);
 
         if (typeCounts.length === 0) {
-            document.getElementById('type-legend').innerHTML = '<p class="text-gray-400">No reports yet.</p>';
+            document.getElementById('type-legend').innerHTML = '<p class="text-gray-500">No reports yet.</p>';
         } else {
             const typeTotal = allReports.length || 1;
             document.getElementById('type-legend').innerHTML = typeCounts.map((t) => `
@@ -306,7 +306,7 @@
                     <span class="flex items-center gap-1.5 text-gray-600">
                         <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${reportTypeColors[t.key]}"></span>${t.label}
                     </span>
-                    <span class="font-medium text-gray-800">${t.count} <span class="text-gray-400 font-normal">(${Math.round(t.count / typeTotal * 100)}%)</span></span>
+                    <span class="font-medium text-gray-800">${t.count} <span class="text-gray-500 font-normal">(${Math.round(t.count / typeTotal * 100)}%)</span></span>
                 </div>`).join('');
 
             if (typeChartInstance) typeChartInstance.destroy();
@@ -357,9 +357,9 @@
                 <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-purple-400"></span>
                 <div class="min-w-0">
                     <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
-                    <p class="text-gray-400">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
+                    <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                 </div>
-            </div>`).join('') : '<p class="text-gray-400">No activity recorded yet.</p>';
+            </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';
 
         renderPersonsAffected();
     }
@@ -443,7 +443,7 @@
             const rows = previewResult.data;
             document.getElementById('preview-card').classList.remove('hidden');
             document.getElementById('preview-tbody').innerHTML = rows.length === 0
-                ? '<tr><td colspan="6" class="text-center text-gray-400 py-4">No registered families for this event yet.</td></tr>'
+                ? '<tr><td colspan="6" class="text-center text-gray-500 py-4">No registered families for this event yet.</td></tr>'
                 : rows.map((r) => `
                     <tr class="border-t border-gray-100">
                         <td class="px-2 py-2">${r.barangay}</td>

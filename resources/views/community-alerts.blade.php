@@ -38,7 +38,7 @@
                 <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
                     <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
-                    <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                    <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
@@ -79,7 +79,7 @@
         </section>
 
         <section class="max-w-4xl mx-auto px-6 py-12 sm:py-16">
-            <div id="alerts-loading" class="text-center text-gray-400 text-sm py-16">
+            <div id="alerts-loading" class="text-center text-gray-500 text-sm py-16">
                 <i class="ti ti-loader-2" style="font-size: 28px;" aria-hidden="true"></i>
                 <p class="mt-2">Loading alerts...</p>
             </div>
@@ -238,11 +238,11 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}">${style.label}</span>
-                                    <span class="text-xs text-gray-400">${typeLabel}</span>
+                                    <span class="text-xs text-gray-500">${typeLabel}</span>
                                 </div>
                                 <h2 class="font-bold text-gray-900 text-lg mb-1">${escapeHtml(a.title)}</h2>
                                 <p class="text-sm text-gray-600 mb-3 whitespace-pre-line">${escapeHtml(a.message)}</p>
-                                <p class="text-xs text-gray-400">
+                                <p class="text-xs text-gray-500">
                                     <i class="ti ti-clock" style="font-size: 12px;" aria-hidden="true"></i>
                                     ${formatDate(a.date_sent ?? a.created_at)}
                                 </p>

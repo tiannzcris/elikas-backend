@@ -74,7 +74,7 @@
                 <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
                     <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
-                    <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                    <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
@@ -389,7 +389,7 @@
                 Download for Android
             </a>
 
-            <p class="text-xs text-gray-400 mt-4 text-left">
+            <p class="text-xs text-gray-500 mt-4 text-left">
                 Your browser may show a warning during the download itself and ask you to
                 keep/confirm the file -- this is expected. Your phone may then ask you to
                 allow installs from this source since the app isn't on the Play Store yet --

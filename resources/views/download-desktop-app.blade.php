@@ -44,7 +44,7 @@
             <img src="/images/elikas-emblem-icon.png" alt="" class="w-9 h-9 object-contain">
             <div class="leading-tight text-center">
                 <p class="font-extrabold text-base tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
-                <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
             </div>
         </a>
 
@@ -107,7 +107,7 @@
         <p class="text-sm text-gray-500 mt-6 text-center">
             Already have it installed? <a href="{{ url('/login') }}" class="text-brand hover:underline font-medium">Log in to the web dashboard</a> instead.
         </p>
-        <a href="{{ url('/privacy') }}" class="block text-center text-xs text-gray-400 hover:text-gray-600 mt-4">
+        <a href="{{ url('/privacy') }}" class="block text-center text-xs text-gray-500 hover:text-gray-600 mt-4">
             Privacy Statement
         </a>
     </div>

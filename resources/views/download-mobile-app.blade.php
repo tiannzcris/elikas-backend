@@ -43,7 +43,7 @@
                 Download for Android
             </a>
 
-            <p class="text-xs text-gray-400 mt-4 text-center">
+            <p class="text-xs text-gray-500 mt-4 text-center">
                 Your browser may show a warning during the download itself and ask you to
                 keep/confirm the file -- this is expected. Your phone may then ask you to
                 allow installs from this source since the app isn't on the Play Store yet --
@@ -52,7 +52,7 @@
             </p>
         </div>
 
-        <a href="{{ url('/privacy') }}" class="block text-center text-xs text-gray-400 hover:text-gray-600 mt-6">
+        <a href="{{ url('/privacy') }}" class="block text-center text-xs text-gray-500 hover:text-gray-600 mt-6">
             Privacy Statement
         </a>
     </div>

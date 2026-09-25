@@ -38,7 +38,7 @@
                 <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
                     <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
-                    <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                    <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
@@ -91,7 +91,7 @@
                         barangay, so a resident who already knows the center's
                         name never has to drill down to reach it. --}}
                     <div class="bg-white border border-gray-200 rounded-xl p-4">
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Find a center</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Find a center</p>
                         <button type="button" id="find-near-me-btn" class="w-full flex items-center justify-center gap-2 bg-brand-light hover:bg-blue-100 text-brand text-xs font-semibold rounded-lg py-2 mb-2">
                             <i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Find centers near me
                         </button>
@@ -154,7 +154,7 @@
 
                 <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
                     <div class="bg-white border border-gray-200 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2">
-                        <p id="map-updated" class="text-xs text-gray-400 pl-1"></p>
+                        <p id="map-updated" class="text-xs text-gray-500 pl-1"></p>
                         <button id="reset-view-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
                             <i class="ti ti-refresh" style="font-size: 13px;" aria-hidden="true"></i> Reset view
                         </button>
@@ -179,7 +179,7 @@
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
-            <div id="detail-loading" class="text-center text-gray-400 text-sm py-16">
+            <div id="detail-loading" class="text-center text-gray-500 text-sm py-16">
                 <i class="ti ti-loader-2" style="font-size: 24px;" aria-hidden="true"></i>
                 <p class="mt-2">Loading center details...</p>
             </div>
@@ -544,7 +544,7 @@
                         <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[c.status] ?? '#666'}"></span>
                         <span class="font-medium text-gray-700">${escapeHtml(c.name)}</span>
                     </span>
-                    <p class="text-xs text-gray-400 pl-4">
+                    <p class="text-xs text-gray-500 pl-4">
                         ${details}
                         ${c.distance_meters != null ? `${details ? ' · ' : ''}<span class="text-brand font-medium">${formatDistance(c.distance_meters)}</span>` : ''}
                     </p>
@@ -576,12 +576,12 @@
             });
 
             return rows.length === 0
-                ? '<p class="text-xs text-gray-400 text-center py-6">No centers match this filter.</p>'
+                ? '<p class="text-xs text-gray-500 text-center py-6">No centers match this filter.</p>'
                 : rows.map((r) => `
                     <button class="barangay-list-item flex items-center justify-between gap-2 text-left w-full rounded-lg px-2 py-2 hover:bg-gray-50" data-barangay="${escapeHtml(r.name).replace(/"/g, '&quot;')}">
                         <span class="min-w-0">
                             <span class="block font-medium text-gray-700">${escapeHtml(r.name)}</span>
-                            <span class="block text-xs text-gray-400">
+                            <span class="block text-xs text-gray-500">
                                 ${r.total} center${r.total === 1 ? '' : 's'}${r.active ? ` · <span class="text-green-700">${r.active} active</span>` : ''}
                                 ${Number.isFinite(r.nearest) ? ` · <span class="text-brand font-medium">nearest ${formatDistance(r.nearest)}</span>` : ''}
                             </span>
@@ -602,14 +602,14 @@
                 // regardless of which barangay (if any) is drilled into.
                 const matches = sortByDistance(centers.filter((c) => c.name.toLowerCase().includes(query)));
                 listEl.innerHTML = matches.length === 0
-                    ? '<p class="text-xs text-gray-400 text-center py-6">No centers match that name.</p>'
+                    ? '<p class="text-xs text-gray-500 text-center py-6">No centers match that name.</p>'
                     : matches.map((c) => centerListItemHtml(c, true)).join('');
             } else if (currentBarangay === null) {
                 listEl.innerHTML = renderBarangayLevel(centers);
             } else {
                 const inBarangay = sortByDistance(centers.filter((c) => barangayOf(c) === currentBarangay));
                 listEl.innerHTML = inBarangay.length === 0
-                    ? `<p class="text-xs text-gray-400 text-center py-6">No centers in ${escapeHtml(currentBarangay)} match this filter.</p>`
+                    ? `<p class="text-xs text-gray-500 text-center py-6">No centers in ${escapeHtml(currentBarangay)} match this filter.</p>`
                     : inBarangay.map((c) => centerListItemHtml(c, false)).join('');
             }
         }
@@ -778,7 +778,7 @@
                     const f = existingFacilities[type];
                     const available = f?.is_available ?? false;
                     const icon = available ? 'ti-circle-check text-green-600' : 'ti-circle-x text-gray-300';
-                    const note = (!available && f?.concerns_and_needs) ? ` <span class="text-gray-400">(${escapeHtml(f.concerns_and_needs)})</span>` : '';
+                    const note = (!available && f?.concerns_and_needs) ? ` <span class="text-gray-500">(${escapeHtml(f.concerns_and_needs)})</span>` : '';
                     return `<div class="flex items-start gap-1.5"><i class="ti ${icon} shrink-0 mt-0.5" style="font-size: 15px;" aria-hidden="true"></i> <span class="${available ? 'text-gray-700' : 'text-gray-400'}">${label}${f ? ` (${f.quantity})` : ''}${note}</span></div>`;
                 }).join('');
 

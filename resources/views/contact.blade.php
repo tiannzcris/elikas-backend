@@ -56,7 +56,7 @@
                 <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
                     <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
-                    <p class="text-[9px] text-gray-400 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
+                    <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
@@ -104,28 +104,28 @@
                         <div class="flex items-start gap-3">
                             <i class="ti ti-phone text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Phone</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Phone</p>
                                 <p class="text-sm lg:text-base text-gray-700">(052) 201 1249</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-mail text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Email</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Email</p>
                                 <p class="text-sm lg:text-base text-gray-700">cswdoligao@gmail.com</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-brand-facebook text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Facebook</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Facebook</p>
                                 <p class="text-sm lg:text-base text-gray-700">CSWDO LIGAO</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
                             <i class="ti ti-map-pin text-brand mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">Office Address</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Office Address</p>
                                 <p class="text-sm lg:text-base text-gray-700">New City Hall Complex, Maharlika Highway, Binatagan, Ligao City</p>
                             </div>
                         </div>

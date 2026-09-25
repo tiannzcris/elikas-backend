@@ -41,7 +41,7 @@
                     <div class="relative">
                         <input type="password" id="password" required class="input-field pr-10">
                         <button type="button" id="toggle-password" tabindex="-1"
-                            class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-gray-400 hover:text-gray-600"
+                            class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-gray-500 hover:text-gray-600"
                             aria-label="Show password" aria-pressed="false">
                             <i class="ti ti-eye" id="toggle-password-icon" style="font-size: 17px;" aria-hidden="true"></i>
                         </button>
@@ -59,7 +59,7 @@
                 </button>
             </form>
 
-            <a href="/privacy" class="block text-center text-xs text-gray-400 hover:text-gray-600 mt-6">
+            <a href="/privacy" class="block text-center text-xs text-gray-500 hover:text-gray-600 mt-6">
                 Privacy Statement
             </a>
         </div>

@@ -27,7 +27,7 @@
     <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total events</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total events</p>
                 <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -36,7 +36,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F59E0B;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Monitoring</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Monitoring</p>
                 <p id="stat-monitoring" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -45,7 +45,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Active</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active</p>
                 <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
@@ -54,7 +54,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #6B7280;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Closed</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Closed</p>
                 <p id="stat-closed" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
@@ -63,7 +63,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total displaced</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total displaced</p>
                 <p id="stat-displaced" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
@@ -262,19 +262,19 @@
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Rainfall</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Rainfall</p>
                     <p class="text-lg font-bold text-gray-800">${event.rainfall_mm !== null ? event.rainfall_mm + ' mm' : '&mdash;'}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Wind speed</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Wind speed</p>
                     <p class="text-lg font-bold text-gray-800">${event.max_wind_speed_kph !== null ? event.max_wind_speed_kph + ' kph' : '&mdash;'}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Families affected</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Families affected</p>
                     <p class="text-lg font-bold text-gray-800">${event.total_families_displaced}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Persons displaced</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Persons displaced</p>
                     <p class="text-lg font-bold text-gray-800">${event.total_persons_displaced}</p>
                 </div>
             </div>
@@ -282,7 +282,7 @@
             <div id="hero-derived" class="grid grid-cols-2 gap-4 mb-5"></div>
 
             <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wide mb-2">Status progress</p>
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Status progress</p>
                 <div class="flex items-center">
                     ${steps.map((step, i) => `
                         <div class="flex items-center ${i < steps.length - 1 ? 'flex-1' : ''}">
@@ -291,7 +291,7 @@
                                     style="background: ${i <= currentIndex ? statusDots[step] : '#E5E7EB'}">
                                     ${i < currentIndex ? '<i class=\"ti ti-check\" style=\"font-size:13px;\"></i>' : ''}
                                 </span>
-                                <span class="text-xs mt-1 ${i <= currentIndex ? 'text-gray-700 font-medium' : 'text-gray-400'}">${statusLabels[step]}</span>
+                                <span class="text-xs mt-1 ${i <= currentIndex ? 'text-gray-700 font-medium' : 'text-gray-500'}">${statusLabels[step]}</span>
                             </div>
                             ${i < steps.length - 1 ? `<div class="flex-1 h-0.5 mx-2" style="background: ${i < currentIndex ? statusDots[step] : '#E5E7EB'}"></div>` : ''}
                         </div>
@@ -354,7 +354,7 @@
         });
 
         document.getElementById('events-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-400 text-sm text-center py-16 bg-white border border-gray-200 rounded-xl">No disaster events match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm text-center py-16 bg-white border border-gray-200 rounded-xl">No disaster events match this filter.</p>'
             : filtered.map((e) => `
                 <div class="bg-white border border-gray-200 rounded-xl p-4">
                     <div class="flex items-start justify-between">
@@ -373,7 +373,7 @@
                                     ${e.rainfall_mm !== null ? ` &middot; ${e.rainfall_mm}mm rainfall` : ''}
                                     ${e.max_wind_speed_kph !== null ? ` &middot; ${e.max_wind_speed_kph}kph wind` : ''}
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1">Started ${e.start_date}${e.end_date ? ' &middot; Ended ' + e.end_date : ''}</p>
+                                <p class="text-xs text-gray-500 mt-1">Started ${e.start_date}${e.end_date ? ' &middot; Ended ' + e.end_date : ''}</p>
                             </div>
                         </div>
                         <div class="text-right">
@@ -402,7 +402,7 @@
                 <span class="flex items-center gap-1.5 text-gray-600">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${statusDots[s.key]}"></span>${s.label}
                 </span>
-                <span class="font-medium text-gray-800">${s.count} <span class="text-gray-400 font-normal">(${Math.round(s.count / statusTotal * 100)}%)</span></span>
+                <span class="font-medium text-gray-800">${s.count} <span class="text-gray-500 font-normal">(${Math.round(s.count / statusTotal * 100)}%)</span></span>
             </div>`).join('');
 
         if (statusChartInstance) statusChartInstance.destroy();
@@ -439,9 +439,9 @@
                 <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-blue-400"></span>
                 <div class="min-w-0">
                     <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
-                    <p class="text-gray-400">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
+                    <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                 </div>
-            </div>`).join('') : '<p class="text-gray-400">No activity recorded yet.</p>';
+            </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';
     }
 
     async function loadEvents() {

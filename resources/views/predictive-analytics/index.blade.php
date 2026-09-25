@@ -12,9 +12,9 @@
     <div id="latest-stats-row" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Predicted evacuees</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted evacuees</p>
                 <p id="latest-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Latest forecast</p>
+                <p class="text-xs text-gray-500 italic mt-1">Latest forecast</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -22,9 +22,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Predicted occupancy</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted occupancy</p>
                 <p id="latest-occupancy" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">Across centers</p>
+                <p class="text-xs text-gray-500 italic mt-1">Across centers</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-building text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -32,9 +32,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Estimated resource cost</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Estimated resource cost</p>
                 <p id="latest-cost" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="latest-cost-note" class="text-xs text-gray-400 italic mt-1">&mdash;</p>
+                <p id="latest-cost-note" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-currency-peso text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -42,9 +42,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Signal level</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Signal level</p>
                 <p id="latest-signal" class="text-lg font-bold text-gray-800">&mdash;</p>
-                <p id="latest-signal-note" class="text-xs text-gray-400 italic mt-1">From forecasted wind speed</p>
+                <p id="latest-signal-note" class="text-xs text-gray-500 italic mt-1">From forecasted wind speed</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-wind text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -129,7 +129,7 @@
                     first (see <code class="bg-gray-100 px-1 rounded">php artisan weather:import</code>).
                 </p>
 
-                <div id="sarima-empty-state" class="hidden text-center py-8 text-sm text-gray-400">
+                <div id="sarima-empty-state" class="hidden text-center py-8 text-sm text-gray-500">
                     No weather history imported yet. Import PAGASA data (or run
                     <code class="bg-gray-100 px-1 rounded">php artisan weather:import ... --sample</code>
                     for test data) before a forecast can be generated.
@@ -167,7 +167,7 @@
                     <div style="position: relative; width: 100%; height: 240px;">
                         <canvas id="sarimaChart" role="img" aria-label="Line chart of historical and forecasted weather readings"></canvas>
                     </div>
-                    <p id="sarima-diagnostics" class="text-xs text-gray-400 mt-2"></p>
+                    <p id="sarima-diagnostics" class="text-xs text-gray-500 mt-2"></p>
                 </div>
             </div>
             @endif
@@ -196,7 +196,7 @@
                     <p class="text-sm font-semibold text-gray-700">AI recommendations</p>
                 </div>
                 <div id="recommendations-list" class="flex flex-col gap-3"></div>
-                <p class="text-xs text-gray-400 mt-3">Rule-based guidance computed from the latest forecast's own numbers and current center capacity -- not a separate AI model.</p>
+                <p class="text-xs text-gray-500 mt-3">Rule-based guidance computed from the latest forecast's own numbers and current center capacity -- not a separate AI model.</p>
             </div>
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -208,7 +208,7 @@
                     <div class="flex items-center justify-between"><span class="text-gray-600">Signal 4</span><span class="text-gray-800 font-medium">118&ndash;184 kph</span></div>
                     <div class="flex items-center justify-between"><span class="text-gray-600">Signal 5</span><span class="text-gray-800 font-medium">185+ kph</span></div>
                 </div>
-                <p class="text-xs text-gray-400 mt-3">Computed client-side from the wind speed you enter above -- not a separate model input.</p>
+                <p class="text-xs text-gray-500 mt-3">Computed client-side from the wind speed you enter above -- not a separate model input.</p>
             </div>
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -335,13 +335,13 @@
         const latest = allPredictions[0];
 
         if (! latest) {
-            box.innerHTML = '<p class="text-xs text-gray-400">Generate a forecast to see recommendations.</p>';
+            box.innerHTML = '<p class="text-xs text-gray-500">Generate a forecast to see recommendations.</p>';
             return;
         }
 
         const recs = buildRecommendations(latest, allCenters);
         box.innerHTML = recs.length === 0
-            ? '<p class="text-xs text-gray-400">No specific concerns flagged for this forecast.</p>'
+            ? '<p class="text-xs text-gray-500">No specific concerns flagged for this forecast.</p>'
             : recs.map((r) => `
                 <div class="flex gap-2.5">
                     <div class="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style="background:${r.bg}">
@@ -361,7 +361,7 @@
         if (! evaluation || evaluation.r2 === null || evaluation.r2 === undefined) {
             box.innerHTML = `
                 <p class="text-2xl font-bold text-gray-300 mb-1">&mdash;</p>
-                <p class="text-xs text-gray-400">Not enough historical events with variation yet to compute R&sup2;. Forecasts still generate, just without a confidence score attached.</p>`;
+                <p class="text-xs text-gray-500">Not enough historical events with variation yet to compute R&sup2;. Forecasts still generate, just without a confidence score attached.</p>`;
             return;
         }
 
@@ -379,7 +379,7 @@
                 <div class="h-1.5 rounded-full" style="width:${pct}%; background:${color}"></div>
             </div>
             <p class="text-xs text-gray-500">R&sup2; ${evaluation.r2.toFixed(3)} &middot; MAE ${evaluation.mae.toFixed(1)} persons</p>
-            <p class="text-xs text-gray-400 mt-1">Evaluated via leave-one-out cross-validation across ${evaluation.sample_count} historical event(s).</p>`;
+            <p class="text-xs text-gray-500 mt-1">Evaluated via leave-one-out cross-validation across ${evaluation.sample_count} historical event(s).</p>`;
     }
 
     async function loadStatus() {
@@ -460,19 +460,19 @@
             ! query || (p.evacuation_event?.name ?? 'standalone forecast').toLowerCase().includes(query));
 
         document.getElementById('predictions-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-400 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No forecasts match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No forecasts match this filter.</p>'
             : filtered.map((p) => `
                 <div class="bg-white border border-gray-200 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-sm font-medium">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
-                        <p class="text-xs text-gray-400">${new Date(p.generated_at).toLocaleString()}</p>
+                        <p class="text-xs text-gray-500">${new Date(p.generated_at).toLocaleString()}</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-2">
                         <div><p class="text-xs text-gray-500">Predicted evacuees</p><p class="font-medium">${p.predicted_evacuees}</p></div>
                         <div><p class="text-xs text-gray-500">Predicted center occupancy</p><p class="font-medium">${p.predicted_center_occupancy}</p></div>
                         <div><p class="text-xs text-gray-500">Estimated resource cost</p><p class="font-medium">&#8369;${Number(p.predicted_resources_needed).toLocaleString()}</p></div>
                     </div>
-                    <p class="text-xs text-gray-400">
+                    <p class="text-xs text-gray-500">
                         Input: ${p.input_payload.rainfall_mm}mm rainfall, ${p.input_payload.wind_speed_kph}kph wind &middot;
                         trained on ${p.input_payload.training_event_count} historical event(s)
                         ${p.mae_score !== null ? ` &middot; MAE ${Number(p.mae_score).toFixed(1)}` : ''}
@@ -493,7 +493,7 @@
 
     async function loadActivity() {
         if (! isAdministrator) {
-            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-400">Visible to administrators only.</p>';
+            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-500">Visible to administrators only.</p>';
             return;
         }
         try {
@@ -504,11 +504,11 @@
                     <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-purple-400"></span>
                     <div class="min-w-0">
                         <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
-                        <p class="text-gray-400">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
+                        <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                     </div>
-                </div>`).join('') : '<p class="text-gray-400">No activity recorded yet.</p>';
+                </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';
         } catch (error) {
-            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-400">Unavailable.</p>';
+            document.getElementById('activity-timeline').innerHTML = '<p class="text-gray-500">Unavailable.</p>';
         }
     }
 

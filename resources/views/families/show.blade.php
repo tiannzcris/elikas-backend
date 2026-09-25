@@ -141,7 +141,7 @@
             // so that line is skipped entirely rather than shown as blank.
             const nameLine = m.is_placeholder
                 ? `Member ${idx + 1} <span class="text-amber-600 font-normal">— details pending</span>`
-                : `${m.full_name} <span class="text-gray-400 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>`;
+                : `${m.full_name} <span class="text-gray-500 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>`;
 
             return `
             <div class="p-4 flex items-center justify-between gap-3">

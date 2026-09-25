@@ -21,7 +21,7 @@
                     <i id="email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
                 <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
-                <p class="text-xs text-gray-400 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
+                <p class="text-xs text-gray-500 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600 block mb-1" id="password-label">Password</label>
@@ -47,7 +47,7 @@
                     <option value="cswd_personnel">CSWD Personnel</option>
                     <option value="barangay_official">Barangay Official</option>
                 </select>
-                <p id="role-locked-note" class="hidden text-xs text-gray-400 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
+                <p id="role-locked-note" class="hidden text-xs text-gray-500 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
             </div>
             <div id="barangay-field" class="hidden">
                 <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">

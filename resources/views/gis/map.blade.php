@@ -16,7 +16,7 @@
     <div id="stats-row" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #16a34a;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Active centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active centers</p>
                 <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
@@ -25,7 +25,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F59E0B;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Near full (&ge;75%)</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Near full (&ge;75%)</p>
                 <p id="stat-near-full" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -34,7 +34,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #6b7280;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Closed centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Closed centers</p>
                 <p id="stat-closed" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
@@ -43,7 +43,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #dc2626;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Hazard zones mapped</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hazard zones mapped</p>
                 <p id="stat-hazards" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -98,7 +98,7 @@
             </div>
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Evacuation centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Evacuation centers</p>
                 <div class="relative mb-2">
                     <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
                     <input id="center-search" type="text" placeholder="Search centers..."
@@ -121,7 +121,7 @@
 
         <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
             <div class="bg-white border border-gray-200 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2">
-                <p id="map-updated" class="text-xs text-gray-400 pl-1"></p>
+                <p id="map-updated" class="text-xs text-gray-500 pl-1"></p>
                 <div class="flex items-center gap-2">
                     <button id="reset-view-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
                         <i class="ti ti-refresh" style="font-size: 13px;" aria-hidden="true"></i> Reset view
@@ -476,7 +476,7 @@
         if (showLayer) centerLayer.addTo(map);
 
         document.getElementById('center-list').innerHTML = filtered.length === 0
-            ? '<p class="text-xs text-gray-400 text-center py-6">No centers match this filter.</p>'
+            ? '<p class="text-xs text-gray-500 text-center py-6">No centers match this filter.</p>'
             : filtered.map((f) => {
                 const p = f.properties;
                 const [lng, lat] = f.geometry.coordinates;
@@ -487,7 +487,7 @@
                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[p.status] ?? '#666'}"></span>
                             <span class="font-medium text-gray-700">${p.name}</span>
                         </span>
-                        ${p.capacity_persons ? `<p class="text-xs text-gray-400 pl-4">${p.current_occupancy} / ${p.capacity_persons} (${pct}%)</p>` : ''}
+                        ${p.capacity_persons ? `<p class="text-xs text-gray-500 pl-4">${p.current_occupancy} / ${p.capacity_persons} (${pct}%)</p>` : ''}
                     </button>`;
             }).join('');
 

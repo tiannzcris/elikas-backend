@@ -21,7 +21,7 @@
     <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total centers</p>
                 <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -30,7 +30,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Active now</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active now</p>
                 <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
@@ -39,7 +39,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total capacity</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total capacity</p>
                 <p id="stat-capacity" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
@@ -48,7 +48,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Current occupancy</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Current occupancy</p>
                 <p id="stat-occupancy" class="text-2xl font-bold text-gray-800">&mdash;</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
@@ -57,9 +57,9 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
             <div>
-                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">At risk / Full</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">At risk / Full</p>
                 <p id="stat-at-risk" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-400 italic mt-1">&ge;90% occupied</p>
+                <p class="text-xs text-gray-500 italic mt-1">&ge;90% occupied</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                 <i class="ti ti-alert-triangle text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
@@ -109,7 +109,7 @@
 
             <div class="bg-white border border-gray-200 rounded-xl p-4">
                 <p class="text-sm font-semibold text-gray-700 mb-3">Facility coverage</p>
-                <p class="text-xs text-gray-400 mb-3">Share of centers reporting each facility as available.</p>
+                <p class="text-xs text-gray-500 mb-3">Share of centers reporting each facility as available.</p>
                 <div id="facility-coverage" class="space-y-2.5 text-xs"></div>
             </div>
 
@@ -120,7 +120,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-700">View on GIS map</p>
-                        <p class="text-xs text-gray-400">See centers and hazard zones geographically</p>
+                        <p class="text-xs text-gray-500">See centers and hazard zones geographically</p>
                     </div>
                 </div>
                 <i class="ti ti-chevron-right text-gray-300 group-hover:text-brand" style="font-size: 18px;" aria-hidden="true"></i>
@@ -151,7 +151,7 @@
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Barangay</label>
                         <select id="center-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
-                        <p id="center-barangay-lock-note" class="text-xs text-gray-400 mt-1 hidden">Locked to your own barangay.</p>
+                        <p id="center-barangay-lock-note" class="text-xs text-gray-500 mt-1 hidden">Locked to your own barangay.</p>
                     </div>
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Type</label>
@@ -172,12 +172,12 @@
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
                         <input type="number" id="center-capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                        <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
                     </div>
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
                         <input type="number" id="center-capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <p class="text-xs text-gray-400 mt-1">Leave blank if not yet known.</p>
+                        <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
                     </div>
                     <div>
                         <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
@@ -214,14 +214,14 @@
                         </div>
                         <div class="flex-1">
                             <input type="file" id="center-photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-light file:text-brand file:text-sm file:font-medium hover:file:bg-blue-100">
-                            <p class="text-xs text-gray-400 mt-1">JPG, PNG, etc. Max 5MB.</p>
+                            <p class="text-xs text-gray-500 mt-1">JPG, PNG, etc. Max 5MB.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <p class="text-sm text-gray-600 mb-2">
-                        Location (optional) <span id="center-coords-display" class="text-gray-400">(click the map to set, or leave unset for now)</span>
+                        Location (optional) <span id="center-coords-display" class="text-gray-500">(click the map to set, or leave unset for now)</span>
                     </p>
                     <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
                         <div class="flex-1">
@@ -258,7 +258,7 @@
                             Assign
                         </button>
                     </div>
-                    <p id="assign-owner-empty-note" class="text-xs text-gray-400 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
+                    <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
                     <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
                 </div>
 
@@ -375,7 +375,7 @@
         });
 
         document.getElementById('cards').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-400 text-sm sm:col-span-2 text-center py-16">No centers match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm sm:col-span-2 text-center py-16">No centers match this filter.</p>'
             : filtered.map((c) => {
                 const pct = c.occupancy_percent ?? 0;
                 const barColor = pct >= 100 ? 'bg-red-500' : pct >= 75 ? 'bg-amber-500' : 'bg-green-500';
@@ -407,8 +407,8 @@
                             <div class="h-1.5 bg-gray-100 rounded-full mb-3">
                                 <div class="h-1.5 ${barColor} rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
                             </div>
-                        ` : '<p class="text-xs text-gray-400 mb-3">No capacity set</p>'}
-                        <div class="flex items-center gap-1.5 text-xs text-gray-400 pt-2 border-t border-gray-100">
+                        ` : '<p class="text-xs text-gray-500 mb-3">No capacity set</p>'}
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500 pt-2 border-t border-gray-100">
                             <i class="ti ti-clipboard-check" style="font-size: 13px;" aria-hidden="true"></i>
                             ${facilities.length ? `${facilitiesAvailable}/${facilities.length} facilities available` : 'No facility checklist recorded'}
                         </div>
@@ -465,7 +465,7 @@
                     <div class="w-full bg-gray-100 rounded-full h-1.5">
                         <div class="bg-blue-500 h-1.5 rounded-full" style="width:${count / maxType * 100}%"></div>
                     </div>
-                </div>`).join('') || '<p class="text-gray-400">No data yet.</p>';
+                </div>`).join('') || '<p class="text-gray-500">No data yet.</p>';
 
         // Centers by barangay (top 5)
         const byBarangay = {};
@@ -486,7 +486,7 @@
                         <div class="bg-purple-500 h-1.5 rounded-full" style="width:${count / maxBrgy * 100}%"></div>
                     </div>
                 </div>`).join('')
-            : '<p class="text-gray-400">No data yet.</p>';
+            : '<p class="text-gray-500">No data yet.</p>';
 
         // Facility coverage (share of centers with each key facility available)
         const totalCenters = allCenters.length || 1;
@@ -535,7 +535,7 @@
 
             if (centers.length === 0) {
                 document.getElementById('cards').innerHTML =
-                    '<p class="text-gray-400 text-sm sm:col-span-2 text-center py-16">No evacuation centers yet.</p>';
+                    '<p class="text-gray-500 text-sm sm:col-span-2 text-center py-16">No evacuation centers yet.</p>';
                 document.getElementById('stats-row').classList.add('hidden');
                 return;
             }
@@ -603,7 +603,7 @@
 
         document.getElementById('center-coords-display').textContent =
             `(${lat.toFixed(6)}, ${lng.toFixed(6)})`;
-        document.getElementById('center-coords-display').classList.remove('text-gray-400');
+        document.getElementById('center-coords-display').classList.remove('text-gray-500');
     }
 
     // Accepts exactly what Google Maps' right-click "Copy coordinates"
@@ -754,7 +754,7 @@
         selectedLat = null;
         selectedLng = null;
         document.getElementById('center-coords-display').textContent = '(click the map to set, or leave unset for now)';
-        document.getElementById('center-coords-display').classList.add('text-gray-400');
+        document.getElementById('center-coords-display').classList.add('text-gray-500');
         document.getElementById('center-coords-paste-error').classList.add('hidden');
 
         document.getElementById('add-center-modal').classList.remove('hidden');
