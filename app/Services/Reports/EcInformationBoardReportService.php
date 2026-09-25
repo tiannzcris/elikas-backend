@@ -17,21 +17,27 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * the uploaded template) since its layout is simple enough to reproduce
  * exactly and doing so avoids shipping a second binary template file.
  *
- * KNOWN GAP, same as the DROMIC Region V report: "Child-Headed Family" and
- * "Single-Headed Family" rows are shown with a value of 0 -- this system
- * does not track those two sectoral flags (see DromicRegionVReportService's
- * docblock for the same note).
- *
  * 4Ps BENEFICIARIES / SECTORAL SOURCE: the header's "4Ps Beneficiaries:"
- * count and every Sectoral Group row (except the two untracked ones above)
- * are staff-reported aggregates, not derived from individual Evacuee
- * flags -- same reasoning as EvacuationCenterQuickCount's own docblock
- * (most evacuees are placeholders with no name/details filled in, so
- * per-person flags like is_4ps_beneficiary are rarely set). When a
- * EvacuationCenterQuickCount row exists for this center+event, its
- * beneficiaries_4ps and sectoralGroups() are used directly; only falls
- * back to counting individual Evacuee flags when no such row exists at
- * all (i.e. the EC Board's sectoral form has never been saved here).
+ * count and every Sectoral Group row are staff-reported aggregates, not
+ * derived from individual Evacuee flags -- same reasoning as
+ * EvacuationCenterQuickCount's own docblock (most evacuees are
+ * placeholders with no name/details filled in, so per-person flags like
+ * is_4ps_beneficiary are rarely set). When a EvacuationCenterQuickCount
+ * row exists for this center+event, its beneficiaries_4ps and
+ * sectoralGroups() are used directly for all eight rows; only falls back
+ * to counting individual Evacuee flags when no such row exists at all
+ * (i.e. the EC Board's sectoral form has never been saved here).
+ *
+ * CHILD-HEADED / SINGLE-HEADED FAMILY: previously hardcoded to 0 as a
+ * known gap -- that's no longer true. Both are now real, collected
+ * categories (the EC Board's own sectoral breakdown form has inputs for
+ * them, saved to evacuation_center_quick_count_sectoral_groups, same as
+ * the other six). The one difference: neither has any per-Evacuee flag
+ * to fall back to (no such column exists on families or evacuees), so
+ * when no quick-count row exists yet they stay 0 -- meaning "not yet
+ * reported", same as every other row in that situation, not "confirmed
+ * zero". DromicRegionVReportService still has its own separate, older
+ * version of this same gap -- not changed here.
  *
 
  * PLACEHOLDER EVACUEES: a placeholder's age_bracket and/or sex can be null
@@ -155,29 +161,32 @@ class EcInformationBoardReportService
         // value this category is stored under -- deliberately a separate
         // key from the array index (the Evacuee flag name) since the two
         // naming conventions don't match 1:1 (e.g. is_pwd vs 'pwd').
+        // 'flag' => null marks a category with no per-Evacuee flag at all
+        // to fall back to (see the class docblock's CHILD-HEADED /
+        // SINGLE-HEADED FAMILY note).
         $sectors = [
-            'is_pwd' => ['label' => 'Persons with Disability/ies (PWDs)', 'group' => 'pwd'],
-            '__child_headed' => ['label' => 'Child-Headed Family/ies', 'group' => 'child_headed_family'],    // not tracked -- always 0, see class docblock
-            '__single_headed' => ['label' => 'Single-Headed Family/ies', 'group' => 'single_headed_family'],  // not tracked -- always 0, see class docblock
-            'is_solo_parent' => ['label' => 'Solo Parent/s', 'group' => 'solo_parent'],
-            'is_pregnant' => ['label' => 'Pregnant Women', 'group' => 'pregnant_women'],
-            'is_lactating' => ['label' => 'Lactating Mother/s', 'group' => 'lactating_mothers'],
-            'is_4ps_beneficiary' => ['label' => '4Ps Beneficiary/ies', 'group' => 'four_ps_beneficiary'],
-            'is_indigenous_person' => ['label' => 'Indigenous Peoples (IPs)', 'group' => 'indigenous_peoples'],
+            ['label' => 'Persons with Disability/ies (PWDs)', 'group' => 'pwd', 'flag' => 'is_pwd'],
+            ['label' => 'Child-Headed Family/ies', 'group' => 'child_headed_family', 'flag' => null],
+            ['label' => 'Single-Headed Family/ies', 'group' => 'single_headed_family', 'flag' => null],
+            ['label' => 'Solo Parent/s', 'group' => 'solo_parent', 'flag' => 'is_solo_parent'],
+            ['label' => 'Pregnant Women', 'group' => 'pregnant_women', 'flag' => 'is_pregnant'],
+            ['label' => 'Lactating Mother/s', 'group' => 'lactating_mothers', 'flag' => 'is_lactating'],
+            ['label' => '4Ps Beneficiary/ies', 'group' => 'four_ps_beneficiary', 'flag' => 'is_4ps_beneficiary'],
+            ['label' => 'Indigenous Peoples (IPs)', 'group' => 'indigenous_peoples', 'flag' => 'is_indigenous_person'],
         ];
 
         $sectorTotal = ['male' => 0, 'female' => 0];
-        foreach ($sectors as $flag => $meta) {
-            if (str_starts_with($flag, '__')) {
-                $male = 0;
-                $female = 0;
-            } elseif ($quickCount) {
+        foreach ($sectors as $meta) {
+            if ($quickCount) {
                 $reported = $quickCount->sectoralGroups->firstWhere('sectoral_group', $meta['group']);
                 $male = $reported->male_count ?? 0;
                 $female = $reported->female_count ?? 0;
+            } elseif ($meta['flag']) {
+                $male = $now->filter(fn ($e) => $e->{$meta['flag']} && $e->sex === 'male')->count();
+                $female = $now->filter(fn ($e) => $e->{$meta['flag']} && $e->sex === 'female')->count();
             } else {
-                $male = $now->filter(fn ($e) => $e->{$flag} && $e->sex === 'male')->count();
-                $female = $now->filter(fn ($e) => $e->{$flag} && $e->sex === 'female')->count();
+                $male = 0;
+                $female = 0;
             }
             $sectorTotal['male'] += $male;
             $sectorTotal['female'] += $female;
