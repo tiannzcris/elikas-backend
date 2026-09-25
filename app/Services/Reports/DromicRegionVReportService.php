@@ -9,6 +9,7 @@ use App\Models\EvacuationCenter;
 use App\Models\EvacuationCenterFacility;
 use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationEvent;
+use App\Models\EvacuationRecord;
 use App\Models\Family;
 use App\Models\ReliefDistribution;
 use Illuminate\Support\Collection;
@@ -56,6 +57,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  *    - When a barangay used MORE THAN ONE evacuation center, only the
  *      highest-occupancy center's name/address/lat/long (columns O-R) are
  *      shown, since the template allows only one center's detail per row.
+ *    - FLAGGED, NOT FIXED: that center is chosen from centers LOCATED in
+ *      the barangay, not the centers its evacuees are actually in -- so a
+ *      barangay whose evacuees all stay at another barangay's center gets
+ *      blank O-R, M = 0 and zero facility columns. Inconsistent with the home-barangay
+ *      grouping used everywhere else; see the $primaryCenter comment in
+ *      computeBarangayData().
  *
  * A human should review this report before it is submitted anywhere
  * official -- treat it as a first draft that eliminates manual data entry
@@ -92,6 +99,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * SECTORAL COLUMNS' DATA SOURCE (BO-CP):
  * the NOW half of each pair (BP, BR, CB, CD, CF, CH, CJ, CL, CN, CP)
  * prefers each EvacuationCenterQuickCount's staff-reported sectoralGroups()
+ * -- a center shared by several barangays split between them by
+ * headcount, an estimate (see headcountSplitAllocations()) --
  * -- same reasoning as EvacuationCenterQuickCount's own docblock, most
  * evacuees here are placeholders with no per-person flags set yet -- summed
  * across every center this barangay's currently-active evacuees are
@@ -330,6 +339,106 @@ class DromicRegionVReportService
      * template, so writeRow() is a simple, auditable letter-by-letter
      * assignment rather than positional guessing.
      */
+    /** @var array<int, array> event id => headcountSplitAllocations() result */
+    private array $headcountSplitCache = [];
+
+    /**
+     * Splits every EC Board-reported sectoral figure (per group, per sex)
+     * of each center across the HOME barangays of the evacuees currently
+     * staying there, in proportion to how many of each barangay's own
+     * evacuees are there. Returns
+     * [centerId][barangayId][sectoralGroup]['male'|'female'] => int.
+     * Home barangay = the family's barangay_id, the same grouping every
+     * barangay row in this report uses (see computeBarangayData()'s
+     * $families query), so each row takes exactly its own share.
+     *
+     * ESTIMATE for shared centers: the EC Board records one figure per
+     * center, not which barangay each counted person is from, so a shared
+     * center's split is proportional, not exact. A center used by a single
+     * barangay is unaffected -- that barangay gets the full figure.
+     *
+     * Whole numbers via the largest-remainder method: each barangay first
+     * gets the whole part of its exact share, then the units left over go
+     * one at a time to the largest fractional remainders (ties: more
+     * evacuees there, then lower barangay id, so the output is stable).
+     * Rounding each share on its own could hand out more or less than the
+     * center reported -- 3 split 5:1 is 2.5 : 0.5, which rounds to 3 + 1 =
+     * 4 -- whereas this always distributes the center's figure exactly, so
+     * the city total stays the true sum of what centers reported. (That
+     * same example comes out 3 : 0: tied .5 remainders, larger group wins.)
+     *
+     * Cached per event: computeBarangayData() runs once per barangay, but
+     * the split needs every barangay's headcount at a center at once.
+     */
+    private function headcountSplitAllocations(EvacuationEvent $event): array
+    {
+        if (isset($this->headcountSplitCache[$event->id])) {
+            return $this->headcountSplitCache[$event->id];
+        }
+
+        // Same "current" test computeBarangayData() uses for $nowEvacuees
+        // (an active record in this event), and only families that belong
+        // to this event -- so these headcounts are exactly the evacuees the
+        // barangay rows themselves count.
+        $headcounts = EvacuationRecord::where('evacuation_event_id', $event->id)
+            ->where('status', 'currently_evacuated')
+            ->whereNotNull('evacuation_center_id')
+            ->with('evacuee.family')
+            ->get()
+            ->filter(fn ($r) => (int) $r->evacuee?->family?->evacuation_event_id === (int) $event->id)
+            ->groupBy('evacuation_center_id')
+            ->map(fn ($records) => $records
+                ->groupBy(fn ($r) => (int) $r->evacuee->family->barangay_id)
+                ->map(fn ($byBarangay) => $byBarangay->pluck('evacuee_id')->unique()->count())
+                ->all());
+
+        $quickCounts = EvacuationCenterQuickCount::where('evacuation_event_id', $event->id)
+            ->whereIn('evacuation_center_id', $headcounts->keys())
+            ->with('sectoralGroups')
+            ->get();
+
+        $allocations = [];
+        foreach ($quickCounts as $qc) {
+            $centerHeadcounts = $headcounts[$qc->evacuation_center_id];
+            foreach (EvacuationCenterQuickCount::SECTORAL_GROUPS as $group) {
+                $reported = $qc->sectoralGroups->firstWhere('sectoral_group', $group);
+                foreach (['male', 'female'] as $sex) {
+                    $shares = $this->splitByLargestRemainder((int) ($reported?->{"{$sex}_count"} ?? 0), $centerHeadcounts);
+                    foreach ($shares as $barangayId => $share) {
+                        $allocations[$qc->evacuation_center_id][$barangayId][$group][$sex] = $share;
+                    }
+                }
+            }
+        }
+
+        return $this->headcountSplitCache[$event->id] = $allocations;
+    }
+
+    /**
+     * @param  array<int, int>  $headcounts  barangay id => evacuees at the center (each > 0)
+     * @return array<int, int>  barangay id => whole-number share, summing to exactly $amount
+     */
+    private function splitByLargestRemainder(int $amount, array $headcounts): array
+    {
+        $total = array_sum($headcounts);
+        $shares = [];
+        $remainders = [];
+        foreach ($headcounts as $barangayId => $count) {
+            // Integer arithmetic throughout -- no float rounding error in
+            // deciding which remainder is largest.
+            $shares[$barangayId] = intdiv($amount * $count, $total);
+            $remainders[$barangayId] = ($amount * $count) % $total;
+        }
+
+        $order = array_keys($headcounts);
+        usort($order, fn ($a, $b) => [$remainders[$b], $headcounts[$b], $a] <=> [$remainders[$a], $headcounts[$a], $b]);
+        for ($i = 0, $left = $amount - array_sum($shares); $i < $left; $i++) {
+            $shares[$order[$i]]++;
+        }
+
+        return $shares;
+    }
+
     private function computeBarangayData(Barangay $barangay, EvacuationEvent $event): array
     {
         $families = Family::where('evacuation_event_id', $event->id)
@@ -391,13 +500,22 @@ class DromicRegionVReportService
         // has ever saved a quick-count row for this event, so callers can
         // tell "genuinely reported as zero" apart from "never reported,
         // fall back to counting Evacuee flags instead".
-        $sectoralNowTotal = fn (string $group) => $quickCounts->isEmpty() ? null : $quickCounts->sum(
-            fn ($qc) => ($qc->sectoralGroups->firstWhere('sectoral_group', $group)->male_count ?? 0)
-                + ($qc->sectoralGroups->firstWhere('sectoral_group', $group)->female_count ?? 0)
-        );
+        //
+        // A center used by evacuees from several barangays contributes only
+        // THIS barangay's headcount share of its figures (see
+        // headcountSplitAllocations()), not the full figure -- counting it
+        // in full in every sharing barangay's row inflated the city total.
+        // A center used by this barangay alone still contributes its full
+        // figure, exactly as before.
+        $allocations = $this->headcountSplitAllocations($event);
         $sectoralNowBySex = fn (string $group, string $sex) => $quickCounts->isEmpty() ? null : $quickCounts->sum(
-            fn ($qc) => $qc->sectoralGroups->firstWhere('sectoral_group', $group)?->{"{$sex}_count"} ?? 0
+            fn ($qc) => $allocations[$qc->evacuation_center_id][$barangay->id][$group][$sex] ?? 0
         );
+        // Male + female shares rather than splitting the combined figure
+        // separately, so BP/BR can never disagree with the per-sex columns.
+        $sectoralNowTotal = fn (string $group) => $quickCounts->isEmpty()
+            ? null
+            : $sectoralNowBySex($group, 'male') + $sectoralNowBySex($group, 'female');
 
         // Child-Headed / Single-Headed Family (BS-BZ): only the NOW columns
         // (BT, BV, BX, BZ) can be filled, and only from quick-count data --
@@ -421,6 +539,17 @@ class DromicRegionVReportService
         // families, picked by highest current occupancy when more than one
         // was used -- the template has room for only one center's detail
         // per barangay row (see class docblock).
+        //
+        // FLAGGED, NOT FIXED (2026-09-25): this picks centers by where the
+        // CENTER is located (evacuation_centers.barangay_id), while every
+        // count in this row is by the families' HOME barangay. So a
+        // barangay whose evacuees are all staying at another barangay's
+        // center gets blank EC-detail columns (O-R), M = 0, and 0 in every
+        // facility column (CQ onward, via $facilityQty below), even though
+        // it did use a center -- e.g. Binanowan,
+        // whose evacuee is at Binatagan Covered Court (event 7). A fix would
+        // pick from the centers this row's evacuees are actually in
+        // ($centerIdsInUse above) instead.
         $primaryCenter = EvacuationCenter::where('barangay_id', $barangay->id)
             ->whereHas('evacuationRecords', fn ($q) => $q->where('evacuation_event_id', $event->id))
             ->get()
