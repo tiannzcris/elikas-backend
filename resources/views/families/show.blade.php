@@ -4,7 +4,7 @@
 @section('nav-families', 'active')
 
 @section('content')
-    <a href="/families" class="text-sm text-gray-500 hover:text-brand">&larr; Back to families</a>
+    <a id="back-link" href="/families" class="text-sm text-gray-500 hover:text-brand">&larr; Back to families</a>
 
     <div id="content-wrap" class="hidden mt-4">
         <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
@@ -196,6 +196,26 @@
 
             document.getElementById('family-center').textContent =
                 `Evacuation center: ${currentFamily.evacuation_center?.name ?? 'None assigned'}`;
+
+            // Context-aware "Back": if we arrived via the Evacuees page's
+            // own barangay -> center -> family drill-down (see
+            // families/index.blade.php's familyDetailReturnParams()), Back
+            // should return to that SAME drilled-into barangay/center list,
+            // not jump all the way over to the top-level Evacuees landing
+            // view. Any other arrival path (no recognized query params)
+            // falls back to the previous, simpler default. Same
+            // context-aware pattern already proven on the EC Board
+            // section's own back-button fix (see ec-board/show.blade.php).
+            const params = new URLSearchParams(window.location.search);
+            const backLink = document.getElementById('back-link');
+            if (params.get('from') === 'families' && params.get('barangay')) {
+                const barangayId = params.get('barangay');
+                const centerId = params.get('center');
+                backLink.href = `/families?barangay=${barangayId}${centerId ? `&center=${centerId}` : ''}`;
+                backLink.textContent = centerId && centerId !== 'none'
+                    ? `← Back to ${currentFamily.evacuation_center?.name ?? 'this center'}`
+                    : `← Back to ${currentFamily.barangay?.name ?? 'this barangay'}`;
+            }
 
             renderMembers();
             document.getElementById('content-wrap').classList.remove('hidden');

@@ -393,7 +393,7 @@
                 <td class="px-4 py-3 text-gray-600">${f.evacuation_center?.name ?? '&mdash;'}</td>
                 <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${tags.join('') || '<span class="text-gray-300 text-xs">&mdash;</span>'}</div></td>
                 <td class="px-4 py-3 text-gray-500">${new Date(f.created_at).toLocaleDateString()}</td>
-                <td class="px-4 py-3"><a href="/families/${f.id}" class="text-brand hover:underline">View</a></td>
+                <td class="px-4 py-3"><a href="/families/${f.id}?${familyDetailReturnParams()}" class="text-brand hover:underline">View</a></td>
             </tr>`;
         }).join('');
     }
@@ -668,7 +668,22 @@
     // and the center-level stat totals can both reuse it without a second
     // fetch -- see refreshScopedSummary().
     let centerSummaryRowsCache = [];
+    // Cached so the deep-link restore below (from a family detail page's
+    // "Back" link) can resolve a barangay id from the URL back to its name
+    // without a second /families/barangay-summary fetch.
+    let lastBarangaySummaryRows = [];
     let cityWideTotals = { households: 0, total_persons: 0 };
+
+    // Embeds the CURRENT drill level in a family's "View" link so its own
+    // detail page's "Back" link can return to this same barangay/center
+    // instead of always landing on the top-level Evacuees page -- same
+    // query-param pattern already proven on the EC Board section (see
+    // ec-board/index.blade.php's per-center link and ec-board/show.blade.php's
+    // own "Back" handling). Only ever called from renderTable(), which only
+    // ever runs at the family level, so both ids are always set here.
+    function familyDetailReturnParams() {
+        return `from=families&barangay=${currentBarangayId}&center=${currentCenterId}`;
+    }
 
     function showDrillLevel(level) {
         document.getElementById('barangay-summary-view').classList.toggle('hidden', level !== 'barangay');
@@ -741,6 +756,7 @@
     async function loadBarangaySummary() {
         try {
             const result = await Api.get('/families/barangay-summary');
+            lastBarangaySummaryRows = result.data;
             renderBarangaySummaryTable(result.data);
         } catch (error) {
             showFormErrors(error);
@@ -1003,7 +1019,30 @@
         await loadFamilies();
         await loadBarangaySummary();
 
-        await refreshScopedSummary();
+        // Deep link support: /families?barangay=X&center=Y lands straight on
+        // that drill level instead of the top-level landing view -- used by
+        // a family detail page's "Back" link (see families/show.blade.php
+        // and familyDetailReturnParams() above) so it returns to the SAME
+        // barangay/center list the user drilled into, not just this page's
+        // default landing view. Same deep-link pattern already proven on
+        // the EC Board section (see ec-board/index.blade.php).
+        const params = new URLSearchParams(window.location.search);
+        const barangayParam = Number(params.get('barangay'));
+        const centerParam = params.get('center');
+        const barangayRow = barangayParam ? lastBarangaySummaryRows.find((r) => r.barangay_id === barangayParam) : null;
+
+        if (barangayRow) {
+            await drillIntoBarangay(barangayRow.barangay_id, barangayRow.barangay_name);
+
+            if (centerParam === 'none') {
+                await drillIntoCenter('none', 'Outside center / unassigned');
+            } else if (centerParam) {
+                const centerRow = centerSummaryRowsCache.find((r) => String(r.evacuation_center_id) === centerParam);
+                if (centerRow) await drillIntoCenter(centerRow.evacuation_center_id, centerRow.evacuation_center_name);
+            }
+        } else {
+            await refreshScopedSummary();
+        }
     })();
 
     // --- Register-family modal --------------------------------------------
