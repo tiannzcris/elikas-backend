@@ -21,4 +21,23 @@ return [
     // Same pattern as the desktop installer above -- the resident-facing
     // Flutter app's .apk is built and uploaded separately, not committed.
     'mobile_app_download_url' => env('MOBILE_APP_DOWNLOAD_URL', '/downloads/E-LIKAS-Mobile.apk'),
+
+    // See TileProxyController. OSM's own tile usage policy requires "a
+    // clear, unique User-Agent string that names your app and optionally
+    // includes a contact URL or email" -- their own documented example is
+    // "MyTownMaps/1.4 (+https://example.org; contact: maps@example.org)",
+    // which this default mirrors exactly. config('app.url') (not a
+    // hardcoded domain) so this is automatically correct once production's
+    // own APP_URL is set, the same way WelcomeUserMail's links already work.
+    'tile_user_agent' => env(
+        'TILE_USER_AGENT',
+        'E-LIKAS/1.0 (+' . env('APP_URL', 'http://localhost') . '; contact: ' . env('ADMIN_SEED_EMAIL', 'admin@elikas.ligaocity.gov.ph') . ')'
+    ),
+
+    // Policy: "cache each tile for at least 7 days" when OSM's own
+    // Cache-Control/Expires response headers aren't usable -- this is a
+    // FLOOR the proxy enforces even when a header IS present and specifies
+    // something shorter, never a ceiling (a longer header-specified value
+    // always wins). See TileProxyController::resolveExpiry().
+    'tile_cache_min_days' => env('TILE_CACHE_MIN_DAYS', 7),
 ];

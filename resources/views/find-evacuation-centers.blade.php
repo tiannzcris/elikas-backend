@@ -375,8 +375,12 @@
         // Same satellite/street toggle as the staff GIS map -- but this is
         // the ONLY Leaflet control on this page: no draw tool, no
         // edit/delete, this is a read-only public view.
-        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
+        // Tiles come from this app's own caching proxy, not
+        // tile.openstreetmap.org directly -- see TileProxyController for why.
+        // Attribution still has to be the linked form OSM's usage policy
+        // requires, regardless of who serves the bytes.
+        const streetLayer = L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',

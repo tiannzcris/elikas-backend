@@ -211,8 +211,12 @@
     // Street (default) and satellite base layers, toggleable via Leaflet's
     // built-in layer control -- satellite makes buildings/houses visible,
     // which street tiles alone don't, for accurately placing markers.
-    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
+    // Tiles come from this app's own caching proxy, not tile.openstreetmap.org
+    // directly -- see TileProxyController for why. Attribution still has to
+    // be the linked form OSM's usage policy requires, regardless of who
+    // serves the bytes.
+    const streetLayer = L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
     const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri',

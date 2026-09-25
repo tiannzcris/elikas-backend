@@ -48,6 +48,20 @@ Route::get('/hotlines', function () {
     return view('hotlines');
 });
 
+// Map tiles, cached server-side -- see TileProxyController's own docblock
+// for the full why (OSM blocked this app's tile access once already).
+// Unauthenticated on purpose: both the public resident map and the
+// staff-only GIS map load tiles through this, and Leaflet requests them as
+// plain <img> tags that carry no Sanctum token. The per-IP throttle only
+// protects this server; it's deliberately generous because Philippine
+// mobile carriers put many residents behind one shared IP, and during a
+// disaster a tight limit would blank out the map for real people. What
+// protects OSM is the controller's own GLOBAL outbound-fetch cap, which
+// holds no matter how many IPs are involved.
+Route::get('/tiles/{z}/{x}/{y}.png', [\App\Http\Controllers\TileProxyController::class, 'show'])
+    ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+    ->middleware('throttle:600,1');
+
 Route::get('/login', function () {
     return view('auth.login');
 });
