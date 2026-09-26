@@ -263,21 +263,15 @@ class FamilyController extends Controller
 
     /**
      * Child-Headed Family/ies and Single-Headed Family/ies totals for the
-     * Evacuees page's Sectoral Summary card. Unlike every other category on
-     * that card, these two are NOT an Evacuee-level flag -- there is no
-     * such column on families/evacuees at all. They only exist as a
-     * manually-reported EC Board headcount, per (center, event), in
-     * evacuation_center_quick_count_sectoral_groups (see that table's own
-     * SECTORAL_GROUPS constant on EvacuationCenterQuickCount and the
-     * "Sectoral group breakdown" form on the EC Board page, which already
-     * collects both). So this deliberately does NOT touch the Family/
-     * Evacuee tables at all -- it sums whatever staff have reported through
-     * that form, scoped the same way as every other endpoint on this page:
-     * barangay officials restricted to their own barangay (via the
-     * evacuation center's barangay_id, since quick counts belong to a
-     * center, not a family), and current (non-closed) events by default
-     * unless a specific evacuation_event_id is given -- same convention as
-     * scopeToRequest() above.
+     * Evacuees page's Sectoral Summary card -- counted live, once per
+     * family, from each household's own answers (Family::isChildHeaded()/
+     * isSingleHeaded()), by the head's sex (Family::headSex()): the same
+     * rule as the EC Board and both reports. Only families with a member
+     * currently evacuated count (the board's "now" basis), scoped the same
+     * way as every other endpoint on this page (scopeToRequest()), plus,
+     * when evacuation_center_id is given, only families with a member
+     * currently checked in there. A household whose answer or head's sex
+     * isn't known yet is counted in neither column.
      */
     public function sectoralQuickCountSummary(Request $request)
     {
@@ -293,35 +287,24 @@ class FamilyController extends Controller
             return $this->error('You may not view figures outside your barangay.', 403);
         }
 
-        $rows = EvacuationCenterQuickCountSectoralGroup::query()
-            ->whereIn('sectoral_group', ['child_headed_family', 'single_headed_family'])
-            ->whereHas('quickCount', function (Builder $q) use ($request, $validated, $user) {
-                if ($user->isBarangayOfficial()) {
-                    $q->whereHas('evacuationCenter', fn (Builder $c) => $c->where('barangay_id', $user->barangay_id));
-                } elseif (! empty($validated['barangay_id'])) {
-                    $q->whereHas('evacuationCenter', fn (Builder $c) => $c->where('barangay_id', $validated['barangay_id']));
-                }
+        $query = Family::query()->with('headOfFamily');
+        $this->scopeToRequest($query, $request);
+        $query->whereHas('members.evacuationRecords', function (Builder $r) use ($validated) {
+            $r->where('status', 'currently_evacuated')->whereNull('date_out');
+            if (! empty($validated['evacuation_center_id'])) {
+                $r->where('evacuation_center_id', $validated['evacuation_center_id']);
+            }
+        });
+        $families = $query->get();
 
-                if (! empty($validated['evacuation_center_id'])) {
-                    $q->where('evacuation_center_id', $validated['evacuation_center_id']);
-                }
-
-                if (! empty($validated['evacuation_event_id'])) {
-                    $q->where('evacuation_event_id', $validated['evacuation_event_id']);
-                } else {
-                    $q->whereHas('evacuationEvent', fn (Builder $e) => $e->where('status', '!=', 'closed'));
-                }
-            })
-            ->get();
-
-        $summarize = fn (string $group) => [
-            'male' => (int) $rows->where('sectoral_group', $group)->sum('male_count'),
-            'female' => (int) $rows->where('sectoral_group', $group)->sum('female_count'),
+        $summarize = fn (string $method) => [
+            'male' => $families->filter(fn ($f) => $f->{$method}() === true && $f->headSex() === 'male')->count(),
+            'female' => $families->filter(fn ($f) => $f->{$method}() === true && $f->headSex() === 'female')->count(),
         ];
 
         return $this->success([
-            'child_headed_family' => $summarize('child_headed_family'),
-            'single_headed_family' => $summarize('single_headed_family'),
+            'child_headed_family' => $summarize('isChildHeaded'),
+            'single_headed_family' => $summarize('isSingleHeaded'),
         ]);
     }
 
@@ -425,6 +408,74 @@ class FamilyController extends Controller
                 $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
             ),
             'Evacuation center updated successfully.'
+        );
+    }
+
+    /**
+     * Answers/edits a family's household-level head questions at any time
+     * -- the same three Add Evacuee's "New household" asks (see
+     * EvacuationCenterController::addEvacuee()), for households created
+     * before those existed (full registration, older Add Evacuee entries)
+     * or answered "not yet known" then. null always means "not yet known".
+     *
+     * The head is either one of this family's own members (linked as
+     * head_of_family -- their sex, and real birthdate once recorded, then
+     * apply; "is the head a minor?" comes from their age group) or, only
+     * for a family with no linked head yet, "someone not listed", which is
+     * when head_sex/head_is_minor are asked directly. A family that already
+     * has a linked head can have it reassigned to another member but never
+     * unlinked -- same "a family can't be left with no head" rule as
+     * EvacueeController::destroy().
+     */
+    public function updateHousehold(Request $request, Family $family)
+    {
+        if (! $this->userMayAccessBarangay($request->user(), $family->barangay_id)) {
+            return $this->error('You may not modify families outside your barangay.', 403);
+        }
+
+        $validated = $request->validate([
+            'head_of_family_evacuee_id' => ['present', 'nullable', 'integer'],
+            'is_single_headed' => ['present', 'nullable', 'boolean'],
+            'head_is_minor' => ['nullable', 'boolean'],
+            'head_sex' => ['nullable', 'in:male,female'],
+        ]);
+
+        $headId = $validated['head_of_family_evacuee_id'];
+        $head = $headId ? $family->members()->find($headId) : null;
+
+        if ($headId && ! $head) {
+            return $this->error('The selected head must be a member of this family.', 422);
+        }
+        if (! $head && $family->head_of_family_evacuee_id) {
+            return $this->error('This family already has a head on file -- choose another member to reassign it; it can\'t be left with no head.', 422);
+        }
+
+        $family->update([
+            'is_single_headed' => $validated['is_single_headed'],
+            'head_of_family_evacuee_id' => $head?->id,
+            'head_is_minor' => $head
+                ? ($head->age_bracket ? in_array($head->age_bracket, Family::MINOR_AGE_BRACKETS, true) : null)
+                : ($validated['head_is_minor'] ?? null),
+            'head_sex' => $head ? null : ($validated['head_sex'] ?? null),
+        ]);
+
+        SystemLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'family.household_updated',
+            'description' => sprintf(
+                '%s updated the household details of family #%d (head: %s).',
+                $request->user()->name,
+                $family->id,
+                $head ? "evacuee #{$head->id}" : 'someone not listed'
+            ),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return $this->success(
+            new FamilyResource(
+                $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
+            ),
+            'Household details updated successfully.'
         );
     }
 

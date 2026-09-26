@@ -58,11 +58,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/families/center-summary', [FamilyController::class, 'centerSummary']);
             // Same "must come before {family}" reasoning as the two above --
             // backs the Evacuees page's Sectoral Summary card (Child/Single-
-            // Headed Family, sourced from EC Board quick-count data).
+            // Headed Family, counted live from each family's household answers).
             Route::get('/families/sectoral-quick-count-summary', [FamilyController::class, 'sectoralQuickCountSummary']);
             Route::get('/families/{family}', [FamilyController::class, 'show']);
             Route::post('/families/{family}/members', [EvacueeController::class, 'addMember']);
             Route::patch('/families/{family}/evacuation-center', [FamilyController::class, 'updateEvacuationCenter']);
+            Route::patch('/families/{family}/household', [FamilyController::class, 'updateHousehold']);
 
             Route::get('/evacuees', [EvacueeController::class, 'index']);
             Route::patch('/evacuees/{evacuee}', [EvacueeController::class, 'update']);

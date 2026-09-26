@@ -11,9 +11,17 @@
         <p class="text-sm text-gray-500" id="family-subtitle"></p>
         <p class="text-sm text-gray-500 hidden" id="family-address"></p>
 
-        <div class="flex items-center justify-between gap-3 mt-2 mb-6">
+        <div class="flex items-center justify-between gap-3 mt-2">
             <p class="text-sm text-gray-600" id="family-center">Evacuation center: &mdash;</p>
             <button type="button" id="change-center-btn" class="text-xs text-brand hover:underline shrink-0">Change evacuation center</button>
+        </div>
+        {{-- Household-level status behind the EC Board's child-/single-
+            headed rows (see Family::isChildHeaded()/isSingleHeaded()/
+            headSex()) -- editable at any time, for households created
+            before these questions existed or answered "not yet known". --}}
+        <div class="flex items-center justify-between gap-3 mt-1 mb-6">
+            <p class="text-sm text-gray-600" id="family-household">Household: &mdash;</p>
+            <button type="button" id="edit-household-btn" class="text-xs text-brand hover:underline shrink-0">Edit household</button>
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100" id="members-list"></div>
@@ -76,6 +84,65 @@
                         Cancel
                     </button>
                     <button type="submit" id="member-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Save changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="household-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800">Edit household</p>
+                    <p class="text-xs text-gray-500">Used for the child- and single-headed family counts on the EC Board and reports. Leave anything you don't know as "Not yet known".</p>
+                </div>
+                <button type="button" id="household-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="household-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="household-form" class="flex flex-col gap-4 p-5">
+                <div>
+                    <label for="hh-head" class="text-sm text-gray-600 block mb-1">Household head</label>
+                    <select id="hh-head" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    <p id="hh-head-note" class="text-xs text-gray-500 mt-1"></p>
+                </div>
+                <div id="hh-unlisted-fields" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="hh-head-sex" class="text-sm text-gray-600 block mb-1">Head's sex</label>
+                        <select id="hh-head-sex" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Not yet known</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hh-head-is-minor" class="text-sm text-gray-600 block mb-1">Head is a minor?</label>
+                        <select id="hh-head-is-minor" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Not yet known</option>
+                            <option value="1">Yes (under 18)</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="hh-single-headed" class="text-sm text-gray-600 block mb-1">Only one household head? (single-headed)</label>
+                    <select id="hh-single-headed" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Not yet known</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="household-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="household-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
                         Save changes
                     </button>
                 </div>
@@ -196,6 +263,7 @@
 
             document.getElementById('family-center').textContent =
                 `Evacuation center: ${currentFamily.evacuation_center?.name ?? 'None assigned'}`;
+            renderHouseholdLine();
 
             // Context-aware "Back": if we arrived via the Evacuees page's
             // own barangay -> center -> family drill-down (see
@@ -372,6 +440,104 @@
             await loadFamily(); // refresh in place, no full page reload
         } catch (error) {
             const box = document.getElementById('member-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Save changes';
+        }
+    });
+
+    // --- Edit-household modal -----------------------------------------------
+
+    // null -> "Not yet known", never shown as a guessed "No".
+    const yesNoUnknown = (value) => (value === null || value === undefined ? 'Not yet known' : (value ? 'Yes' : 'No'));
+    const triState = (value) => (value === '' ? null : value === '1');
+    const memberLabel = (m, idx) => (m.is_placeholder
+        ? `Member ${idx + 1} (details pending${m.sex ? `, ${m.sex}` : ''}${m.age_bracket ? `, ${m.age_bracket.replace('_', ' ')}` : ''})`
+        : m.full_name);
+
+    function renderHouseholdLine() {
+        const f = currentFamily;
+        const sex = f.head_sex ? ` (${f.head_sex})` : '';
+        document.getElementById('family-household').textContent =
+            `Household: single-headed ${yesNoUnknown(f.is_single_headed)}, child-headed ${yesNoUnknown(f.is_child_headed)}${sex}`;
+    }
+
+    function updateHouseholdHeadUi() {
+        const value = document.getElementById('hh-head').value;
+        const unlisted = value === 'unlisted';
+        document.getElementById('hh-unlisted-fields').classList.toggle('hidden', ! unlisted);
+        document.getElementById('hh-head-note').textContent = unlisted
+            ? 'Answer for the head directly below.'
+            : 'This member\'s own sex and age are used for the head -- a real birthdate, once added, always decides "minor".';
+    }
+
+    function openHouseholdModal() {
+        const f = currentFamily;
+        const headId = f.head_of_family?.id ?? null;
+
+        // A family with a head on file can only reassign it to another
+        // member, never unlink it (see FamilyController::updateHousehold()).
+        document.getElementById('hh-head').innerHTML =
+            f.members.map((m, idx) => `<option value="${m.id}">${memberLabel(m, idx)}</option>`).join('')
+            + (headId ? '' : '<option value="unlisted">Someone not listed here</option>');
+        document.getElementById('hh-head').value = headId ?? 'unlisted';
+
+        const toSelect = (value) => (value === null || value === undefined ? '' : (value ? '1' : '0'));
+        document.getElementById('hh-single-headed').value = toSelect(f.is_single_headed);
+        document.getElementById('hh-head-sex').value = headId ? '' : (f.head_sex ?? '');
+        document.getElementById('hh-head-is-minor').value = headId ? '' : toSelect(f.is_child_headed);
+
+        updateHouseholdHeadUi();
+        document.getElementById('household-modal-errors').classList.add('hidden');
+        document.getElementById('household-modal').classList.remove('hidden');
+        document.getElementById('household-modal').classList.add('flex');
+    }
+
+    function closeHouseholdModal() {
+        document.getElementById('household-modal').classList.add('hidden');
+        document.getElementById('household-modal').classList.remove('flex');
+    }
+
+    document.getElementById('edit-household-btn').addEventListener('click', openHouseholdModal);
+    document.getElementById('household-modal-close').addEventListener('click', closeHouseholdModal);
+    document.getElementById('household-modal-cancel').addEventListener('click', closeHouseholdModal);
+    document.getElementById('hh-head').addEventListener('change', updateHouseholdHeadUi);
+
+    document.getElementById('household-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'household-modal') closeHouseholdModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('household-modal').classList.contains('hidden')) {
+            closeHouseholdModal();
+        }
+    });
+
+    document.getElementById('household-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const head = document.getElementById('hh-head').value;
+        const unlisted = head === 'unlisted';
+        const payload = {
+            head_of_family_evacuee_id: unlisted ? null : Number(head),
+            is_single_headed: triState(document.getElementById('hh-single-headed').value),
+            head_sex: unlisted ? (document.getElementById('hh-head-sex').value || null) : null,
+            head_is_minor: unlisted ? triState(document.getElementById('hh-head-is-minor').value) : null,
+        };
+
+        const button = document.getElementById('household-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Saving...';
+
+        try {
+            await Api.request(`/families/${familyId}/household`, { method: 'PATCH', body: JSON.stringify(payload) });
+            closeHouseholdModal();
+            await loadFamily(); // refresh in place, no full page reload
+        } catch (error) {
+            const box = document.getElementById('household-modal-errors');
             const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
             box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
             box.classList.remove('hidden');

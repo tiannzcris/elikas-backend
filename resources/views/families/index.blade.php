@@ -446,10 +446,10 @@
         // Sectoral summary -- the first six are live, per-evacuee flags
         // (scoped automatically since they're computed from `members`,
         // whatever set that is). The last two (Child/Single-Headed Family)
-        // have no such flag anywhere on Family/Evacuee at all -- they only
-        // exist as an EC-Board-reported aggregate (see
-        // sectoralQuickCountSummary()'s own docblock), so they're summed
-        // from sectoralQuickCount instead of filtered from `members`.
+        // are household-level answers, counted once per family by the
+        // head's sex server-side (see sectoralQuickCountSummary()'s own
+        // docblock), so they come from sectoralQuickCount instead of being
+        // filtered from `members`.
         const sectoral = [
             ['is_4ps_beneficiary', '4Ps beneficiary', 'ti-gift', 'text-blue-500', 'bg-blue-50'],
             ['is_pwd', 'PWD', 'ti-wheelchair', 'text-red-500', 'bg-red-50'],
