@@ -368,6 +368,9 @@
 
             const pendingCount = (f.members ?? []).filter((m) => m.is_placeholder).length;
             if (pendingCount > 0) tags.push(`<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800">${pendingCount} pending</span>`);
+            // Not a real household: anonymous people from an old typed
+            // headcount, lumped together -- first tag, so it's never missed.
+            if (f.is_legacy_bulk_entry) tags.unshift('<span class="text-xs px-2 py-0.5 rounded-lg bg-red-50 text-red-700 border border-red-200">Legacy bulk entry -- needs manual review</span>');
 
             // f.name is set when this household was created via the EC
             // Board's "Add Evacuee -> New household" path (see

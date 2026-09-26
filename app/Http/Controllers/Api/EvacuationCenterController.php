@@ -341,6 +341,13 @@ class EvacuationCenterController extends Controller
             if ((int) $existingFamily->evacuation_event_id !== (int) $validated['evacuation_event_id']) {
                 return $this->error('Selected household belongs to a different disaster event.', 422);
             }
+
+            // Enforced here, not just by hiding it from "Already here", so
+            // no app -- including desktop/mobile builds that still list it
+            // -- can add anyone to a legacy bulk-entry household.
+            if ($existingFamily->is_legacy_bulk_entry) {
+                return $this->error('This is a legacy bulk-entry household from an old headcount, not a real family -- add this person to their actual household, or as a new household.', 422);
+            }
         }
 
         ['family' => $family, 'evacuee_id' => $evacueeId] = DB::transaction(function () use ($validated, $request, $evacuationCenter, $existingFamily) {
@@ -548,6 +555,9 @@ class EvacuationCenterController extends Controller
 
         $families = Family::query()
             ->where('evacuation_event_id', $validated['evacuation_event_id'])
+            // Never offered as a destination: a legacy bulk-entry household
+            // isn't a real family (see the 2026_09_27_000001 migration).
+            ->where('is_legacy_bulk_entry', false)
             ->whereHas('members.evacuationRecords', fn ($q) => $q
                 ->where('evacuation_center_id', $evacuationCenter->id)
                 ->where('evacuation_event_id', $validated['evacuation_event_id']))

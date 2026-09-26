@@ -64,6 +64,12 @@ class EvacueeController extends Controller
             return $this->error('You may not modify families outside your barangay.', 403);
         }
 
+        // Same rule as EC Board's "Already here": a legacy bulk-entry
+        // household is closed to new members.
+        if ($family->is_legacy_bulk_entry) {
+            return $this->error('This is a legacy bulk-entry household from an old headcount, not a real family -- add this person to their actual household instead.', 422);
+        }
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],

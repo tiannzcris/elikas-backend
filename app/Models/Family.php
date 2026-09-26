@@ -10,13 +10,14 @@ class Family extends Model
 {
     protected $fillable = [
         'evacuation_event_id', 'barangay_id', 'home_address', 'head_of_family_evacuee_id', 'is_4ps_beneficiary', 'name',
-        'is_single_headed', 'head_is_minor', 'head_sex',
+        'is_single_headed', 'head_is_minor', 'head_sex', 'is_legacy_bulk_entry',
     ];
 
     protected $casts = [
         'is_4ps_beneficiary' => 'boolean',
         'is_single_headed' => 'boolean',
         'head_is_minor' => 'boolean',
+        'is_legacy_bulk_entry' => 'boolean',
     ];
 
     // The age brackets under 18 -- how Add Evacuee answers "is the head a

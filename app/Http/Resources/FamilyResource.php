@@ -37,6 +37,10 @@ class FamilyResource extends JsonResource
             // Household-level status behind the EC Board's child-/single-
             // headed rows -- null = not yet known (see Family::isChildHeaded()
             // and siblings, which apply the "real birthdate wins" rule).
+            // A leftover "EC Board bulk entry" household (anonymous people
+            // from an old typed headcount), not a real family -- flagged
+            // wherever it's shown; see the 2026_09_27_000001 migration.
+            'is_legacy_bulk_entry' => (bool) $this->is_legacy_bulk_entry,
             'is_single_headed' => $this->resource->isSingleHeaded(),
             'is_child_headed' => $this->resource->isChildHeaded(),
             'head_sex' => $this->resource->headSex(),

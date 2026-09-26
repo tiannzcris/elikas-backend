@@ -8,6 +8,13 @@
 
     <div id="content-wrap" class="hidden mt-4">
         <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
+        {{-- A leftover "EC Board bulk entry" household, not a real family
+            (see the 2026_09_27_000001 migration): says so, plainly, before
+            anything else on the page. --}}
+        <div id="family-legacy-notice" class="hidden mb-3 items-start gap-2 text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+            <i class="ti ti-alert-triangle shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
+            <span><span class="font-semibold">Legacy bulk entry -- needs manual review.</span> These people were created together from an old headcount, not registered as one household, so they're counted as a single family until someone who knows who's who moves them into their real households. No one new can be added here.</span>
+        </div>
         <p class="text-sm text-gray-500" id="family-subtitle"></p>
         <p class="text-sm text-gray-500 hidden" id="family-address"></p>
 
@@ -593,10 +600,17 @@
         document.getElementById('family-household').textContent =
             `Household: single-headed ${yesNoUnknown(f.is_single_headed)}, child-headed ${yesNoUnknown(f.is_child_headed)}${sex}`;
 
+        // Legacy bulk entry: its own notice replaces the head reminder --
+        // there's no real head to link for a lumped-together headcount.
+        const legacy = !! f.is_legacy_bulk_entry;
+        const legacyNotice = document.getElementById('family-legacy-notice');
+        legacyNotice.classList.toggle('hidden', ! legacy);
+        legacyNotice.classList.toggle('flex', legacy);
+
         // "Head not yet linked": no member is the head yet, so the head's
         // sex/minor figures are only the answers given for them.
         const reminder = document.getElementById('family-head-unlinked');
-        const unlinked = ! f.head_of_family;
+        const unlinked = ! f.head_of_family && ! legacy;
         reminder.classList.toggle('hidden', ! unlinked);
         reminder.classList.toggle('flex', unlinked);
         if (unlinked) {
