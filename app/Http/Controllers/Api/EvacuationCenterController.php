@@ -365,6 +365,13 @@ class EvacuationCenterController extends Controller
                 'status' => 'active',
             ]);
 
+            // A 4Ps beneficiary is a household-level designation -- see
+            // Evacuee::propagateFourPsToFamily()'s own docblock. $family
+            // is reused (not re-fetched) below, so this update is
+            // reflected wherever this same instance is used afterward.
+            $evacuee->setRelation('family', $family);
+            $evacuee->propagateFourPsToFamily();
+
             EvacuationRecord::create([
                 'evacuee_id' => $evacuee->id,
                 'evacuation_center_id' => $evacuationCenter->id,

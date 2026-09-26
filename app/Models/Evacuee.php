@@ -43,6 +43,25 @@ class Evacuee extends Model
         return $this->belongsTo(Family::class);
     }
 
+    /**
+     * A 4Ps beneficiary is genuinely a household-level designation (the
+     * whole family is enrolled in the program, not just one member), but
+     * every place that records this evacuee's own is_4ps_beneficiary flag
+     * (EC Board's addEvacuee(), EvacueeController::addMember()/update())
+     * only ever asks about the one person in front of the form. Call this
+     * right after any of those saves this evacuee's own flag, so ticking
+     * it on even one member correctly flags the whole family -- never the
+     * reverse: an unticked box on this one evacuee must not un-flag a
+     * family another member, or the original registration, already
+     * established as a 4Ps beneficiary.
+     */
+    public function propagateFourPsToFamily(): void
+    {
+        if ($this->is_4ps_beneficiary && $this->family && ! $this->family->is_4ps_beneficiary) {
+            $this->family->update(['is_4ps_beneficiary' => true]);
+        }
+    }
+
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class);

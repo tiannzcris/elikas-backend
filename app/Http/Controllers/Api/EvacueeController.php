@@ -91,6 +91,11 @@ class EvacueeController extends Controller
             'status' => 'active',
         ]);
 
+        // A 4Ps beneficiary is a household-level designation -- see
+        // Evacuee::propagateFourPsToFamily()'s own docblock.
+        $evacuee->setRelation('family', $family);
+        $evacuee->propagateFourPsToFamily();
+
         EvacuationRecord::create([
             'evacuee_id' => $evacuee->id,
             'evacuation_center_id' => $validated['evacuation_center_id'] ?? null,
@@ -145,6 +150,10 @@ class EvacueeController extends Controller
         ]);
 
         $evacuee->update($validated);
+
+        // A 4Ps beneficiary is a household-level designation -- see
+        // Evacuee::propagateFourPsToFamily()'s own docblock.
+        $evacuee->propagateFourPsToFamily();
 
         return $this->success(new EvacueeResource($evacuee->fresh()), 'Evacuee updated successfully.');
     }

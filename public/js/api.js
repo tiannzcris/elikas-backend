@@ -70,7 +70,13 @@ const Api = {
             headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${this.baseUrl}${path}`, { ...options, headers });
+        // cache: 'no-store' -- every page reads live server state through
+        // this one shared helper (EC Board's quick-count included), so a
+        // stale browser-cached GET response here would silently hide
+        // whatever just changed server-side until a hard refresh. Placed
+        // before ...options so a call site can still override it
+        // explicitly if a future caller ever genuinely needs to.
+        const response = await fetch(`${this.baseUrl}${path}`, { cache: 'no-store', ...options, headers });
         const body = await response.json().catch(() => null);
 
         // A 401 means the token is gone/expired server-side (e.g. an admin
