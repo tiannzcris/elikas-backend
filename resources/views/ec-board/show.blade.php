@@ -4,6 +4,21 @@
 @section('nav-ecboard', 'active')
 
 @section('content')
+    {{-- Shared column grid for BOTH board tables (age & sex, sectoral):
+        the label column takes what's left and Male/Female/Total are fixed,
+        so the numbers line up in one continuous column down the whole
+        board -- the same ruled layout as the printed DSWD EC Information
+        Board this page mirrors. --}}
+    <style>
+        .ecb-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        .ecb-table col.ecb-num { width: 4.25rem; }
+        @media (min-width: 640px) { .ecb-table col.ecb-num { width: 6rem; } }
+        .ecb-table th, .ecb-table td { padding: 0.4rem 1rem; }
+        .ecb-table th:not(:first-child), .ecb-table td:not(:first-child) { text-align: right; }
+        @media (max-width: 639px) { .ecb-table th, .ecb-table td { padding: 0.4rem 0.625rem; } }
+        .ecb-cell-input { width: 100%; max-width: 4.5rem; text-align: right; }
+    </style>
+
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         {{-- A real secondary-button treatment (border + hover fill), not a
             plain sentence -- matches this app's own existing ghost-button
@@ -20,85 +35,131 @@
     </div>
 
     <div id="content-wrap" class="hidden">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-            <div class="flex items-center justify-between mb-1">
-                <p class="text-sm font-semibold text-gray-800">EC Information Board</p>
-                <span class="flex items-center gap-1 text-xs text-gray-500 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
-            </div>
-            <p class="text-xs text-gray-500 mb-3">Add evacuees here first -- register full details later, as time allows.</p>
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 border-t border-gray-100 pt-3">
-                <span><span class="text-gray-500">Barangay:</span> <span id="ecb-barangay" class="text-gray-700 font-medium"></span></span>
-                <span><span class="text-gray-500">Evacuation center:</span> <span id="ecb-center-name" class="text-gray-700 font-medium"></span></span>
-                <span class="flex items-center gap-1.5">
-                    <span class="text-gray-500">Event:</span>
-                    <select id="ecb-event-select" class="border border-gray-300 rounded-lg px-2 py-1 text-xs"></select>
-                </span>
-                {{-- Matches the real EC Information Board template's own row
-                    order: this header-level count sits WITH Barangay/Center/
-                    Families/Persons, before the Age & Sex table -- not down
-                    with the Sectoral Group table, which has its own
-                    separate "4Ps Beneficiary/ies" row (see the sectoral
-                    table below; that's a different, per-person-sex figure,
-                    not this one). Not inside <form id="ecboard-form"> below
-                    -- its value is still read/saved by that form's own JS
-                    via this element's id, regardless of where it sits in
-                    the page. --}}
-                <span class="flex items-center gap-1.5">
-                    <span class="text-gray-500">4Ps beneficiary families:</span>
-                    <input type="number" min="0" id="ecb-beneficiaries-4ps"
-                        title="Saved together with the sectoral breakdown further down the page"
-                        class="w-16 border border-gray-300 rounded-lg px-2 py-1 text-xs">
-                </span>
-            </div>
-        </div>
+        {{-- Board on the left, the fast-entry Add Evacuee panel on the right
+            (sticky on wide screens, so it stays in reach while the board
+            scrolls). Below lg the board comes first -- it names the center
+            and event being added to -- and the panel follows it. --}}
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_21rem] gap-5 items-start mb-5">
 
-        {{-- Key numbers as scannable stat cards (matching the Dashboard/
-            Evacuation Centers list pages' own stat-card pattern) instead of
-            a plain cumulative-vs-now table -- these are the figures staff
-            scan for first. --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
-            <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #93C5FD;">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families cumulative</p>
-                <p id="ecb-families-cumulative" class="text-2xl font-bold text-gray-800">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #3B82F6;">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families now</p>
-                <p id="ecb-families-now" class="text-2xl font-bold text-gray-800">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #FDBA74;">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons cumulative</p>
-                <p id="ecb-persons-cumulative" class="text-2xl font-bold text-gray-800">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-4" style="border-left: 4px solid #F97316;">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons now</p>
-                <p id="ecb-persons-now" class="text-2xl font-bold text-gray-800">0</p>
-            </div>
-        </div>
-        <p class="text-xs text-gray-500 mb-6">"Now" reflects current records exactly; "Cumulative" is a running total from every evacuee added here and never drops when someone is later removed.</p>
-
-        {{-- Two-column: the Add Evacuee form is the primary task on this
-            page, so it gets the wider main column with generous padding;
-            the age/sex breakdown sits beside it as a compact reference so
-            staff can check current counts without scrolling away from the
-            form. Below lg, stacks to a single column (form first). --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                <div class="mb-5">
-                    <p class="text-base font-semibold text-gray-800">Add evacuee</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Creates a real record right away -- fill in their full name and birthdate later via "Add details" on the Evacuees page.</p>
+            {{-- The board itself: header block -> age & sex -> sectoral, as
+                one sheet, in the official template's own order. --}}
+            <section id="ecb-board" data-region="board"
+                class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div class="px-4 sm:px-5 pt-4 pb-3 flex flex-wrap items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="flex items-center gap-2 text-xs font-medium text-gray-500">
+                            EC Information Board
+                            <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
+                        </p>
+                        <h1 id="ecb-center-name" class="text-lg font-semibold text-gray-900 leading-snug mt-0.5"></h1>
+                        <p class="text-sm text-gray-500">Barangay <span id="ecb-barangay" class="text-gray-700 font-medium"></span></p>
+                    </div>
+                    <label class="flex flex-col gap-1 text-xs text-gray-500 w-full sm:w-auto">
+                        Event
+                        <select id="ecb-event-select" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-800 sm:min-w-[14rem]"></select>
+                    </label>
                 </div>
 
-                <div id="add-evacuee-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+                {{-- Header figures, ruled like the template's own header
+                    rows. Matches its row order too: the 4Ps family count
+                    sits here WITH Families/Persons, before the Age & Sex
+                    table -- not down with the Sectoral table, whose own
+                    "4Ps beneficiary" row is a different, per-person-sex
+                    figure. Live, like the rest of this strip (families here
+                    now marked 4Ps -- see liveFourPsFamiliesNow()). --}}
+                <div class="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] border-y border-gray-200 divide-gray-200 text-sm"
+                    title="&quot;Now&quot; reflects current records exactly; &quot;Cumulative&quot; is a running total from every evacuee added here and never drops when someone is later removed.">
+                    <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
+                        <p class="text-xs text-gray-500">Families, cumulative</p>
+                        <p id="ecb-families-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
+                    </div>
+                    <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
+                        <p class="text-xs text-gray-500">Families now</p>
+                        <p id="ecb-families-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
+                    </div>
+                    <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
+                        <p class="text-xs text-gray-500">Persons, cumulative</p>
+                        <p id="ecb-persons-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
+                    </div>
+                    <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
+                        <p class="text-xs text-gray-500">Persons now</p>
+                        <p id="ecb-persons-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1 px-4 sm:px-5 py-2.5 flex sm:block items-center justify-between gap-3"
+                        title="Families here now that are marked as 4Ps beneficiaries.">
+                        <p class="text-xs text-gray-500">4Ps families</p>
+                        <p id="ecb-beneficiaries-4ps" class="text-xl font-semibold text-gray-900 tabular-nums">0</p>
+                    </div>
+                </div>
 
-                <form id="add-evacuee-form" class="flex flex-col gap-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Age & sex: all live, computed server-side from real
+                    records (EvacuationCenterQuickCount::liveAgeSexBreakdown). --}}
+                <table class="ecb-table text-sm">
+                    <colgroup><col><col class="ecb-num"><col class="ecb-num"><col class="ecb-num"></colgroup>
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-600">
+                            <th class="text-left font-semibold">Age group</th>
+                            <th class="font-medium">Male</th>
+                            <th class="font-medium">Female</th>
+                            <th class="font-medium">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="age-sex-rows"></tbody>
+                    {{-- Grand total row: the number people scan for first,
+                        so it gets more weight than a data row. --}}
+                    <tfoot>
+                        <tr class="border-t-2 border-gray-300 font-bold text-gray-900">
+                            <td>Total</td>
+                            <td id="age-total-male">0</td>
+                            <td id="age-total-female">0</td>
+                            <td id="age-total-all">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                {{-- Sectoral: same columns as the table above, so the board
+                    reads straight down. Every row is live -- nothing here is
+                    typed in (EvacuationCenterQuickCount::liveSectoralBreakdown()):
+                    per-person rows from the flags Add Evacuee records, the
+                    child-/single-headed rows once per household from its
+                    "New household" answers, by the head's sex. --}}
+                <div class="border-t-2 border-gray-300">
+                    <table class="ecb-table text-sm">
+                        <colgroup><col><col class="ecb-num"><col class="ecb-num"><col class="ecb-num"></colgroup>
+                        <thead>
+                            <tr class="border-b border-gray-200 bg-gray-50 text-xs text-gray-600">
+                                <th class="text-left font-semibold">Sectoral group</th>
+                                <th class="font-medium">Male</th>
+                                <th class="font-medium">Female</th>
+                                <th class="font-medium">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sectoral-rows"></tbody>
+                    </table>
+
+                    <p class="px-4 sm:px-5 py-3 border-t border-gray-200 text-xs text-gray-600">
+                        Counted from each evacuee's sectoral details. Child- and single-headed families are counted once per household, by the head's sex, from the answers given when the household was added.
+                    </p>
+                </div>
+            </section>
+
+            {{-- Add Evacuee: the fast-entry path, kept to a narrow panel --
+                bracket, sex, household, optional flags, one button. --}}
+            <section data-region="add-evacuee" class="bg-white border border-gray-200 rounded-xl p-4 lg:sticky lg:top-2">
+                <p class="text-sm font-semibold text-gray-800">Add evacuee</p>
+                <p class="text-xs text-gray-500 mt-0.5 mb-3">Name and birthdate can be added later on the Evacuees page.</p>
+
+                <div id="add-evacuee-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
+
+                <form id="add-evacuee-form" class="flex flex-col gap-3">
+                    <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
                         <div>
-                            <label class="text-xs text-gray-500 block mb-1">Age bracket</label>
-                            <select id="ae-age-bracket" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"></select>
+                            <label for="ae-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
+                            <select id="ae-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
                         </div>
                         <div>
-                            <label class="text-xs text-gray-500 block mb-1">Sex</label>
-                            <select id="ae-sex" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                            <label for="ae-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
+                            <select id="ae-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>
@@ -106,161 +167,140 @@
                     </div>
 
                     <div>
-                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-1 flex w-fit text-sm mb-4">
-                            <button type="button" id="ae-mode-existing-btn" class="ae-mode-btn px-3 py-1.5 rounded-lg font-medium bg-brand text-white" data-mode="existing">
-                                Existing household
+                        <p class="text-xs text-gray-500 mb-1">Household</p>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-0.5 grid grid-cols-2 text-xs mb-2">
+                            <button type="button" id="ae-mode-existing-btn" class="ae-mode-btn px-2 py-1.5 rounded-md font-medium bg-brand text-white" data-mode="existing">
+                                Already here
                             </button>
-                            <button type="button" id="ae-mode-new-btn" class="ae-mode-btn px-3 py-1.5 rounded-lg font-medium text-gray-500" data-mode="new">
+                            <button type="button" id="ae-mode-new-btn" class="ae-mode-btn px-2 py-1.5 rounded-md font-medium text-gray-500" data-mode="new">
                                 New household
                             </button>
                         </div>
 
                         <div id="ae-existing-section">
-                            <label class="text-xs text-gray-500 block mb-1">Household already at this center</label>
-                            <select id="ae-family-id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+                            <select id="ae-family-id" aria-label="Household already at this center" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
                                 <option value="">No households registered here yet</option>
                             </select>
                         </div>
 
-                        <div id="ae-new-section" class="hidden grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs text-gray-500 block mb-1">Barangay</label>
-                                <select id="ae-barangay-id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"></select>
+                        {{-- Asked once per NEW household (never per person) --
+                            see Family::isSingleHeaded()/isChildHeaded()/
+                            headSex(). "Not yet known" is always allowed and
+                            is stored as null, never guessed as "no". When
+                            this person IS the head, their own sex and age
+                            group answer the head questions, so those hide. --}}
+                        <div id="ae-new-section" class="hidden grid-cols-1 gap-2">
+                            <select id="ae-barangay-id" aria-label="Barangay" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                            <input type="text" id="ae-family-name" aria-label="Head of family name" placeholder="Head of family, e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                            <label class="flex items-center gap-2 text-sm text-gray-700">
+                                <input type="checkbox" id="ae-head-is-self" checked> This person is the household head
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div id="ae-head-sex-field" class="hidden">
+                                    <label for="ae-head-sex" class="text-xs text-gray-500 block mb-1">Head's sex</label>
+                                    <select id="ae-head-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                        <option value="">Not yet known</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                                <div id="ae-head-minor-field" class="hidden">
+                                    <label for="ae-head-is-minor" class="text-xs text-gray-500 block mb-1">Head is a minor?</label>
+                                    <select id="ae-head-is-minor" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                        <option value="">Not yet known</option>
+                                        <option value="1">Yes (under 18)</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="ae-single-headed" class="text-xs text-gray-500 block mb-1">Only one household head? (single-headed)</label>
+                                    <select id="ae-single-headed" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                        <option value="">Not yet known</option>
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label class="text-xs text-gray-500 block mb-1">Head of family name</label>
-                                <input type="text" id="ae-family-name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                            </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
-                        <button type="submit" id="add-evacuee-submit-btn"
-                            class="bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-5 py-2.5">
-                            + Add evacuee
-                        </button>
-                        <span id="add-evacuee-success-msg" class="hidden text-xs text-green-600 font-medium">&check; Added -- form's ready for the next one.</span>
-                        <span id="add-evacuee-disabled-note" class="hidden text-xs text-gray-500">No active disaster event -- can't add evacuees right now.</span>
-                    </div>
-                </form>
-            </div>
-
-            <div class="bg-white border border-gray-200 rounded-xl p-4 lg:self-start">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Age &amp; sex breakdown</p>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse">
-                        <thead>
-                            <tr class="text-xs text-gray-500">
-                                <th class="text-left font-medium py-1">Age bracket</th>
-                                <th class="text-left font-medium py-1 w-12">Male</th>
-                                <th class="text-left font-medium py-1 w-12">Female</th>
-                                <th class="text-left font-medium py-1 w-12">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="age-sex-rows"></tbody>
-                        {{-- Grand total row: the number people scan for first,
-                            so it needs more visual weight than a data row --
-                            bolder text, shaded background, a heavier top
-                            border to separate it from the detail rows above. --}}
-                        <tfoot>
-                            <tr class="border-t-2 border-gray-300 bg-gray-50 font-bold text-gray-900">
-                                <td class="py-2">Total</td>
-                                <td class="py-2" id="age-total-male">0</td>
-                                <td class="py-2" id="age-total-female">0</td>
-                                <td class="py-2" id="age-total-all">0</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        {{-- Quick Departure: the reverse of Add Evacuee above -- same card
-            width/style so the two read as a matched pair of fast actions,
-            stacked directly beneath it rather than competing for the same
-            row. By bracket + sex + quantity, not by name, for the same
-            speed reason Add Evacuee skips full registration. --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                <div class="mb-5">
-                    <p class="text-base font-semibold text-gray-800">Quick departure</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Marks that many currently-evacuated people as departed -- oldest arrivals in the matching bracket first. For one specific person by name, use "Check out" on the Evacuees page instead.</p>
-                </div>
-
-                <div id="quick-departure-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
-
-                <form id="quick-departure-form" class="flex flex-col gap-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label class="text-xs text-gray-500 block mb-1">Age bracket</label>
-                            <select id="qd-age-bracket" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"></select>
+                    {{-- Optional sectoral flags for THIS one person, collapsed
+                        by default so the common case (most evacuees are none
+                        of these) stays one click. Unticked means "not
+                        recorded", not "no" -- only ticked flags are sent, and
+                        the board's live sectoral figures only count those.
+                        Pregnant/lactating are hidden (and cleared) for a
+                        male evacuee. --}}
+                    <details id="ae-sectoral" class="border border-gray-200 rounded-lg">
+                        <summary class="cursor-pointer select-none px-3 py-2 text-sm text-gray-700">
+                            Sectoral details <span class="text-gray-500">(optional)</span>
+                            <span id="ae-sectoral-count" class="hidden ml-1 text-xs px-2 py-0.5 rounded-lg bg-brand-light text-brand"></span>
+                        </summary>
+                        <div class="px-3 pb-1 pt-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-gray-700">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_pwd"> PWD</label>
+                            <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_pregnant"> Pregnant</label>
+                            <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_lactating"> Lactating</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_solo_parent"> Solo parent</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_indigenous_person"> Indigenous person</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_4ps_beneficiary"> 4Ps beneficiary</label>
                         </div>
-                        <div>
-                            <label class="text-xs text-gray-500 block mb-1">Sex</label>
-                            <select id="qd-sex" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs text-gray-500 block mb-1">Quantity</label>
-                            <input type="number" min="1" value="1" id="qd-quantity" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                        </div>
-                    </div>
+                        <p class="px-3 pb-2.5 pt-1 text-xs text-gray-500">Tick only what you know. Leaving a box unticked records nothing -- it doesn't mean "no".</p>
+                    </details>
 
                     <div>
-                        <label class="text-xs text-gray-500 block mb-1">Reason</label>
-                        <select id="qd-status" class="w-full sm:w-64 border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
-                            <option value="returned_home">Returned home</option>
-                            <option value="transferred">Transferred elsewhere</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
-                        <button type="submit" id="quick-departure-submit-btn"
-                            class="bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-5 py-2.5">
-                            Mark as departed
+                        <button type="submit" id="add-evacuee-submit-btn"
+                            class="w-full bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                            + Add evacuee
                         </button>
-                        <span id="quick-departure-success-msg" class="hidden text-xs text-green-600 font-medium">&check; Marked as departed.</span>
-                        <span id="quick-departure-disabled-note" class="hidden text-xs text-gray-500">No active disaster event -- can't log departures right now.</span>
+                        <p id="add-evacuee-success-msg" class="hidden text-xs text-green-600 font-medium mt-1.5">&check; Added -- form's ready for the next one.</p>
+                        <p id="add-evacuee-disabled-note" class="hidden text-xs text-gray-500 mt-1.5">No active disaster event -- can't add evacuees right now.</p>
                     </div>
                 </form>
-            </div>
+            </section>
         </div>
 
-        {{-- Only these two remain manually saved -- see this page's own
-            notes and EvacuationCenterController::updateQuickCount()'s
-            docblock for why sectoral flags stay a reported aggregate
-            instead of also going live. Kept as its own full-width section
-            below the form+breakdown row, rather than squeezed into the
-            narrow sidebar, since it's a longer secondary form. --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-            <form id="ecboard-form">
-                <p class="text-xs font-semibold text-gray-600 mb-2">Sectoral group breakdown</p>
-                <div class="overflow-x-auto mb-4">
-                    <table class="w-full text-sm border-collapse">
-                        <thead>
-                            <tr class="text-xs text-gray-500">
-                                <th class="text-left font-medium py-1">Sectoral group</th>
-                                <th class="text-left font-medium py-1 w-20">Male</th>
-                                <th class="text-left font-medium py-1 w-20">Female</th>
-                                <th class="text-left font-medium py-1 w-20">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sectoral-rows"></tbody>
-                    </table>
+        <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-5"></div>
+
+        {{-- Quick Departure: the reverse of Add Evacuee, by bracket + sex +
+            quantity rather than by name, for the same speed reason. Used
+            far less often than adding, so it sits last, as one compact row. --}}
+        <section data-region="quick-departure" class="bg-white border border-gray-200 rounded-xl p-4">
+            <p class="text-sm font-semibold text-gray-800">Quick departure</p>
+            <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one person by name, use the Evacuees page.</p>
+
+            <div id="quick-departure-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
+
+            <form id="quick-departure-form" class="grid grid-cols-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_6rem_minmax(0,1.2fr)_auto] gap-2 items-end">
+                <div class="col-span-2 lg:col-span-1">
+                    <label for="qd-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
+                    <select id="qd-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
                 </div>
-
-                <p id="ecb-updated-meta" class="text-xs text-gray-500 mb-3">Beneficiaries/sectoral figures not yet reported for this event.</p>
-
-                <button type="submit" id="ecb-save-btn"
-                    class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
-                    Save beneficiaries &amp; sectoral figures
+                <div>
+                    <label for="qd-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
+                    <select id="qd-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="qd-quantity" class="text-xs text-gray-500 block mb-1">How many</label>
+                    <input type="number" min="1" value="1" id="qd-quantity" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                </div>
+                <div class="col-span-2 lg:col-span-1">
+                    <label for="qd-status" class="text-xs text-gray-500 block mb-1">Reason</label>
+                    <select id="qd-status" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                        <option value="returned_home">Returned home</option>
+                        <option value="transferred">Transferred elsewhere</option>
+                    </select>
+                </div>
+                <button type="submit" id="quick-departure-submit-btn"
+                    class="col-span-2 lg:col-span-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2">
+                    Mark as departed
                 </button>
             </form>
-        </div>
-
-        <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+            <p id="quick-departure-success-msg" class="hidden text-xs text-green-600 font-medium mt-2">&check; Marked as departed.</p>
+            <p id="quick-departure-disabled-note" class="hidden text-xs text-gray-500 mt-2">No active disaster event -- can't log departures right now.</p>
+        </section>
     </div>
 @endsection
 
@@ -290,38 +330,33 @@
 
     const ageBracketLabel = (key) => ageBrackets.find(([k]) => k === key)?.[1] ?? key;
 
-    function renderSectoralRows() {
-        document.getElementById('sectoral-rows').innerHTML = sectoralGroups.map(([group, label]) => `
-            <tr class="border-t border-gray-100" data-group="${group}">
-                <td class="py-1.5 text-gray-700">${label}</td>
-                <td class="py-1.5"><input type="number" min="0" value="0" class="sect-male w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm"></td>
-                <td class="py-1.5"><input type="number" min="0" value="0" class="sect-female w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm"></td>
-                <td class="py-1.5 sect-row-total text-gray-500">0</td>
-            </tr>
-        `).join('');
-    }
+    // Every sectoral row is a live, read-only figure -- nothing on the
+    // board is typed in (see EvacuationCenterQuickCount::liveSectoralBreakdown()).
+    function renderSectoralRows(groupsByKey) {
+        document.getElementById('sectoral-rows').innerHTML = sectoralGroups.map(([group, label]) => {
+            const male = groupsByKey[group]?.male_count ?? 0;
+            const female = groupsByKey[group]?.female_count ?? 0;
 
-    // Recomputed client-side on every keystroke so the Total row/column
-    // always matches what's on screen -- never sent to the server, which
-    // derives the same figures itself from the saved rows.
-    function recalculateSectoralTotals() {
-        document.querySelectorAll('#sectoral-rows tr').forEach((row) => {
-            const male = Number(row.querySelector('.sect-male').value) || 0;
-            const female = Number(row.querySelector('.sect-female').value) || 0;
-            row.querySelector('.sect-row-total').textContent = male + female;
-        });
+            return `
+            <tr class="border-t border-gray-100" data-group="${group}">
+                <td class="text-gray-700">${label}</td>
+                <td>${male}</td>
+                <td>${female}</td>
+                <td class="font-medium text-gray-900">${male + female}</td>
+            </tr>`;
+        }).join('');
     }
 
     // qc.families_now/persons_now/age_groups/age_groups_total are all LIVE
     // (computed server-side from real records, see
     // EvacuationCenterQuickCount's live*() methods) -- this just displays
-    // them, there's nothing to recompute client-side anymore for that part.
+    // them, there's nothing to recompute client-side for that part.
     function renderEcBoard(qc) {
         document.getElementById('ecb-families-cumulative').textContent = qc.families_cumulative;
         document.getElementById('ecb-families-now').textContent = qc.families_now;
         document.getElementById('ecb-persons-cumulative').textContent = qc.persons_cumulative;
         document.getElementById('ecb-persons-now').textContent = qc.persons_now;
-        document.getElementById('ecb-beneficiaries-4ps').value = qc.beneficiaries_4ps;
+        document.getElementById('ecb-beneficiaries-4ps').textContent = qc.beneficiaries_4ps;
 
         // The 'unclassified' row (always last -- see
         // EvacuationCenterQuickCount::liveAgeSexBreakdown()) covers anyone
@@ -338,37 +373,17 @@
 
             return `
             <tr class="${rowClass}">
-                <td class="py-1.5 ${isUnclassified ? '' : 'text-gray-700'}">${label}</td>
-                <td class="py-1.5">${row.male_count}</td>
-                <td class="py-1.5">${row.female_count}</td>
-                <td class="py-1.5 ${isUnclassified ? '' : 'text-gray-500'}">${total}</td>
+                <td class="${isUnclassified ? '' : 'text-gray-700'}">${label}</td>
+                <td>${row.male_count}</td>
+                <td>${row.female_count}</td>
+                <td class="font-medium ${isUnclassified ? '' : 'text-gray-900'}">${total}</td>
             </tr>`;
         }).join('');
         document.getElementById('age-total-male').textContent = qc.age_groups_total.male_count;
         document.getElementById('age-total-female').textContent = qc.age_groups_total.female_count;
         document.getElementById('age-total-all').textContent = qc.age_groups_total.total_persons;
 
-        const sectoralByGroup = Object.fromEntries(qc.sectoral_groups.map((row) => [row.sectoral_group, row]));
-        document.querySelectorAll('#sectoral-rows tr').forEach((row) => {
-            const data = sectoralByGroup[row.dataset.group];
-            row.querySelector('.sect-male').value = data?.male_count ?? 0;
-            row.querySelector('.sect-female').value = data?.female_count ?? 0;
-        });
-        recalculateSectoralTotals();
-
-        // Amber for "needs attention" once reported it's just informational
-        // (neutral gray) -- the same pending/attention convention already
-        // used for the "Not yet classified" age-bracket row above and the
-        // Evacuees page's own pending-details badge, reused here rather
-        // than left as plain gray text regardless of state.
-        const updatedMeta = document.getElementById('ecb-updated-meta');
-        if (qc.updated_at) {
-            updatedMeta.className = 'text-xs text-gray-500 mb-3';
-            updatedMeta.textContent = `Beneficiaries/sectoral figures last saved ${new Date(qc.updated_at).toLocaleString()}${qc.updated_by_name ? ` by ${qc.updated_by_name}` : ''}`;
-        } else {
-            updatedMeta.className = 'inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg mb-3';
-            updatedMeta.innerHTML = '<i class="ti ti-alert-circle" style="font-size: 14px;" aria-hidden="true"></i> Beneficiaries/sectoral figures not yet reported for this event.';
-        }
+        renderSectoralRows(Object.fromEntries(qc.sectoral_groups.map((row) => [row.sectoral_group, row])));
     }
 
     async function loadEcBoard(eventId) {
@@ -384,11 +399,10 @@
     }
 
     // Populates the "Add evacuee" form's own dropdowns (households already
-    // at this center, and barangays for a brand-new household) -- was
-    // previously only loaded when the old modal opened; now the form is
-    // always on the page, so this runs on load and again on every event
-    // change / successful add (a new household just added should appear in
-    // the "existing household" list for the next person added to it).
+    // at this center, and barangays for a brand-new household) -- runs on
+    // load and again on every event change / successful add (a new
+    // household just added should appear in the "already here" list for
+    // the next person added to it).
     async function loadAddEvacueeFormData(eventId) {
         if (! eventId) {
             return;
@@ -415,7 +429,6 @@
         }
     }
 
-    renderSectoralRows();
     document.getElementById('ae-age-bracket').innerHTML =
         ageBrackets.map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
     document.getElementById('qd-age-bracket').innerHTML =
@@ -482,45 +495,27 @@
         loadAddEvacueeFormData(e.target.value);
     });
 
-    document.getElementById('sectoral-rows').addEventListener('input', recalculateSectoralTotals);
+    // --- Add Evacuee ---------------------------------------------------------
 
-    document.getElementById('ecboard-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Optional per-person sectoral flags. The badge on the collapsed
+    // header shows how many are ticked, so a closed section never hides
+    // that something is set.
+    function updateSectoralFlagsUi() {
+        const isMale = document.getElementById('ae-sex').value === 'male';
+        document.querySelectorAll('#ae-sectoral [data-female-only]').forEach((label) => {
+            label.classList.toggle('hidden', isMale);
+            if (isMale) label.querySelector('input').checked = false;
+        });
 
-        const eventId = document.getElementById('ecb-event-select').value;
-        if (! eventId) {
-            return;
-        }
+        const ticked = document.querySelectorAll('#ae-sectoral .ae-flag:checked').length;
+        const badge = document.getElementById('ae-sectoral-count');
+        badge.textContent = `${ticked} ticked`;
+        badge.classList.toggle('hidden', ticked === 0);
+    }
 
-        const button = document.getElementById('ecb-save-btn');
-        button.disabled = true;
-        button.textContent = 'Saving...';
-
-        try {
-            const result = await Api.request(`/evacuation-centers/${centerId}/quick-count`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    evacuation_event_id: Number(eventId),
-                    beneficiaries_4ps: Number(document.getElementById('ecb-beneficiaries-4ps').value) || 0,
-                    sectoral_groups: Array.from(document.querySelectorAll('#sectoral-rows tr')).map((row) => ({
-                        sectoral_group: row.dataset.group,
-                        male_count: Number(row.querySelector('.sect-male').value) || 0,
-                        female_count: Number(row.querySelector('.sect-female').value) || 0,
-                    })),
-                }),
-            });
-            renderEcBoard(result.data);
-            button.textContent = 'Saved!';
-            setTimeout(() => { button.textContent = 'Save beneficiaries & sectoral figures'; }, 1500);
-        } catch (error) {
-            showFormErrors(error);
-            button.textContent = 'Save beneficiaries & sectoral figures';
-        } finally {
-            button.disabled = false;
-        }
-    });
-
-    // --- Add Evacuee form (inline -- see redesign notes above) --------------
+    document.getElementById('ae-sex').addEventListener('change', updateSectoralFlagsUi);
+    document.getElementById('ae-sectoral').addEventListener('change', updateSectoralFlagsUi);
+    updateSectoralFlagsUi();
 
     let aeMode = 'existing';
 
@@ -540,6 +535,21 @@
         });
     });
 
+    // New household's head questions: when this person IS the head, their
+    // own sex and age group answer "head's sex" and "head is a minor?", so
+    // those two only show when the head is someone else.
+    function updateHeadQuestionsUi() {
+        const headIsSelf = document.getElementById('ae-head-is-self').checked;
+        document.getElementById('ae-head-sex-field').classList.toggle('hidden', headIsSelf);
+        document.getElementById('ae-head-minor-field').classList.toggle('hidden', headIsSelf);
+    }
+
+    document.getElementById('ae-head-is-self').addEventListener('change', updateHeadQuestionsUi);
+    updateHeadQuestionsUi();
+
+    // '' (Not yet known) -> null, never a guessed "no".
+    const triState = (value) => (value === '' ? null : value === '1');
+
     document.getElementById('add-evacuee-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -556,7 +566,19 @@
         } else {
             payload.barangay_id = Number(document.getElementById('ae-barangay-id').value) || null;
             payload.family_name = document.getElementById('ae-family-name').value;
+            payload.head_is_self = document.getElementById('ae-head-is-self').checked;
+            payload.is_single_headed = triState(document.getElementById('ae-single-headed').value);
+            if (! payload.head_is_self) {
+                payload.head_sex = document.getElementById('ae-head-sex').value || null;
+                payload.head_is_minor = triState(document.getElementById('ae-head-is-minor').value);
+            }
         }
+
+        // Only ticked flags are sent (as true); anything unticked is simply
+        // left out, which the server stores as "not recorded" (null).
+        document.querySelectorAll('#ae-sectoral .ae-flag:checked').forEach((box) => {
+            payload[box.value] = true;
+        });
 
         const errorBox = document.getElementById('add-evacuee-errors');
         errorBox.classList.add('hidden');
@@ -577,6 +599,15 @@
             // each one. Household mode/selection intentionally carries over
             // (the next arrival is often from the same family).
             document.getElementById('ae-family-name').value = '';
+            // The household answers belong to the household just created,
+            // so they reset too, ready for the next new one.
+            document.getElementById('ae-head-is-self').checked = true;
+            ['ae-head-sex', 'ae-head-is-minor', 'ae-single-headed'].forEach((id) => { document.getElementById(id).value = ''; });
+            updateHeadQuestionsUi();
+            // Sectoral flags describe the person just added, so they reset
+            // for the next one (unlike household mode, which carries over).
+            document.querySelectorAll('#ae-sectoral .ae-flag').forEach((box) => { box.checked = false; });
+            updateSectoralFlagsUi();
             const successMsg = document.getElementById('add-evacuee-success-msg');
             successMsg.classList.remove('hidden');
             setTimeout(() => successMsg.classList.add('hidden'), 2500);
