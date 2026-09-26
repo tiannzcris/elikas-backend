@@ -97,13 +97,19 @@
                 </div>
             </div>
 
+            {{-- Barangay-first, like EC Board and the Evacuees page: pick a
+                barangay (the staff member's own pinned first), then see its
+                centers -- the map follows, zooming to that barangay's
+                centers. The search box filters whichever list is showing. --}}
             <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Evacuation centers</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Evacuation centers</p>
+                <nav id="gis-breadcrumb" class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"></nav>
                 <div class="relative mb-2">
                     <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
-                    <input id="center-search" type="text" placeholder="Search centers..."
+                    <input id="center-search" type="text" placeholder="Search barangays..."
                         class="w-full border border-gray-300 rounded-lg pl-8 pr-2 py-1.5 text-xs">
                 </div>
+                <p id="gis-own-barangay-note" class="hidden text-xs text-gray-500 mb-2">Your barangay is shown first. Other barangays are included so you can help register displaced residents temporarily staying in your area, or view city-wide activity.</p>
                 <select id="center-status-filter" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs mb-3">
                     <option value="">All status</option>
                     <option value="active">Active</option>
@@ -112,6 +118,17 @@
                     <option value="closed">Closed</option>
                 </select>
                 <div id="center-list" class="flex flex-col gap-3 text-sm max-h-64 overflow-y-auto"></div>
+            </div>
+
+            {{-- Hazard zones don't belong to one barangay (the Mayon danger
+                zones and the coastal storm-surge zone each cover several,
+                and none carries a barangay_id), so they're listed city-wide
+                instead of under a barangay. What IS exact is whether an
+                evacuation center sits inside one -- see centersInside(). --}}
+            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hazard zones (city-wide)</p>
+                <p class="text-xs text-gray-500 mb-3">Each covers several barangays. Select one to see it on the map.</p>
+                <div id="hazard-list" class="flex flex-col gap-2 text-sm"></div>
             </div>
 
             <div id="draw-hint" class="hidden bg-white border border-gray-200 rounded-xl p-4 text-xs text-gray-500">
@@ -434,6 +451,78 @@
         return active;
     }
 
+    // Barangay-first drill-down (like EC Board and the Evacuees page):
+    // null = the "All barangays" list; otherwise the barangay's name. Centers
+    // are grouped by the barangay name they already carry, so this needs
+    // nothing beyond the map data every viewer of this page already loads.
+    let gisBarangay = null;
+    const ownBarangayName = Api.getUser()?.barangay?.name ?? null;
+
+    // centerId -> names of the hazard zones it sits inside. Exact: centers
+    // are points, zones are polygons (see pointInGeometry()).
+    let centerHazards = {};
+
+    // Ray casting on each polygon's outer ring -- GeoJSON coordinates are
+    // [lng, lat]. Holes are ignored: none of the mapped zones have one.
+    function pointInRing([x, y], ring) {
+        let inside = false;
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+            const [xi, yi] = ring[i];
+            const [xj, yj] = ring[j];
+            if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = ! inside;
+        }
+        return inside;
+    }
+
+    function pointInGeometry(point, geometry) {
+        if (geometry?.type === 'Polygon') return pointInRing(point, geometry.coordinates[0]);
+        if (geometry?.type === 'MultiPolygon') return geometry.coordinates.some((polygon) => pointInRing(point, polygon[0]));
+        return false;
+    }
+
+    function computeCenterHazards() {
+        centerHazards = {};
+        allCenterFeatures.forEach((c) => {
+            const zones = allHazardFeatures
+                .filter((z) => pointInGeometry(c.geometry.coordinates, z.geometry))
+                .map((z) => z.properties.area_name);
+            if (zones.length) centerHazards[c.properties.id] = zones;
+        });
+    }
+
+    function renderGisBreadcrumb() {
+        document.getElementById('gis-breadcrumb').innerHTML = gisBarangay === null
+            ? '<span class="text-gray-700 font-medium">All barangays</span>'
+            : `<a href="#" data-gis-goto="all" class="hover:text-brand hover:underline">All barangays</a>
+               <i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>
+               <span class="text-gray-700 font-medium">${escapeHtml(gisBarangay)}</span>`;
+        document.getElementById('center-search').placeholder = gisBarangay === null ? 'Search barangays...' : 'Search centers...';
+    }
+
+    function drillIntoGisBarangay(name) {
+        gisBarangay = name;
+        document.getElementById('center-search').value = '';
+        renderGisBreadcrumb();
+        renderCenters();
+
+        // The map follows: zoom to this barangay's centers.
+        const points = allCenterFeatures
+            .filter((f) => f.properties.barangay === name)
+            .map((f) => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+        if (points.length === 1) map.setView(points[0], 16);
+        else if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 16 });
+    }
+
+    function backToAllBarangays() {
+        gisBarangay = null;
+        document.getElementById('center-search').value = '';
+        renderGisBreadcrumb();
+        renderCenters();
+        map.setView(MAP_CENTER, MAP_ZOOM);
+    }
+
+    const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
     function renderCenters() {
         if (centerLayer) map.removeLayer(centerLayer);
 
@@ -441,14 +530,14 @@
         const status = document.getElementById('center-status-filter').value;
         const showLayer = document.getElementById('layer-centers').checked;
 
-        const filtered = allCenterFeatures.filter((f) => {
+        // Markers: every center citywide on the barangay list, only the
+        // chosen barangay's once drilled in -- status filter applies to both.
+        const onMap = allCenterFeatures.filter((f) => {
             const p = f.properties;
-            const matchesQuery = ! query || p.name.toLowerCase().includes(query) || (p.barangay ?? '').toLowerCase().includes(query);
-            const matchesStatus = ! status || p.status === status;
-            return matchesQuery && matchesStatus;
+            return (! status || p.status === status) && (gisBarangay === null || p.barangay === gisBarangay);
         });
 
-        centerLayer = L.geoJSON({ type: 'FeatureCollection', features: filtered }, {
+        centerLayer = L.geoJSON({ type: 'FeatureCollection', features: onMap }, {
             pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
                 radius: 8,
                 fillColor: centerColors[feature.properties.status] ?? '#666',
@@ -463,31 +552,78 @@
                 const popupPhoto = p.photo_url
                     ? `<img src="${p.photo_url}" alt="${p.name}" style="width:180px;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block;">`
                     : `<div style="width:180px;height:120px;background:#f3f4f6;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:#9ca3af;"><i class="ti ti-building" style="font-size:32px;" aria-hidden="true"></i></div>`;
+                const inside = centerHazards[p.id];
 
                 layer.bindPopup(`
                     ${popupPhoto}
                     <strong>${p.name}</strong><br>
                     ${p.barangay ?? ''} · ${p.status.replace('_', ' ')}<br>
                     ${p.capacity_persons ? `Occupancy: ${p.current_occupancy} / ${p.capacity_persons}` : 'No capacity set'}<br>
+                    ${inside ? `<span style="color:#b91c1c;">Inside: ${inside.map(escapeHtml).join(', ')}</span><br>` : ''}
                     <a href="/evacuation-centers/${p.id}">View details</a>
                 `);
             },
         });
         if (showLayer) centerLayer.addTo(map);
 
-        document.getElementById('center-list').innerHTML = filtered.length === 0
+        const listEl = document.getElementById('center-list');
+        const note = document.getElementById('gis-own-barangay-note');
+
+        if (gisBarangay === null) {
+            // Level 1: one row per barangay that has at least one center,
+            // the staff member's own barangay pinned first.
+            const byBarangay = {};
+            allCenterFeatures.forEach((f) => {
+                const name = f.properties.barangay;
+                if (! name) return;
+                (byBarangay[name] ??= []).push(f);
+            });
+            const rows = Object.keys(byBarangay)
+                .filter((name) => ! query || name.toLowerCase().includes(query))
+                .sort((a, b) => a.localeCompare(b));
+            const ownIndex = rows.indexOf(ownBarangayName);
+            if (ownIndex > 0) rows.unshift(...rows.splice(ownIndex, 1));
+            note.classList.toggle('hidden', ownIndex === -1);
+
+            listEl.innerHTML = rows.length === 0
+                ? '<p class="text-xs text-gray-500 text-center py-6">No barangays match this search.</p>'
+                : rows.map((name) => {
+                    const centers = byBarangay[name];
+                    const flagged = centers.filter((f) => centerHazards[f.properties.id]).length;
+                    return `
+                        <button type="button" class="gis-barangay-item text-left w-full flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50" data-barangay="${escapeHtml(name)}">
+                            <span class="flex-1 min-w-0">
+                                <span class="font-medium text-gray-700">${escapeHtml(name)}</span>
+                                ${name === ownBarangayName ? '<span class="ml-1 text-xs font-medium px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">Your barangay</span>' : ''}
+                                <span class="block text-xs text-gray-500">${centers.length} center${centers.length === 1 ? '' : 's'}${flagged ? `, <span class="text-red-600">${flagged} inside a hazard zone</span>` : ''}</span>
+                            </span>
+                            <i class="ti ti-chevron-right text-gray-300 shrink-0" style="font-size: 14px;" aria-hidden="true"></i>
+                        </button>`;
+                }).join('');
+            return;
+        }
+
+        // Level 2: this barangay's centers.
+        note.classList.add('hidden');
+        const centers = onMap
+            .filter((f) => ! query || f.properties.name.toLowerCase().includes(query))
+            .sort((a, b) => a.properties.name.localeCompare(b.properties.name));
+
+        listEl.innerHTML = centers.length === 0
             ? '<p class="text-xs text-gray-500 text-center py-6">No centers match this filter.</p>'
-            : filtered.map((f) => {
+            : centers.map((f) => {
                 const p = f.properties;
                 const [lng, lat] = f.geometry.coordinates;
                 const pct = p.occupancy_percent ?? 0;
+                const inside = centerHazards[p.id];
                 return `
                     <button class="center-list-item text-left w-full" data-lat="${lat}" data-lng="${lng}">
                         <span class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[p.status] ?? '#666'}"></span>
-                            <span class="font-medium text-gray-700">${p.name}</span>
+                            <span class="font-medium text-gray-700">${escapeHtml(p.name)}</span>
                         </span>
                         ${p.capacity_persons ? `<p class="text-xs text-gray-500 pl-4">${p.current_occupancy} / ${p.capacity_persons} (${pct}%)</p>` : ''}
+                        ${inside ? `<p class="text-xs text-red-600 pl-4 flex items-start gap-1"><i class="ti ti-alert-triangle shrink-0 mt-px" style="font-size: 12px;" aria-hidden="true"></i><span>Inside: ${inside.map(escapeHtml).join(', ')}</span></p>` : ''}
                     </button>`;
             }).join('');
 
@@ -502,6 +638,42 @@
             });
         });
     }
+
+    document.getElementById('center-list').addEventListener('click', (e) => {
+        const row = e.target.closest('.gis-barangay-item');
+        if (row) drillIntoGisBarangay(row.dataset.barangay);
+    });
+    document.getElementById('gis-breadcrumb').addEventListener('click', (e) => {
+        if (! e.target.closest('[data-gis-goto="all"]')) return;
+        e.preventDefault();
+        backToAllBarangays();
+    });
+
+    // City-wide hazard zone list: colour, type, how many evacuation
+    // centers sit inside it; selecting one fits the map to it.
+    function renderHazardList() {
+        document.getElementById('hazard-list').innerHTML = allHazardFeatures.length === 0
+            ? '<p class="text-xs text-gray-500">No hazard zones mapped yet.</p>'
+            : allHazardFeatures.map((z, index) => {
+                const p = z.properties;
+                const count = Object.values(centerHazards).filter((zones) => zones.includes(p.area_name)).length;
+                return `
+                    <button type="button" class="hazard-list-item text-left w-full flex items-start gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50" data-index="${index}">
+                        <span class="w-3 h-3 rounded-sm shrink-0 mt-1" style="background:${hazardColors[p.hazard_type] ?? '#666'}"></span>
+                        <span class="flex-1 min-w-0">
+                            <span class="font-medium text-gray-700">${escapeHtml(p.area_name)}</span>
+                            <span class="block text-xs text-gray-500">${escapeHtml(p.hazard_type.replace(/_/g, ' '))}, ${count ? `<span class="text-red-600">${count} evacuation center${count === 1 ? '' : 's'} inside</span>` : 'no evacuation centers inside'}</span>
+                        </span>
+                    </button>`;
+            }).join('');
+    }
+
+    document.getElementById('hazard-list').addEventListener('click', (e) => {
+        const row = e.target.closest('.hazard-list-item');
+        if (! row) return;
+        const zone = allHazardFeatures[Number(row.dataset.index)];
+        map.fitBounds(L.geoJSON(zone).getBounds(), { padding: [30, 30] });
+    });
 
     function renderHazards() {
         if (hazardLayer) map.removeLayer(hazardLayer);
@@ -563,8 +735,11 @@
             allHazardFeatures = result.data.hazard_areas.features;
 
             renderStats();
+            computeCenterHazards();
+            renderGisBreadcrumb();
             renderCenters();
             renderHazards();
+            renderHazardList();
             document.getElementById('map-updated').textContent = `Loaded ${new Date().toLocaleTimeString()}`;
         } catch (error) {
             showFormErrors(error);

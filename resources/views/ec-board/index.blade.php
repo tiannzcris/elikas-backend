@@ -26,6 +26,9 @@
             <p class="text-sm font-medium text-gray-600 mb-1">No evacuation centers yet</p>
             <p class="text-sm text-gray-500">Centers will appear here once barangays register them.</p>
         </div>
+        {{-- Only for staff assigned to a barangay (barangay officials),
+            and only while their barangay is actually in the list below. --}}
+        <p id="own-barangay-note" class="hidden text-xs text-gray-500 mb-3">Your barangay is shown first. Other barangays are included so you can help register displaced residents temporarily staying in your area, or view city-wide activity.</p>
         <div id="barangay-list" class="hidden flex flex-col gap-2.5"></div>
     </div>
 
@@ -99,6 +102,14 @@
             }))
             .sort((a, b) => a.barangay_name.localeCompare(b.barangay_name));
 
+        // The logged-in staff member's own barangay (barangay officials
+        // only -- administrators/CSWD personnel have none) goes first,
+        // everything else stays alphabetical.
+        const ownBarangayId = Api.getUser()?.barangay?.id ?? null;
+        const ownIndex = rows.findIndex((r) => r.barangay_id === ownBarangayId);
+        if (ownIndex > 0) rows.unshift(...rows.splice(ownIndex, 1));
+        document.getElementById('own-barangay-note').classList.toggle('hidden', ownIndex === -1);
+
         const emptyState = document.getElementById('barangay-empty-state');
         const listEl = document.getElementById('barangay-list');
 
@@ -120,7 +131,7 @@
                     <i class="ti ti-map-pin text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-medium text-sm text-gray-800">${r.barangay_name}</p>
+                    <p class="font-medium text-sm text-gray-800">${r.barangay_name}${r.barangay_id === ownBarangayId ? ' <span class="ml-1 text-xs font-medium px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">Your barangay</span>' : ''}</p>
                     <p class="text-xs text-gray-500">${r.center_count} evacuation center${r.center_count === 1 ? '' : 's'}</p>
                 </div>
                 <i class="ti ti-chevron-right text-gray-300 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
