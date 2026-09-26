@@ -19,10 +19,19 @@
             headed rows (see Family::isChildHeaded()/isSingleHeaded()/
             headSex()) -- editable at any time, for households created
             before these questions existed or answered "not yet known". --}}
-        <div class="flex items-center justify-between gap-3 mt-1 mb-6">
+        <div class="flex items-center justify-between gap-3 mt-1">
             <p class="text-sm text-gray-600" id="family-household">Household: &mdash;</p>
             <button type="button" id="edit-household-btn" class="text-xs text-brand hover:underline shrink-0">Edit household</button>
         </div>
+        {{-- Visible reminder for a household whose head is someone who
+            hasn't been linked as a member yet -- its head figures are the
+            answers given for them, not a real person's record. Amber, the
+            same "needs attention" convention as "details pending". --}}
+        <p id="family-head-unlinked" class="hidden mt-2 items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <i class="ti ti-alert-circle shrink-0 mt-px" style="font-size: 14px;" aria-hidden="true"></i>
+            <span id="family-head-unlinked-text"></span>
+        </p>
+        <div class="mb-6"></div>
 
         <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100" id="members-list"></div>
     </div>
@@ -463,6 +472,18 @@
         const sex = f.head_sex ? ` (${f.head_sex})` : '';
         document.getElementById('family-household').textContent =
             `Household: single-headed ${yesNoUnknown(f.is_single_headed)}, child-headed ${yesNoUnknown(f.is_child_headed)}${sex}`;
+
+        // "Head not yet linked": no member is the head yet, so the head's
+        // sex/minor figures are only the answers given for them.
+        const reminder = document.getElementById('family-head-unlinked');
+        const unlinked = ! f.head_of_family;
+        reminder.classList.toggle('hidden', ! unlinked);
+        reminder.classList.toggle('flex', unlinked);
+        if (unlinked) {
+            const answered = [f.head_sex, f.is_child_headed === null ? null : (f.is_child_headed ? 'a minor' : 'not a minor')].filter(Boolean);
+            document.getElementById('family-head-unlinked-text').textContent =
+                `Head not yet linked. ${answered.length ? `Counts use the answers given for the head (${answered.join(', ')}) ` : 'Nothing is known about the head yet '}until a member is linked. When the head is added to this household, tick "This person is the household head", or choose them here in Edit household.`;
+        }
     }
 
     function updateHouseholdHeadUi() {

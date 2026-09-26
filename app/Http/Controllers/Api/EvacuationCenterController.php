@@ -325,7 +325,9 @@ class EvacuationCenterController extends Controller
             // Family::isSingleHeaded()/isChildHeaded()/headSex(). null/left
             // out = "not yet known". head_is_self links the person being
             // added as the head, so their own sex (and, once recorded, real
-            // birthdate) apply and head_sex/head_is_minor aren't asked.
+            // birthdate) apply and head_sex/head_is_minor aren't asked. For
+            // an EXISTING household it's honoured only when that household
+            // has no head linked yet (the real head arriving later).
             'head_is_self' => ['nullable', 'boolean'],
             'is_single_headed' => ['nullable', 'boolean'],
             'head_is_minor' => ['nullable', 'boolean'],
@@ -374,6 +376,19 @@ class EvacuationCenterController extends Controller
                         ? in_array($validated['age_bracket'], Family::MINOR_AGE_BRACKETS, true)
                         : ($validated['head_is_minor'] ?? null),
                     'head_sex' => $headIsSelf ? null : ($validated['head_sex'] ?? null),
+                ]);
+            } elseif (! empty($validated['head_is_self']) && ! $family->head_of_family_evacuee_id) {
+                // The real head arriving later at a household created with
+                // "someone else is the head": linked now, so their own sex
+                // (and real birthdate, once recorded) replace the placeholder
+                // head_sex/head_is_minor answers. Only ever fills an EMPTY
+                // head -- an existing head is never replaced from here
+                // (reassigning is Edit household's job). is_single_headed
+                // is a household answer, not about this person, so it stays.
+                $family->update([
+                    'head_of_family_evacuee_id' => $evacuee->id,
+                    'head_is_minor' => in_array($validated['age_bracket'], Family::MINOR_AGE_BRACKETS, true),
+                    'head_sex' => null,
                 ]);
             }
 

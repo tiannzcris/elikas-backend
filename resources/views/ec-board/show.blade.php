@@ -17,6 +17,15 @@
         .ecb-table th:not(:first-child), .ecb-table td:not(:first-child) { text-align: right; }
         @media (max-width: 639px) { .ecb-table th, .ecb-table td { padding: 0.4rem 0.625rem; } }
         .ecb-cell-input { width: 100%; max-width: 4.5rem; text-align: right; }
+
+        /* Add evacuee's sections: a hairline between each, a plain
+           sentence-case heading, and nothing else -- the grouping itself
+           is the structure. The legend is floated so it sits inside the
+           section like any other heading rather than on its border. */
+        .ae-section { min-width: 0; border-top: 1px solid #F3F4F6; padding-top: 0.75rem; margin-top: 0.75rem; }
+        .ae-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+        .ae-section-title { float: left; width: 100%; margin-bottom: 0.5rem; font-size: 0.75rem; line-height: 1rem; font-weight: 600; color: #1F2937; }
+        .ae-section-title + * { clear: both; }
     </style>
 
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -145,29 +154,48 @@
 
             {{-- Add Evacuee: the fast-entry path, kept to a narrow panel --
                 bracket, sex, household, optional flags, one button. --}}
-            <section data-region="add-evacuee" class="bg-white border border-gray-200 rounded-xl p-4 lg:sticky lg:top-2">
+            {{-- On wide screens the panel stays in view (sticky) and never
+                grows taller than the space left below it on screen (set by
+                fitAddEvacueePanel()) -- its fields scroll inside it
+                instead, under the pinned read-back + button. --}}
+            <section data-region="add-evacuee" class="bg-white border border-gray-200 rounded-xl px-4 pt-4 lg:sticky lg:top-2 lg:overflow-y-auto">
                 <p class="text-sm font-semibold text-gray-800">Add evacuee</p>
                 <p class="text-xs text-gray-500 mt-0.5 mb-3">Name and birthdate can be added later on the Evacuees page.</p>
 
                 <div id="add-evacuee-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
 
-                <form id="add-evacuee-form" class="flex flex-col gap-3">
-                    <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
-                        <div>
-                            <label for="ae-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
-                            <select id="ae-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                <form id="add-evacuee-form" class="flex flex-col">
+                    {{-- Four sections, in the order staff actually answer
+                        them: the person, their household, the household's
+                        head (only when that's someone else), then optional
+                        sectoral details. Each section is about ONE subject,
+                        so a field never leaves it unclear who it describes. --}}
+                    <fieldset class="ae-section">
+                        <legend class="ae-section-title">Who is this person?</legend>
+                        <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
+                            <div>
+                                <label for="ae-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
+                                <select id="ae-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                            </div>
+                            <div>
+                                <label for="ae-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
+                                <select id="ae-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label for="ae-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
-                            <select id="ae-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                    </div>
+                        {{-- Shown whenever this person is being recorded as the
+                            household head, right under the two fields that
+                            then describe the head too. --}}
+                        <p id="ae-head-note" class="hidden mt-2 items-start gap-1.5 text-xs text-brand-dark">
+                            <i class="ti ti-user-check shrink-0 mt-px" style="font-size: 14px;" aria-hidden="true"></i>
+                            <span>This person's age and sex will be used for the household head.</span>
+                        </p>
+                    </fieldset>
 
-                    <div>
-                        <p class="text-xs text-gray-500 mb-1">Household</p>
+                    <fieldset class="ae-section">
+                        <legend class="ae-section-title">Household</legend>
                         <div class="bg-gray-50 border border-gray-200 rounded-lg p-0.5 grid grid-cols-2 text-xs mb-2">
                             <button type="button" id="ae-mode-existing-btn" class="ae-mode-btn px-2 py-1.5 rounded-md font-medium bg-brand text-white" data-mode="existing">
                                 Already here
@@ -177,46 +205,64 @@
                             </button>
                         </div>
 
-                        <div id="ae-existing-section">
+                        <div id="ae-existing-section" class="flex flex-col gap-2">
                             <select id="ae-family-id" aria-label="Household already at this center" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
                                 <option value="">No households registered here yet</option>
                             </select>
+                            {{-- Only for a household whose head was "someone
+                                else" and hasn't been linked yet -- the real
+                                head arriving later (see addEvacuee()). --}}
+                            <label id="ae-existing-head" class="hidden items-start gap-2 text-sm text-gray-700">
+                                <input type="checkbox" id="ae-existing-head-is-self" class="mt-0.5">
+                                <span>This person is the household head <span class="block text-xs text-gray-500">This household has no head linked yet.</span></span>
+                            </label>
                         </div>
 
                         {{-- Asked once per NEW household (never per person) --
                             see Family::isSingleHeaded()/isChildHeaded()/
                             headSex(). "Not yet known" is always allowed and
-                            is stored as null, never guessed as "no". When
-                            this person IS the head, their own sex and age
-                            group answer the head questions, so those hide. --}}
+                            is stored as null, never guessed as "no". --}}
                         <div id="ae-new-section" class="hidden grid-cols-1 gap-2">
                             <select id="ae-barangay-id" aria-label="Barangay" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
-                            <input type="text" id="ae-family-name" aria-label="Head of family name" placeholder="Head of family, e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                            <div>
+                                <label for="ae-family-name" class="text-xs text-gray-500 block mb-1">Household head's name</label>
+                                <input type="text" id="ae-family-name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                            </div>
                             <label class="flex items-center gap-2 text-sm text-gray-700">
                                 <input type="checkbox" id="ae-head-is-self" checked> This person is the household head
                             </label>
+                            <div>
+                                <label for="ae-single-headed" class="text-xs text-gray-500 block mb-1">Only one household head? (single-headed)</label>
+                                <select id="ae-single-headed" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                    <option value="">Not yet known</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    {{-- Only when the head is someone OTHER than the person
+                        being added: set apart (dashed inset) so these two
+                        answers can't be mistaken for this person's own. --}}
+                    <div id="ae-head-section" role="group" aria-labelledby="ae-head-section-title" class="ae-section hidden">
+                        <div class="border border-dashed border-gray-300 bg-gray-50 rounded-lg p-3">
+                            <p id="ae-head-section-title" class="text-xs font-semibold text-gray-800 mb-1">About the actual household head</p>
+                            <p class="text-xs text-gray-500 -mt-1 mb-2">Someone other than the person you're adding. Used until they're added and linked.</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <div id="ae-head-sex-field" class="hidden">
+                                <div id="ae-head-sex-field">
                                     <label for="ae-head-sex" class="text-xs text-gray-500 block mb-1">Head's sex</label>
-                                    <select id="ae-head-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                    <select id="ae-head-sex" class="w-full border border-gray-300 bg-white rounded-lg px-2 py-2 text-sm">
                                         <option value="">Not yet known</option>
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
                                     </select>
                                 </div>
-                                <div id="ae-head-minor-field" class="hidden">
+                                <div id="ae-head-minor-field">
                                     <label for="ae-head-is-minor" class="text-xs text-gray-500 block mb-1">Head is a minor?</label>
-                                    <select id="ae-head-is-minor" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                    <select id="ae-head-is-minor" class="w-full border border-gray-300 bg-white rounded-lg px-2 py-2 text-sm">
                                         <option value="">Not yet known</option>
                                         <option value="1">Yes (under 18)</option>
-                                        <option value="0">No</option>
-                                    </select>
-                                </div>
-                                <div class="col-span-2">
-                                    <label for="ae-single-headed" class="text-xs text-gray-500 block mb-1">Only one household head? (single-headed)</label>
-                                    <select id="ae-single-headed" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
-                                        <option value="">Not yet known</option>
-                                        <option value="1">Yes</option>
                                         <option value="0">No</option>
                                     </select>
                                 </div>
@@ -231,23 +277,39 @@
                         the board's live sectoral figures only count those.
                         Pregnant/lactating are hidden (and cleared) for a
                         male evacuee. --}}
-                    <details id="ae-sectoral" class="border border-gray-200 rounded-lg">
-                        <summary class="cursor-pointer select-none px-3 py-2 text-sm text-gray-700">
-                            Sectoral details <span class="text-gray-500">(optional)</span>
-                            <span id="ae-sectoral-count" class="hidden ml-1 text-xs px-2 py-0.5 rounded-lg bg-brand-light text-brand"></span>
-                        </summary>
-                        <div class="px-3 pb-1 pt-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-gray-700">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_pwd"> PWD</label>
-                            <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_pregnant"> Pregnant</label>
-                            <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_lactating"> Lactating</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_solo_parent"> Solo parent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_indigenous_person"> Indigenous person</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_4ps_beneficiary"> 4Ps beneficiary</label>
-                        </div>
-                        <p class="px-3 pb-2.5 pt-1 text-xs text-gray-500">Tick only what you know. Leaving a box unticked records nothing -- it doesn't mean "no".</p>
-                    </details>
+                    <div class="ae-section">
+                        <details id="ae-sectoral" class="border border-gray-200 rounded-lg">
+                            <summary class="cursor-pointer select-none px-3 py-2 text-sm text-gray-700">
+                                Sectoral details <span class="text-gray-500">(optional)</span>
+                                <span id="ae-sectoral-count" class="hidden ml-1 text-xs px-2 py-0.5 rounded-lg bg-brand-light text-brand"></span>
+                            </summary>
+                            <div class="px-3 pb-1 pt-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-gray-700">
+                                <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_pwd"> PWD</label>
+                                <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_pregnant"> Pregnant</label>
+                                <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_lactating"> Lactating</label>
+                                <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_solo_parent"> Solo parent</label>
+                                <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_indigenous_person"> Indigenous person</label>
+                                <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_4ps_beneficiary"> 4Ps beneficiary</label>
+                            </div>
+                            <p class="px-3 pb-2.5 pt-1 text-xs text-gray-500">Tick only what you know. Leaving a box unticked records nothing -- it doesn't mean "no".</p>
+                        </details>
+                    </div>
 
-                    <div>
+                    {{-- Pinned to the bottom of whatever is scrolling (the
+                        panel itself on wide screens, the page on a phone),
+                        so the read-back and the Add button are always in
+                        view however many questions are open above them.
+                        The negative side margins let it reach the panel's edges;
+                        the panel has no bottom padding, this supplies it. --}}
+                    <div class="sticky bottom-0 z-10 bg-white -mx-4 mt-3 px-4 pt-3 pb-4 border-t border-gray-200 rounded-b-xl">
+                        {{-- Plain-language read-back of exactly what Add
+                            evacuee will record, rewritten on every change --
+                            the last check before saving (see
+                            renderAddEvacueeSummary()). --}}
+                        <div class="rounded-lg bg-brand-light/40 border border-brand-light px-3 py-2.5 mb-2.5" aria-live="polite">
+                            <p class="text-xs font-semibold text-gray-800 mb-1">Will be recorded</p>
+                            <ul id="ae-summary" class="text-xs text-gray-700 space-y-0.5"></ul>
+                        </div>
                         <button type="submit" id="add-evacuee-submit-btn"
                             class="w-full bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2.5">
                             + Add evacuee
@@ -309,6 +371,8 @@
     // URL is /ec-board/{id} -- centerId is simply the last segment.
     const centerId = window.location.pathname.split('/').pop();
     let centerBarangayId = null;
+    // Households already at this center, by id (from loadAddEvacueeFormData()).
+    let aeFamilies = {};
 
     // Matches the exact age_bracket / sectoral_group enum values this
     // system uses (see Evacuee::age_bracket/age_bracket_override and the
@@ -414,6 +478,8 @@
             ]);
 
             const families = familiesResult.data;
+            const previouslySelected = document.getElementById('ae-family-id').value;
+            aeFamilies = Object.fromEntries(families.map((f) => [String(f.id), f]));
             document.getElementById('ae-family-id').innerHTML = families.length
                 ? families.map((f) => {
                     const label = f.name || f.head_of_family?.full_name || `Family #${f.id}`;
@@ -421,8 +487,16 @@
                 }).join('')
                 : '<option value="">No households registered here yet</option>';
 
+            // Keep the household staff were adding to selected after a
+            // refresh (the next arrival is often from the same family).
+            if (aeFamilies[previouslySelected]) document.getElementById('ae-family-id').value = previouslySelected;
+
             document.getElementById('ae-barangay-id').innerHTML =
                 barangaysResult.data.map((b) => `<option value="${b.id}" ${b.id === centerBarangayId ? 'selected' : ''}>${b.name}</option>`).join('');
+
+            // Which households still have no head linked decides whether
+            // Already here offers "This person is the household head".
+            updateHeadQuestionsUi();
         } catch (error) {
             // Dropdowns just stay at their previous options if this fails --
             // the rest of the form is still usable.
@@ -485,6 +559,7 @@
             }
 
             document.getElementById('content-wrap').classList.remove('hidden');
+            fitAddEvacueePanel();
         } catch (error) {
             showFormErrors(error);
         }
@@ -532,20 +607,109 @@
             document.getElementById('ae-existing-section').classList.toggle('hidden', aeMode !== 'existing');
             document.getElementById('ae-new-section').classList.toggle('hidden', aeMode !== 'new');
             document.getElementById('ae-new-section').classList.toggle('grid', aeMode === 'new');
+            updateHeadQuestionsUi();
         });
     });
 
     // New household's head questions: when this person IS the head, their
     // own sex and age group answer "head's sex" and "head is a minor?", so
     // those two only show when the head is someone else.
-    function updateHeadQuestionsUi() {
-        const headIsSelf = document.getElementById('ae-head-is-self').checked;
-        document.getElementById('ae-head-sex-field').classList.toggle('hidden', headIsSelf);
-        document.getElementById('ae-head-minor-field').classList.toggle('hidden', headIsSelf);
+    // Whether the person being added is being recorded as the head: the
+    // New household tickbox, or -- for an existing household that has no
+    // head linked yet -- the Already here one.
+    function selectedHousehold() {
+        return aeFamilies[document.getElementById('ae-family-id').value] ?? null;
     }
 
+    function existingHeadTickOffered() {
+        const household = selectedHousehold();
+        return aeMode === 'existing' && household !== null && ! household.head_of_family;
+    }
+
+    function personIsHead() {
+        return aeMode === 'new'
+            ? document.getElementById('ae-head-is-self').checked
+            : existingHeadTickOffered() && document.getElementById('ae-existing-head-is-self').checked;
+    }
+
+    function updateHeadQuestionsUi() {
+        const offered = existingHeadTickOffered();
+        const existingTick = document.getElementById('ae-existing-head');
+        existingTick.classList.toggle('hidden', ! offered);
+        existingTick.classList.toggle('flex', offered);
+        if (! offered) document.getElementById('ae-existing-head-is-self').checked = false;
+
+        const note = document.getElementById('ae-head-note');
+        note.classList.toggle('hidden', ! personIsHead());
+        note.classList.toggle('flex', personIsHead());
+
+        document.getElementById('ae-head-section').classList.toggle(
+            'hidden', ! (aeMode === 'new' && ! document.getElementById('ae-head-is-self').checked)
+        );
+        renderAddEvacueeSummary();
+    }
+
+    // The "Will be recorded" read-back: plain sentences built from exactly
+    // what the form will send, so a wrong answer is visible before saving.
+    function renderAddEvacueeSummary() {
+        const value = (id) => document.getElementById(id).value;
+        const optionText = (id) => document.getElementById(id).selectedOptions[0]?.textContent.trim() ?? '';
+        const isMinorBracket = (bracket) => ['infant', 'toddler', 'preschooler', 'school_age', 'teenage'].includes(bracket);
+        const minorText = (isMinor) => (isMinor === null ? 'minor or not: not yet known' : (isMinor ? 'a minor' : 'not a minor'));
+        const answer = (id) => ({ '': 'not yet known', 1: 'yes', 0: 'no' })[value(id)];
+
+        const lines = [`Adding 1 ${value('ae-sex')}, ${optionText('ae-age-bracket').toLowerCase()}.`];
+
+        if (aeMode === 'existing') {
+            const household = selectedHousehold();
+            lines.push(household ? `Joins the household already here: ${optionText('ae-family-id')}.` : 'Choose the household this person belongs to.');
+            if (personIsHead()) {
+                lines.push(`Becomes that household's head (${minorText(isMinorBracket(value('ae-age-bracket')))}).`);
+            }
+        } else {
+            const name = document.getElementById('ae-family-name').value.trim();
+            lines.push(`New household: ${name || '(head\'s name not entered yet)'}, ${optionText('ae-barangay-id') || 'no barangay chosen'}.`);
+            lines.push(personIsHead()
+                ? `Head: this person (${minorText(isMinorBracket(value('ae-age-bracket')))}).`
+                : `Head: someone else, ${value('ae-head-sex') || 'sex not yet known'}, ${minorText(value('ae-head-is-minor') === '' ? null : value('ae-head-is-minor') === '1')}.`);
+            lines.push(`Single-headed: ${answer('ae-single-headed')}.`);
+        }
+
+        const flags = [...document.querySelectorAll('#ae-sectoral .ae-flag:checked')].map((box) => box.parentElement.textContent.trim());
+        lines.push(flags.length ? `Sectoral: ${flags.join(', ')}.` : 'No sectoral details.');
+
+        document.getElementById('ae-summary').innerHTML = lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+    }
+
+    const escapeHtml = (text) => text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
     document.getElementById('ae-head-is-self').addEventListener('change', updateHeadQuestionsUi);
+    document.getElementById('ae-family-id').addEventListener('change', updateHeadQuestionsUi);
+    document.getElementById('ae-existing-head-is-self').addEventListener('change', updateHeadQuestionsUi);
+    // Anything else on the form only changes the read-back.
+    document.getElementById('add-evacuee-form').addEventListener('input', renderAddEvacueeSummary);
+    document.getElementById('add-evacuee-form').addEventListener('change', renderAddEvacueeSummary);
     updateHeadQuestionsUi();
+
+    // Wide screens: cap the sticky panel at the space actually left below
+    // its top edge -- lower down before the page is scrolled, taller once it
+    // sticks -- so its pinned read-back + Add button never fall off the
+    // bottom of the screen. A fixed CSS max-height can't do both. Phones
+    // don't need it: the page scrolls and the footer sticks to the screen.
+    function fitAddEvacueePanel() {
+        const panel = document.querySelector('[data-region="add-evacuee"]');
+        if (! window.matchMedia('(min-width: 1024px)').matches) {
+            panel.style.maxHeight = '';
+            return;
+        }
+        const main = document.querySelector('main').getBoundingClientRect();
+        const gap = 8; // matches the panel's lg:top-2
+        const top = Math.max(panel.getBoundingClientRect().top, main.top + gap);
+        panel.style.maxHeight = `${Math.max(240, Math.min(main.bottom, window.innerHeight) - top - gap)}px`;
+    }
+
+    document.querySelector('main').addEventListener('scroll', fitAddEvacueePanel, { passive: true });
+    window.addEventListener('resize', fitAddEvacueePanel);
 
     // '' (Not yet known) -> null, never a guessed "no".
     const triState = (value) => (value === '' ? null : value === '1');
@@ -563,6 +727,8 @@
 
         if (aeMode === 'existing') {
             payload.family_id = Number(document.getElementById('ae-family-id').value) || null;
+            // Only ever offered for a household with no head linked yet.
+            if (personIsHead()) payload.head_is_self = true;
         } else {
             payload.barangay_id = Number(document.getElementById('ae-barangay-id').value) || null;
             payload.family_name = document.getElementById('ae-family-name').value;
@@ -602,6 +768,7 @@
             // The household answers belong to the household just created,
             // so they reset too, ready for the next new one.
             document.getElementById('ae-head-is-self').checked = true;
+            document.getElementById('ae-existing-head-is-self').checked = false;
             ['ae-head-sex', 'ae-head-is-minor', 'ae-single-headed'].forEach((id) => { document.getElementById(id).value = ''; });
             updateHeadQuestionsUi();
             // Sectoral flags describe the person just added, so they reset
