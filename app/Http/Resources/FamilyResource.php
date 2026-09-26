@@ -34,6 +34,12 @@ class FamilyResource extends JsonResource
             // over head_of_family whenever present.
             'name' => $this->name,
             'is_4ps_beneficiary' => (bool) $this->is_4ps_beneficiary,
+            // Household-level status behind the EC Board's child-/single-
+            // headed rows -- null = not yet known (see Family::isChildHeaded()
+            // and siblings, which apply the "real birthdate wins" rule).
+            'is_single_headed' => $this->resource->isSingleHeaded(),
+            'is_child_headed' => $this->resource->isChildHeaded(),
+            'head_sex' => $this->resource->headSex(),
             // Computed from loaded members -- "does ANY member of this
             // household have this flag", matching the sectoral tags shown
             // per-family on the Evacuees list (distinct from a single

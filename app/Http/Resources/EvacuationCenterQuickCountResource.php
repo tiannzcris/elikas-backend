@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\EvacuationCenterQuickCount;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,13 +9,11 @@ class EvacuationCenterQuickCountResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $sectoralGroups = $this->whenLoaded('sectoralGroups', fn () => $this->sectoralGroups->keyBy('sectoral_group'), collect());
-
-        $sectoralGroupRows = collect(EvacuationCenterQuickCount::SECTORAL_GROUPS)->map(fn ($group) => [
-            'sectoral_group' => $group,
-            'male_count' => (int) ($sectoralGroups[$group]->male_count ?? 0),
-            'female_count' => (int) ($sectoralGroups[$group]->female_count ?? 0),
-        ]);
+        // Same eight-row shape and field name as before, so every existing
+        // client (web board, desktop and mobile "last known" caches) keeps
+        // working unchanged -- all eight rows live (see
+        // EvacuationCenterQuickCount::liveSectoralBreakdown()).
+        $sectoralGroupRows = collect($this->resource->liveSectoralBreakdown());
 
         // Live, not stored -- see EvacuationCenterQuickCount::liveAgeSexBreakdown()
         // and its sibling methods. Computed from actual Evacuee/EvacuationRecord
@@ -38,7 +35,8 @@ class EvacuationCenterQuickCountResource extends JsonResource
             'families_now' => $this->resource->liveFamiliesNow(),
             'persons_cumulative' => $this->persons_cumulative,
             'persons_now' => $this->resource->livePersonsNow(),
-            'beneficiaries_4ps' => $this->beneficiaries_4ps,
+            // Same field name older clients already read; always live now.
+            'beneficiaries_4ps' => $this->resource->liveFourPsFamiliesNow(),
             'age_groups' => $ageGroupRows->values(),
             // Derived, not stored -- age brackets are mutually exclusive so
             // this sum is a meaningful "Total" row for that table. Sectoral

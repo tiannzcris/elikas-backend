@@ -46,10 +46,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  *    destroy correct pre-existing data.
  *
  * 3. KNOWN GAPS -- left blank, NOT fabricated:
- *    - "Child-Headed Family" and "Single-Headed Family" CUM columns (BS,
- *      BU, BW, BY), and their NOW columns (BT, BV, BX, BZ) for any
- *      barangay whose centers have no EC Board quick count yet: see
- *      SECTORAL COLUMNS' DATA SOURCE below.
  *    - "Origin of IDPs" (S/T): this system groups each row by the family's
  *      registering/home barangay, which makes a separate "origin barangay"
  *      column redundant under this grouping convention -- left blank rather
@@ -97,33 +93,22 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * meaningful "total" for them to reconcile against in the first place.
  *
  * SECTORAL COLUMNS' DATA SOURCE (BO-CP):
- * the NOW half of each pair (BP, BR, CB, CD, CF, CH, CJ, CL, CN, CP)
- * prefers each EvacuationCenterQuickCount's staff-reported sectoralGroups()
- * -- a center shared by several barangays split between them by
- * headcount, an estimate (see headcountSplitAllocations()) --
- * -- same reasoning as EvacuationCenterQuickCount's own docblock, most
- * evacuees here are placeholders with no per-person flags set yet -- summed
- * across every center this barangay's currently-active evacuees are
- * actually checked into (a barangay can use more than one center; unlike
- * the EC-detail columns O-R, which show only the highest-occupancy one,
- * a sectoral total needs every center's figures, not just one). Falls
- * back to counting individual Evacuee flags only where NONE of those
- * centers has a quick-count row for this event at all. The CUM half
- * (BO, BQ, CA, CC, CE, CG, CI, CK, CM, CO) has no manually-reported
- * equivalent anywhere in this system -- quick-count sectoral figures are a
- * single current snapshot, not tracked cumulatively the way
- * families_cumulative/persons_cumulative are -- so it always stays
- * computed from Evacuee flags, same as before this fix.
+ * both halves of each pair are counted exactly from each evacuee's own
+ * per-person flags, the same live rule as the EC Board itself
+ * (EvacuationCenterQuickCount::liveSectoralBreakdown()): NOW (BP, BR, CB,
+ * CD, CF, CH, CJ, CL, CN, CP) over this barangay's current evacuees, CUM
+ * (BO, BQ, CA, CC, CE, CG, CI, CK, CM, CO) over everyone ever registered
+ * for this event. Reported quick-count rows for these six groups are
+ * never read.
  *
- * CHILD-HEADED / SINGLE-HEADED FAMILY (BS-BZ) follow the same NOW
- * precedence -- quick-count sectoralGroups() summed across the barangay's
- * in-use centers -- but have no fallback: neither families nor evacuees
- * carry a child/single-headed flag, so there's nothing to count instead.
- * Where no in-use center has a quick count, their NOW columns are simply
- * left blank (as the whole BS-BZ block used to be), and the city total
- * sums only the barangays that did report. Their CUM columns stay blank
- * everywhere: quick counts have no cumulative equivalent (above), and
- * there are no flags to compute one from.
+ * CHILD-HEADED / SINGLE-HEADED FAMILY (BS-BZ) are counted once per
+ * FAMILY of this barangay, from the household answers Add Evacuee's "New
+ * household" records (Family::isChildHeaded()/isSingleHeaded() -- the same
+ * rule as the EC Board), by the head's sex (Family::headSex()): NOW (BT,
+ * BV, BX, BZ) over families with a member currently evacuated, CUM (BS,
+ * BU, BW, BY) over every family registered for this event. A family whose
+ * answer or head's sex isn't known yet is counted in neither column.
+ * Reported quick-count rows are never read.
  */
 class DromicRegionVReportService
 {
@@ -339,111 +324,11 @@ class DromicRegionVReportService
      * template, so writeRow() is a simple, auditable letter-by-letter
      * assignment rather than positional guessing.
      */
-    /** @var array<int, array> event id => headcountSplitAllocations() result */
-    private array $headcountSplitCache = [];
-
-    /**
-     * Splits every EC Board-reported sectoral figure (per group, per sex)
-     * of each center across the HOME barangays of the evacuees currently
-     * staying there, in proportion to how many of each barangay's own
-     * evacuees are there. Returns
-     * [centerId][barangayId][sectoralGroup]['male'|'female'] => int.
-     * Home barangay = the family's barangay_id, the same grouping every
-     * barangay row in this report uses (see computeBarangayData()'s
-     * $families query), so each row takes exactly its own share.
-     *
-     * ESTIMATE for shared centers: the EC Board records one figure per
-     * center, not which barangay each counted person is from, so a shared
-     * center's split is proportional, not exact. A center used by a single
-     * barangay is unaffected -- that barangay gets the full figure.
-     *
-     * Whole numbers via the largest-remainder method: each barangay first
-     * gets the whole part of its exact share, then the units left over go
-     * one at a time to the largest fractional remainders (ties: more
-     * evacuees there, then lower barangay id, so the output is stable).
-     * Rounding each share on its own could hand out more or less than the
-     * center reported -- 3 split 5:1 is 2.5 : 0.5, which rounds to 3 + 1 =
-     * 4 -- whereas this always distributes the center's figure exactly, so
-     * the city total stays the true sum of what centers reported. (That
-     * same example comes out 3 : 0: tied .5 remainders, larger group wins.)
-     *
-     * Cached per event: computeBarangayData() runs once per barangay, but
-     * the split needs every barangay's headcount at a center at once.
-     */
-    private function headcountSplitAllocations(EvacuationEvent $event): array
-    {
-        if (isset($this->headcountSplitCache[$event->id])) {
-            return $this->headcountSplitCache[$event->id];
-        }
-
-        // Same "current" test computeBarangayData() uses for $nowEvacuees
-        // (an active record in this event), and only families that belong
-        // to this event -- so these headcounts are exactly the evacuees the
-        // barangay rows themselves count.
-        $headcounts = EvacuationRecord::where('evacuation_event_id', $event->id)
-            ->where('status', 'currently_evacuated')
-            ->whereNotNull('evacuation_center_id')
-            ->with('evacuee.family')
-            ->get()
-            ->filter(fn ($r) => (int) $r->evacuee?->family?->evacuation_event_id === (int) $event->id)
-            ->groupBy('evacuation_center_id')
-            ->map(fn ($records) => $records
-                ->groupBy(fn ($r) => (int) $r->evacuee->family->barangay_id)
-                ->map(fn ($byBarangay) => $byBarangay->pluck('evacuee_id')->unique()->count())
-                ->all());
-
-        $quickCounts = EvacuationCenterQuickCount::where('evacuation_event_id', $event->id)
-            ->whereIn('evacuation_center_id', $headcounts->keys())
-            ->with('sectoralGroups')
-            ->get();
-
-        $allocations = [];
-        foreach ($quickCounts as $qc) {
-            $centerHeadcounts = $headcounts[$qc->evacuation_center_id];
-            foreach (EvacuationCenterQuickCount::SECTORAL_GROUPS as $group) {
-                $reported = $qc->sectoralGroups->firstWhere('sectoral_group', $group);
-                foreach (['male', 'female'] as $sex) {
-                    $shares = $this->splitByLargestRemainder((int) ($reported?->{"{$sex}_count"} ?? 0), $centerHeadcounts);
-                    foreach ($shares as $barangayId => $share) {
-                        $allocations[$qc->evacuation_center_id][$barangayId][$group][$sex] = $share;
-                    }
-                }
-            }
-        }
-
-        return $this->headcountSplitCache[$event->id] = $allocations;
-    }
-
-    /**
-     * @param  array<int, int>  $headcounts  barangay id => evacuees at the center (each > 0)
-     * @return array<int, int>  barangay id => whole-number share, summing to exactly $amount
-     */
-    private function splitByLargestRemainder(int $amount, array $headcounts): array
-    {
-        $total = array_sum($headcounts);
-        $shares = [];
-        $remainders = [];
-        foreach ($headcounts as $barangayId => $count) {
-            // Integer arithmetic throughout -- no float rounding error in
-            // deciding which remainder is largest.
-            $shares[$barangayId] = intdiv($amount * $count, $total);
-            $remainders[$barangayId] = ($amount * $count) % $total;
-        }
-
-        $order = array_keys($headcounts);
-        usort($order, fn ($a, $b) => [$remainders[$b], $headcounts[$b], $a] <=> [$remainders[$a], $headcounts[$a], $b]);
-        for ($i = 0, $left = $amount - array_sum($shares); $i < $left; $i++) {
-            $shares[$order[$i]]++;
-        }
-
-        return $shares;
-    }
-
     private function computeBarangayData(Barangay $barangay, EvacuationEvent $event): array
     {
         $families = Family::where('evacuation_event_id', $event->id)
             ->where('barangay_id', $barangay->id)
-            ->with(['members.evacuationRecords' => fn ($q) => $q->where('evacuation_event_id', $event->id)])
+            ->with(['headOfFamily', 'members.evacuationRecords' => fn ($q) => $q->where('evacuation_event_id', $event->id)])
             ->get();
 
         $allEvacuees = $families->flatMap(fn ($f) => $f->members);
@@ -476,63 +361,41 @@ class DromicRegionVReportService
             fn ($e) => ! in_array($e->age_bracket, self::AGE_BRACKETS, true) || ! in_array($e->sex, ['male', 'female'], true)
         )->count();
 
-        // Every center this barangay's CURRENTLY-active evacuees are
-        // actually checked into for this event -- not just the single
-        // highest-occupancy "primary" center used for the EC-detail
-        // columns below, since a sectoral total needs every center's
-        // reported figures, not just one. See this class's docblock for
-        // why only the NOW columns use this (quick-count sectoral data
-        // isn't tracked cumulatively anywhere in this system).
-        $centerIdsInUse = $nowEvacuees
-            ->flatMap(fn ($e) => $e->evacuationRecords->where('status', 'currently_evacuated'))
-            ->pluck('evacuation_center_id')
-            ->filter()
-            ->unique();
+        // The six per-person groups' NOW columns: always counted exactly,
+        // from each current evacuee's own flags, wherever they are -- the
+        // same live rule as the EC Board itself
+        // (EvacuationCenterQuickCount::liveSectoralBreakdown()). Only a flag
+        // that's actually true counts (null = not recorded). Reported
+        // quick-count rows for these six groups are never read.
+        $perPersonNowBySex = function (string $group, string $sex) use ($nowEvacuees) {
+            $flag = EvacuationCenterQuickCount::PER_PERSON_SECTORAL_FLAGS[$group];
 
-        $quickCounts = $centerIdsInUse->isEmpty()
-            ? collect()
-            : EvacuationCenterQuickCount::whereIn('evacuation_center_id', $centerIdsInUse)
-                ->where('evacuation_event_id', $event->id)
-                ->with('sectoralGroups')
-                ->get();
+            return $nowEvacuees->filter(fn ($e) => $e->{$flag} === true && $e->sex === $sex)->count();
+        };
+        // Male + female rather than counting the combined figure separately,
+        // so BP/BR can never disagree with the per-sex columns.
+        $perPersonNowTotal = fn (string $group) => $perPersonNowBySex($group, 'male') + $perPersonNowBySex($group, 'female');
 
-        // Returns null (not 0) when none of this barangay's in-use centers
-        // has ever saved a quick-count row for this event, so callers can
-        // tell "genuinely reported as zero" apart from "never reported,
-        // fall back to counting Evacuee flags instead".
-        //
-        // A center used by evacuees from several barangays contributes only
-        // THIS barangay's headcount share of its figures (see
-        // headcountSplitAllocations()), not the full figure -- counting it
-        // in full in every sharing barangay's row inflated the city total.
-        // A center used by this barangay alone still contributes its full
-        // figure, exactly as before.
-        $allocations = $this->headcountSplitAllocations($event);
-        $sectoralNowBySex = fn (string $group, string $sex) => $quickCounts->isEmpty() ? null : $quickCounts->sum(
-            fn ($qc) => $allocations[$qc->evacuation_center_id][$barangay->id][$group][$sex] ?? 0
-        );
-        // Male + female shares rather than splitting the combined figure
-        // separately, so BP/BR can never disagree with the per-sex columns.
-        $sectoralNowTotal = fn (string $group) => $quickCounts->isEmpty()
-            ? null
-            : $sectoralNowBySex($group, 'male') + $sectoralNowBySex($group, 'female');
-
-        // Child-Headed / Single-Headed Family (BS-BZ): only the NOW columns
-        // (BT, BV, BX, BZ) can be filled, and only from quick-count data --
-        // unlike every other sectoral category, no family or evacuee record
-        // carries a child/single-headed flag, so there's nothing to fall
-        // back to counting. When none of this barangay's in-use centers has
-        // a quick count for this event, the keys are left out entirely (not
-        // null, not 0): writeRow() then leaves those cells blank exactly as
-        // before, and sumRows() can't turn "never reported" into a
-        // fabricated 0 in the city total. CUM (BS, BU, BW, BY) always stays
-        // blank -- see the class docblock.
-        $headedFamilyNow = [];
-        if ($quickCounts->isNotEmpty()) {
-            foreach (['child_headed_family' => ['BT', 'BV'], 'single_headed_family' => ['BX', 'BZ']] as $group => [$maleCol, $femaleCol]) {
-                $headedFamilyNow[$maleCol] = $sectoralNowBySex($group, 'male');
-                $headedFamilyNow[$femaleCol] = $sectoralNowBySex($group, 'female');
-            }
+        // Child-Headed / Single-Headed Family (BS-BZ): once per family, by
+        // the head's sex, from the household answers -- the same rule as the
+        // EC Board (EvacuationCenterQuickCount::HOUSEHOLD_SECTORAL_GROUPS).
+        // CUM over every family registered for this event, NOW over those
+        // with a member currently evacuated. Only an answer that's actually
+        // true counts (null = not yet known).
+        $familiesNow = $families->filter(fn ($f) => $f->members->intersect($nowEvacuees)->isNotEmpty());
+        $headedFamilies = [];
+        foreach ([
+            'child_headed_family' => ['BS', 'BT', 'BU', 'BV'],
+            'single_headed_family' => ['BW', 'BX', 'BY', 'BZ'],
+        ] as $group => [$maleCum, $maleNow, $femaleCum, $femaleNow]) {
+            $method = EvacuationCenterQuickCount::HOUSEHOLD_SECTORAL_GROUPS[$group];
+            $count = fn (Collection $fams, string $sex) => $fams
+                ->filter(fn ($f) => $f->{$method}() === true && $f->headSex() === $sex)
+                ->count();
+            $headedFamilies += [
+                $maleCum => $count($families, 'male'), $maleNow => $count($familiesNow, 'male'),
+                $femaleCum => $count($families, 'female'), $femaleNow => $count($familiesNow, 'female'),
+            ];
         }
 
         // The one evacuation center actually used by this barangay's
@@ -548,8 +411,8 @@ class DromicRegionVReportService
         // facility column (CQ onward, via $facilityQty below), even though
         // it did use a center -- e.g. Binanowan,
         // whose evacuee is at Binatagan Covered Court (event 7). A fix would
-        // pick from the centers this row's evacuees are actually in
-        // ($centerIdsInUse above) instead.
+        // pick from the centers this row's evacuees are actually in (their
+        // currently_evacuated records' evacuation_center_id) instead.
         $primaryCenter = EvacuationCenter::where('barangay_id', $barangay->id)
             ->whereHas('evacuationRecords', fn ($q) => $q->where('evacuation_event_id', $event->id))
             ->get()
@@ -629,24 +492,20 @@ class DromicRegionVReportService
             'BI' => $bracketSex($cumEvacuees, 'senior_citizen', 'female'), 'BJ' => $bracketSex($nowEvacuees, 'senior_citizen', 'female'),
             'BK' => $cumEvacuees->where('sex', 'male')->count(), 'BL' => $nowEvacuees->where('sex', 'male')->count(),
             'BM' => $cumEvacuees->where('sex', 'female')->count(), 'BN' => $nowEvacuees->where('sex', 'female')->count(),
-            // -- Sectoral -- NOW columns prefer quick-count sectoralGroups()
-            // (summed across every center this barangay is actually using),
-            // falling back to Evacuee flags only when none of those centers
-            // has ever reported one. CUM stays Evacuee-flag-computed always
-            // -- see this class's docblock for why.
-            'BO' => $cumEvacuees->where('is_pregnant', true)->count(), 'BP' => $sectoralNowTotal('pregnant_women') ?? $nowEvacuees->where('is_pregnant', true)->count(),
-            'BQ' => $cumEvacuees->where('is_lactating', true)->count(), 'BR' => $sectoralNowTotal('lactating_mothers') ?? $nowEvacuees->where('is_lactating', true)->count(),
-            // BS-BZ (Child-Headed / Single-Headed Family): NOW columns only,
-            // and only when a quick count exists -- see $headedFamilyNow above.
-            ...$headedFamilyNow,
-            'CA' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(), 'CB' => $sectoralNowBySex('solo_parent', 'male') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(),
-            'CC' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(), 'CD' => $sectoralNowBySex('solo_parent', 'female') ?? $nowEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(),
-            'CE' => $cumEvacuees->where('is_pwd', true)->where('sex', 'male')->count(), 'CF' => $sectoralNowBySex('pwd', 'male') ?? $nowEvacuees->where('is_pwd', true)->where('sex', 'male')->count(),
-            'CG' => $cumEvacuees->where('is_pwd', true)->where('sex', 'female')->count(), 'CH' => $sectoralNowBySex('pwd', 'female') ?? $nowEvacuees->where('is_pwd', true)->where('sex', 'female')->count(),
-            'CI' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(), 'CJ' => $sectoralNowBySex('indigenous_peoples', 'male') ?? $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(),
-            'CK' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(), 'CL' => $sectoralNowBySex('indigenous_peoples', 'female') ?? $nowEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(),
-            'CM' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(), 'CN' => $sectoralNowBySex('four_ps_beneficiary', 'male') ?? $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(),
-            'CO' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(), 'CP' => $sectoralNowBySex('four_ps_beneficiary', 'female') ?? $nowEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(),
+            // -- Sectoral -- all live: per-person flags (BO-BR, CA-CP) and
+            // household answers (BS-BZ) -- see this class's docblock.
+            'BO' => $cumEvacuees->where('is_pregnant', true)->count(), 'BP' => $perPersonNowTotal('pregnant_women'),
+            'BQ' => $cumEvacuees->where('is_lactating', true)->count(), 'BR' => $perPersonNowTotal('lactating_mothers'),
+            // BS-BZ (Child-Headed / Single-Headed Family) -- see $headedFamilies above.
+            ...$headedFamilies,
+            'CA' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'male')->count(), 'CB' => $perPersonNowBySex('solo_parent', 'male'),
+            'CC' => $cumEvacuees->where('is_solo_parent', true)->where('sex', 'female')->count(), 'CD' => $perPersonNowBySex('solo_parent', 'female'),
+            'CE' => $cumEvacuees->where('is_pwd', true)->where('sex', 'male')->count(), 'CF' => $perPersonNowBySex('pwd', 'male'),
+            'CG' => $cumEvacuees->where('is_pwd', true)->where('sex', 'female')->count(), 'CH' => $perPersonNowBySex('pwd', 'female'),
+            'CI' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'male')->count(), 'CJ' => $perPersonNowBySex('indigenous_peoples', 'male'),
+            'CK' => $cumEvacuees->where('is_indigenous_person', true)->where('sex', 'female')->count(), 'CL' => $perPersonNowBySex('indigenous_peoples', 'female'),
+            'CM' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'male')->count(), 'CN' => $perPersonNowBySex('four_ps_beneficiary', 'male'),
+            'CO' => $cumEvacuees->where('is_4ps_beneficiary', true)->where('sex', 'female')->count(), 'CP' => $perPersonNowBySex('four_ps_beneficiary', 'female'),
             // -- Facilities (primary center) --
             'CQ' => $facilityQty('latrine_compost_pit'), 'CR' => $facilityQty('latrine_sealed'),
             'CS' => $facilityQty('toilet_male'), 'CT' => $facilityQty('toilet_female'), 'CU' => $facilityQty('toilet_common'),

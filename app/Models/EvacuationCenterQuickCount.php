@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * The EC Information Board's remaining stored figures: a running cumulative
  * headcount (families_cumulative/persons_cumulative -- see recordArrival()
  * for why this can't just be computed on the fly, and live*() below for why
- * "Now" can) and the sectoral breakdown (see EvacuationCenterController's
- * class-level notes -- sectoral flags aren't known at "Add Evacuee" time,
- * so that section stays a manually-reported aggregate, not something
- * derived from individual records). families_now/persons_now and the
- * age/sex breakdown are NOT stored here anymore -- see the live*() methods,
- * which compute them directly from real Evacuee/EvacuationRecord rows
- * every time the board is viewed.
+ * "Now" can). Everything else on the board -- families_now/persons_now,
+ * the age/sex breakdown, all eight sectoral groups and "4Ps beneficiary
+ * families" -- is NOT read from storage: see the live*() methods, which
+ * compute it directly from real Family/Evacuee/EvacuationRecord rows every
+ * time the board is viewed. beneficiaries_4ps and the
+ * evacuation_center_quick_count_sectoral_groups rows are legacy
+ * manually-reported figures nothing reads anymore.
  */
 class EvacuationCenterQuickCount extends Model
 {
@@ -38,6 +38,26 @@ class EvacuationCenterQuickCount extends Model
     public const SECTORAL_GROUPS = [
         'pwd', 'child_headed_family', 'single_headed_family', 'solo_parent',
         'pregnant_women', 'lactating_mothers', 'four_ps_beneficiary', 'indigenous_peoples',
+    ];
+
+    // The six sectoral groups that are a property of ONE person, each
+    // mapped to the Evacuee flag it is always live-computed from (see
+    // liveSectoralBreakdown()) -- on every board, with no manual override.
+    public const PER_PERSON_SECTORAL_FLAGS = [
+        'pwd' => 'is_pwd',
+        'solo_parent' => 'is_solo_parent',
+        'pregnant_women' => 'is_pregnant',
+        'lactating_mothers' => 'is_lactating',
+        'four_ps_beneficiary' => 'is_4ps_beneficiary',
+        'indigenous_peoples' => 'is_indigenous_person',
+    ];
+
+    // The two sectoral groups that describe a whole HOUSEHOLD, each mapped
+    // to the Family method it is live-computed from (see
+    // liveSectoralBreakdown()), counted once per family by the head's sex.
+    public const HOUSEHOLD_SECTORAL_GROUPS = [
+        'child_headed_family' => 'isChildHeaded',
+        'single_headed_family' => 'isSingleHeaded',
     ];
 
     public function evacuationCenter(): BelongsTo
@@ -199,5 +219,78 @@ class EvacuationCenterQuickCount extends Model
         ]);
 
         return $rows->all();
+    }
+
+    private ?\Illuminate\Support\Collection $currentFamiliesCache = null;
+
+    /**
+     * Every family with at least one member here right now -- the
+     * household counterpart of currentEvacuees(), so the household rows
+     * and 4Ps families can never disagree with families_now.
+     */
+    private function currentFamilies(): \Illuminate\Support\Collection
+    {
+        if ($this->currentFamiliesCache !== null) {
+            return $this->currentFamiliesCache;
+        }
+
+        $familyIds = $this->currentEvacuees()->pluck('family_id')->filter()->unique();
+
+        return $this->currentFamiliesCache = $familyIds->isEmpty()
+            ? collect()
+            : Family::whereIn('id', $familyIds)->with('headOfFamily')->get();
+    }
+
+    /**
+     * The sectoral counterpart of liveAgeSexBreakdown(): all eight rows, in
+     * SECTORAL_GROUPS order -- the single place the rule lives, so the board
+     * API, both report generators and anything else showing "the" sectoral
+     * figures read this.
+     *
+     * - The six per-person groups (PER_PERSON_SECTORAL_FLAGS) count each
+     *   evacuee here now whose flag is actually TRUE, by their own sex.
+     * - Child-/Single-Headed Family (HOUSEHOLD_SECTORAL_GROUPS) count each
+     *   family with a member here now whose Family::isChildHeaded()/
+     *   isSingleHeaded() is TRUE, once per family, by Family::headSex().
+     *
+     * null means "not recorded"/"not yet known", not "no", and is never
+     * counted as either; nor is someone (or a household head) whose sex
+     * isn't known. No 'unclassified' row, unlike the age/sex table:
+     * sectoral groups overlap and aren't meant to add up to persons_now.
+     *
+     * @return list<array{sectoral_group: string, male_count: int, female_count: int}>
+     */
+    public function liveSectoralBreakdown(): array
+    {
+        $evacuees = $this->currentEvacuees();
+        $families = $this->currentFamilies();
+
+        return collect(self::SECTORAL_GROUPS)->map(function ($group) use ($evacuees, $families) {
+            if ($method = self::HOUSEHOLD_SECTORAL_GROUPS[$group] ?? null) {
+                $counted = $families->filter(fn ($f) => $f->{$method}() === true);
+                $sexOf = fn ($f) => $f->headSex();
+            } else {
+                $flag = self::PER_PERSON_SECTORAL_FLAGS[$group];
+                $counted = $evacuees->filter(fn ($e) => $e->{$flag} === true);
+                $sexOf = fn ($e) => $e->sex;
+            }
+
+            return [
+                'sectoral_group' => $group,
+                'male_count' => $counted->filter(fn ($x) => $sexOf($x) === 'male')->count(),
+                'female_count' => $counted->filter(fn ($x) => $sexOf($x) === 'female')->count(),
+            ];
+        })->all();
+    }
+
+    /**
+     * Live "4Ps beneficiary families": families with at least one member
+     * here right now whose Family::is_4ps_beneficiary is set -- same
+     * currentFamilies() basis as liveFamiliesNow(), so it can never exceed
+     * it.
+     */
+    public function liveFourPsFamiliesNow(): int
+    {
+        return $this->currentFamilies()->where('is_4ps_beneficiary', true)->count();
     }
 }

@@ -215,14 +215,14 @@ class EvacuationCenterController extends Controller
      * emergency, whichever staff member is on hand needs to be able to
      * report or update this.
      *
-     * families_now/persons_now and the age/sex breakdown are LIVE --
-     * computed straight from real Evacuee/EvacuationRecord rows (see
+     * families_now/persons_now, the age/sex breakdown, all eight sectoral
+     * groups and 4Ps families are LIVE -- computed straight from real
+     * Family/Evacuee/EvacuationRecord rows (see
      * EvacuationCenterQuickCount::livePersonsNow() and siblings), not a
      * manually-typed figure -- so they're always exactly what "Add
      * Evacuee" (below) and the Evacuees page's own edits/removals produce,
      * with nothing to fall out of sync. Only families_cumulative/
-     * persons_cumulative/beneficiaries_4ps/sectoral_groups are still real
-     * stored data; a fresh, unsaved instance stands in when no board row
+     * persons_cumulative are still real stored data; a fresh, unsaved instance stands in when no board row
      * exists yet for this center+event, so those read as zero rather than
      * 404ing -- "nothing reported yet" is the normal starting state.
      */
@@ -232,7 +232,7 @@ class EvacuationCenterController extends Controller
             'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
         ]);
 
-        $quickCount = EvacuationCenterQuickCount::with(['updater', 'sectoralGroups'])
+        $quickCount = EvacuationCenterQuickCount::with('updater')
             ->where('evacuation_center_id', $evacuationCenter->id)
             ->where('evacuation_event_id', $validated['evacuation_event_id'])
             ->first();
@@ -256,58 +256,29 @@ class EvacuationCenterController extends Controller
     }
 
     /**
-     * Saves the board's remaining MANUALLY-reported figures for this
-     * center+event: beneficiaries_4ps and the sectoral breakdown. Nothing
-     * else is client-editable anymore -- families_cumulative/persons_cumulative
-     * are server-incremented by addEvacuee() below, and families_now/
-     * persons_now/the age-sex breakdown are computed live (see
-     * quickCount()'s docblock). Sectoral flags (is_pwd, is_pregnant, etc.)
-     * are deliberately NOT live-computed the same way age/sex is: those
-     * flags are only known once someone's full details are filled in via
-     * "Add details", which normally happens well after the fast headcount
-     * is taken -- a live sectoral count would read as near-zero for most
-     * of an active evacuation, understating real numbers rather than
-     * reporting them accurately. Kept as a directly-reported aggregate
-     * instead, same as it already worked before this redesign, and same
-     * reasoning as beneficiaries_4ps.
+     * Retired: nothing on the EC Board is manually reported anymore -- all
+     * eight sectoral groups and 4Ps families are computed live (see
+     * EvacuationCenterQuickCount::liveSectoralBreakdown()), and the
+     * cumulative counts are server-incremented by addEvacuee() below.
+     *
+     * Kept, and still ACCEPTING the old payload (sectoral_groups plus
+     * beneficiaries_4ps), only so desktop/mobile builds already in the
+     * field -- and edits they queued offline -- keep syncing instead of
+     * failing validation forever. Nothing in the payload is saved; the
+     * response is simply the current live board.
      */
     public function updateQuickCount(Request $request, EvacuationCenter $evacuationCenter)
     {
-        $validated = $request->validate([
+        $request->validate([
             'evacuation_event_id' => ['required', 'integer', 'exists:evacuation_events,id'],
-            'beneficiaries_4ps' => ['required', 'integer', 'min:0'],
+            'beneficiaries_4ps' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'sectoral_groups' => ['array'],
             'sectoral_groups.*.sectoral_group' => ['required', Rule::in(EvacuationCenterQuickCount::SECTORAL_GROUPS)],
             'sectoral_groups.*.male_count' => ['required', 'integer', 'min:0'],
             'sectoral_groups.*.female_count' => ['required', 'integer', 'min:0'],
         ]);
 
-        $quickCount = DB::transaction(function () use ($validated, $request, $evacuationCenter) {
-            $quickCount = EvacuationCenterQuickCount::updateOrCreate(
-                [
-                    'evacuation_center_id' => $evacuationCenter->id,
-                    'evacuation_event_id' => $validated['evacuation_event_id'],
-                ],
-                [
-                    'beneficiaries_4ps' => $validated['beneficiaries_4ps'],
-                    'updated_by' => $request->user()->id,
-                ]
-            );
-
-            foreach ($validated['sectoral_groups'] ?? [] as $sectoralGroup) {
-                $quickCount->sectoralGroups()->updateOrCreate(
-                    ['sectoral_group' => $sectoralGroup['sectoral_group']],
-                    ['male_count' => $sectoralGroup['male_count'], 'female_count' => $sectoralGroup['female_count']]
-                );
-            }
-
-            return $quickCount;
-        });
-
-        return $this->success(
-            new EvacuationCenterQuickCountResource($quickCount->fresh(['updater', 'sectoralGroups'])),
-            'EC Board updated successfully.'
-        );
+        return $this->quickCount($request, $evacuationCenter);
     }
 
     /**
@@ -339,6 +310,26 @@ class EvacuationCenterController extends Controller
             'family_id' => ['nullable', 'required_if:household_mode,existing', 'integer', 'exists:families,id'],
             'barangay_id' => ['nullable', 'required_if:household_mode,new', 'integer', 'exists:barangays,id'],
             'family_name' => ['nullable', 'required_if:household_mode,new', 'string', 'max:150'],
+            // Optional sectoral flags for THIS one person, all nullable:
+            // left out (or null) means "not recorded", NOT "no" -- the EC
+            // Board's live sectoral figures only ever count a flag that is
+            // actually true (see EvacuationCenterQuickCount::liveSectoralBreakdown()).
+            'is_pwd' => ['nullable', 'boolean'],
+            'is_pregnant' => ['nullable', 'boolean', $this->femaleOnlyFlag($request)],
+            'is_lactating' => ['nullable', 'boolean', $this->femaleOnlyFlag($request)],
+            'is_solo_parent' => ['nullable', 'boolean'],
+            'is_indigenous_person' => ['nullable', 'boolean'],
+            'is_4ps_beneficiary' => ['nullable', 'boolean'],
+            // Household-level answers, asked once when a NEW household is
+            // created (ignored for an existing one) -- see
+            // Family::isSingleHeaded()/isChildHeaded()/headSex(). null/left
+            // out = "not yet known". head_is_self links the person being
+            // added as the head, so their own sex (and, once recorded, real
+            // birthdate) apply and head_sex/head_is_minor aren't asked.
+            'head_is_self' => ['nullable', 'boolean'],
+            'is_single_headed' => ['nullable', 'boolean'],
+            'head_is_minor' => ['nullable', 'boolean'],
+            'head_sex' => ['nullable', 'in:male,female'],
         ]);
 
         $existingFamily = null;
@@ -363,7 +354,28 @@ class EvacuationCenterController extends Controller
                 'sex' => $validated['sex'],
                 'age_bracket_override' => $validated['age_bracket'],
                 'status' => 'active',
+                ...collect(EvacuationCenterQuickCount::PER_PERSON_SECTORAL_FLAGS)
+                    ->values()
+                    ->mapWithKeys(fn ($flag) => [$flag => $validated[$flag] ?? null])
+                    ->all(),
             ]);
+
+            // A new household's one-time head answers. When the person just
+            // added IS the head, they're linked as head_of_family (their sex
+            // is the head's sex) and "is the head a minor?" comes from their
+            // age group -- until a real birthdate replaces it (see
+            // Family::isChildHeaded()).
+            if (! $existingFamily) {
+                $headIsSelf = (bool) ($validated['head_is_self'] ?? false);
+                $family->update([
+                    'is_single_headed' => $validated['is_single_headed'] ?? null,
+                    'head_of_family_evacuee_id' => $headIsSelf ? $evacuee->id : null,
+                    'head_is_minor' => $headIsSelf
+                        ? in_array($validated['age_bracket'], Family::MINOR_AGE_BRACKETS, true)
+                        : ($validated['head_is_minor'] ?? null),
+                    'head_sex' => $headIsSelf ? null : ($validated['head_sex'] ?? null),
+                ]);
+            }
 
             // A 4Ps beneficiary is a household-level designation -- see
             // Evacuee::propagateFourPsToFamily()'s own docblock. $family
@@ -589,5 +601,21 @@ class EvacuationCenterController extends Controller
             new EvacuationCenterResource($evacuationCenter->fresh(['barangay', 'facilities', 'creator'])),
             "Evacuation center assigned to {$newOwner->name}."
         );
+    }
+
+    /**
+     * Validation rule for addEvacuee()'s pregnant/lactating flags: only a
+     * TRUE value is rejected for a male evacuee -- null/false (not
+     * recorded / no) are always fine. Guards against a mis-tap putting a
+     * "pregnant" person in the male column of the EC Board's live
+     * sectoral figures.
+     */
+    private function femaleOnlyFlag(Request $request): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+            if ($request->input('sex') === 'male' && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+                $fail('Only a female evacuee can be marked pregnant or lactating.');
+            }
+        };
     }
 }

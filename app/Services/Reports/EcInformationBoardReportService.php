@@ -17,29 +17,20 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * the uploaded template) since its layout is simple enough to reproduce
  * exactly and doing so avoids shipping a second binary template file.
  *
- * 4Ps BENEFICIARIES / SECTORAL SOURCE: the header's "4Ps Beneficiaries:"
- * count and every Sectoral Group row are staff-reported aggregates, not
- * derived from individual Evacuee flags -- same reasoning as
- * EvacuationCenterQuickCount's own docblock (most evacuees are
- * placeholders with no name/details filled in, so per-person flags like
- * is_4ps_beneficiary are rarely set). When a EvacuationCenterQuickCount
- * row exists for this center+event, its beneficiaries_4ps and
- * sectoralGroups() are used directly for all eight rows; only falls back
- * to counting individual Evacuee flags when no such row exists at all
- * (i.e. the EC Board's sectoral form has never been saved here).
+ * 4Ps BENEFICIARIES / SECTORAL SOURCE: exactly what the EC Board shows --
+ * both come from EvacuationCenterQuickCount::liveFourPsFamiliesNow() and
+ * liveSectoralBreakdown(), the one place the source rule lives, the
+ * same on every board:
+ * - The six per-person groups are counted live from the flags Add Evacuee
+ *   (and full registration) record on each person here now, and "4Ps
+ *   Beneficiaries" live as families here now with
+ *   Family::is_4ps_beneficiary set.
+ * - Child-Headed / Single-Headed Family are counted live, once per family
+ *   here now, from the household answers Add Evacuee's "New household"
+ *   records (Family::isChildHeaded()/isSingleHeaded()), by the head's sex.
+ * Nothing is manually typed anymore. DromicRegionVReportService applies
+ * the same rule.
  *
- * CHILD-HEADED / SINGLE-HEADED FAMILY: previously hardcoded to 0 as a
- * known gap -- that's no longer true. Both are now real, collected
- * categories (the EC Board's own sectoral breakdown form has inputs for
- * them, saved to evacuation_center_quick_count_sectoral_groups, same as
- * the other six). The one difference: neither has any per-Evacuee flag
- * to fall back to (no such column exists on families or evacuees), so
- * when no quick-count row exists yet they stay 0 -- meaning "not yet
- * reported", same as every other row in that situation, not "confirmed
- * zero". DromicRegionVReportService reads the same source for its BS-BZ
- * columns (see its own docblock for how it handles the no-quick-count case).
- *
-
  * PLACEHOLDER EVACUEES: a placeholder's age_bracket and/or sex can be null
  * (no age_bracket_override or real date_of_birth yet), so the age/sex
  * filters below never match them for any specific bracket/sex cell -- but
@@ -72,14 +63,14 @@ class EcInformationBoardReportService
         $familiesCum = $allEvacuees->pluck('family_id')->unique()->count();
         $familiesNow = $now->pluck('family_id')->unique()->count();
 
-        $quickCount = EvacuationCenterQuickCount::where('evacuation_center_id', $center->id)
-            ->where('evacuation_event_id', $event->id)
-            ->with('sectoralGroups')
-            ->first();
+        // Every sectoral/4Ps figure is live, so an unsaved board instance for
+        // this center+event is all that's needed -- the SAME live*() methods
+        // the EC Board API uses (see the class docblock's SOURCE note).
+        $board = new EvacuationCenterQuickCount(['evacuation_center_id' => $center->id, 'evacuation_event_id' => $event->id]);
+        $board->setRelation('evacuationCenter', $center);
 
-        $fourPsCount = $quickCount
-            ? $quickCount->beneficiaries_4ps
-            : $allEvacuees->where('is_4ps_beneficiary', true)->count();
+        $fourPsCount = $board->liveFourPsFamiliesNow();
+        $sectoralRows = collect($board->liveSectoralBreakdown())->keyBy('sectoral_group');
 
         $row = 1;
         $sheet->setCellValue("A{$row}", 'EVACUATION CENTER INFORMATION BOARD');
@@ -157,40 +148,26 @@ class EcInformationBoardReportService
         // -- Sectoral Group --
         $row = $this->writeSectionHeader($sheet, $row, 'Sectoral Group', ['Male', 'Female', 'Total']);
 
-        // 'group' is the EvacuationCenterQuickCount::SECTORAL_GROUPS enum
-        // value this category is stored under -- deliberately a separate
-        // key from the array index (the Evacuee flag name) since the two
-        // naming conventions don't match 1:1 (e.g. is_pwd vs 'pwd').
-        // 'flag' => null marks a category with no per-Evacuee flag at all
-        // to fall back to (see the class docblock's CHILD-HEADED /
-        // SINGLE-HEADED FAMILY note).
+        // Template label => EvacuationCenterQuickCount::SECTORAL_GROUPS
+        // value. The figures themselves come from $sectoralRows above.
         $sectors = [
-            ['label' => 'Persons with Disability/ies (PWDs)', 'group' => 'pwd', 'flag' => 'is_pwd'],
-            ['label' => 'Child-Headed Family/ies', 'group' => 'child_headed_family', 'flag' => null],
-            ['label' => 'Single-Headed Family/ies', 'group' => 'single_headed_family', 'flag' => null],
-            ['label' => 'Solo Parent/s', 'group' => 'solo_parent', 'flag' => 'is_solo_parent'],
-            ['label' => 'Pregnant Women', 'group' => 'pregnant_women', 'flag' => 'is_pregnant'],
-            ['label' => 'Lactating Mother/s', 'group' => 'lactating_mothers', 'flag' => 'is_lactating'],
-            ['label' => '4Ps Beneficiary/ies', 'group' => 'four_ps_beneficiary', 'flag' => 'is_4ps_beneficiary'],
-            ['label' => 'Indigenous Peoples (IPs)', 'group' => 'indigenous_peoples', 'flag' => 'is_indigenous_person'],
+            'Persons with Disability/ies (PWDs)' => 'pwd',
+            'Child-Headed Family/ies' => 'child_headed_family',
+            'Single-Headed Family/ies' => 'single_headed_family',
+            'Solo Parent/s' => 'solo_parent',
+            'Pregnant Women' => 'pregnant_women',
+            'Lactating Mother/s' => 'lactating_mothers',
+            '4Ps Beneficiary/ies' => 'four_ps_beneficiary',
+            'Indigenous Peoples (IPs)' => 'indigenous_peoples',
         ];
 
         $sectorTotal = ['male' => 0, 'female' => 0];
-        foreach ($sectors as $meta) {
-            if ($quickCount) {
-                $reported = $quickCount->sectoralGroups->firstWhere('sectoral_group', $meta['group']);
-                $male = $reported->male_count ?? 0;
-                $female = $reported->female_count ?? 0;
-            } elseif ($meta['flag']) {
-                $male = $now->filter(fn ($e) => $e->{$meta['flag']} && $e->sex === 'male')->count();
-                $female = $now->filter(fn ($e) => $e->{$meta['flag']} && $e->sex === 'female')->count();
-            } else {
-                $male = 0;
-                $female = 0;
-            }
+        foreach ($sectors as $label => $group) {
+            $male = $sectoralRows[$group]['male_count'];
+            $female = $sectoralRows[$group]['female_count'];
             $sectorTotal['male'] += $male;
             $sectorTotal['female'] += $female;
-            $row = $this->writeDataRow($sheet, $row, $meta['label'], $male, $female);
+            $row = $this->writeDataRow($sheet, $row, $label, $male, $female);
         }
         $this->writeDataRow($sheet, $row, 'Total', $sectorTotal['male'], $sectorTotal['female'], bold: true);
         $row += 2;
