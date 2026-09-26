@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class EvacuationRecord extends Model
 {
@@ -48,7 +49,12 @@ class EvacuationRecord extends Model
      */
     public function checkOut(string $status): void
     {
-        $this->update(['date_out' => now(), 'status' => $status]);
-        $this->evacuee->update(['status' => $status]);
+        // Both writes or neither -- a record closed with its evacuee still
+        // 'active' (or the reverse) is exactly the mismatch this prevents.
+        // Nests safely inside quickDeparture()'s own transaction.
+        DB::transaction(function () use ($status) {
+            $this->update(['date_out' => now(), 'status' => $status]);
+            $this->evacuee->update(['status' => $status]);
+        });
     }
 }
