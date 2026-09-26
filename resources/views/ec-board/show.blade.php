@@ -328,7 +328,7 @@
             far less often than adding, so it sits last, as one compact row. --}}
         <section data-region="quick-departure" class="bg-white border border-gray-200 rounded-xl p-4">
             <p class="text-sm font-semibold text-gray-800">Quick departure</p>
-            <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one person by name, use the Evacuees page.</p>
+            <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one specific person, open their family on the Evacuees page and use Check out on their row.</p>
 
             <div id="quick-departure-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
 

@@ -100,6 +100,45 @@
         </div>
     </div>
 
+    {{-- Check out ONE named member (EvacueeController::checkOut()) --
+        closes their open evacuation record, so they drop out of every
+        live "Now" figure; cumulative counts never go down. The per-person
+        counterpart of the EC Board's Quick Departure, same two reasons. --}}
+    <div id="checkout-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full">
+            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+                <div>
+                    <p class="font-semibold text-gray-800" id="checkout-modal-title">Check out</p>
+                    <p class="text-xs text-gray-500" id="checkout-modal-subtitle"></p>
+                </div>
+                <button type="button" id="checkout-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="checkout-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+
+            <form id="checkout-form" class="flex flex-col gap-4 p-5">
+                <div>
+                    <label for="checkout-status" class="text-sm text-gray-600 block mb-1">Reason</label>
+                    <select id="checkout-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="returned_home">Returned home</option>
+                        <option value="transferred">Transferred elsewhere</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" id="checkout-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" id="checkout-submit-btn" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                        Check out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="household-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-md w-full">
             <div class="flex items-start justify-between p-5 border-b border-gray-100">
@@ -238,6 +277,7 @@
                     <button type="button" class="edit-member-btn text-xs ${m.is_placeholder ? 'text-amber-600 font-medium' : 'text-brand'} hover:underline" data-id="${m.id}">
                         ${m.is_placeholder ? 'Add details' : 'Edit'}
                     </button>
+                    ${activeRecord ? `<button type="button" class="checkout-member-btn text-xs text-gray-700 hover:underline" data-id="${m.id}">Check out</button>` : ''}
                     <button type="button" class="remove-member-btn text-xs text-red-500 hover:underline" data-id="${m.id}">Remove</button>
                 </div>
             </div>`;
@@ -366,6 +406,10 @@
             openMemberModal(Number(e.target.dataset.id));
         }
 
+        if (e.target.classList.contains('checkout-member-btn')) {
+            openCheckoutModal(Number(e.target.dataset.id));
+        }
+
         if (e.target.classList.contains('remove-member-btn')) {
             const evacueeId = Number(e.target.dataset.id);
             const member = currentFamily.members.find((m) => m.id === evacueeId);
@@ -455,6 +499,82 @@
         } finally {
             button.disabled = false;
             button.textContent = 'Save changes';
+        }
+    });
+
+    // --- Check-out modal ----------------------------------------------------
+
+    let checkingOutEvacueeId = null;
+
+    // Same label the member list uses, so the modal and the confirm dialog
+    // name exactly the row that was clicked.
+    const memberDisplayName = (member) => (member.is_placeholder
+        ? `Member ${currentFamily.members.indexOf(member) + 1} (details pending)`
+        : member.full_name.replace(/\s+/g, ' ').trim()); // no blank-middle-name gap
+
+    function openCheckoutModal(evacueeId) {
+        const member = currentFamily.members.find((m) => m.id === evacueeId);
+        const activeRecord = member?.evacuation_records.find((r) => ! r.date_out);
+        if (! member || ! activeRecord) return;
+
+        checkingOutEvacueeId = evacueeId;
+        document.getElementById('checkout-modal-title').textContent = `Check out ${memberDisplayName(member)}`;
+        document.getElementById('checkout-modal-subtitle').textContent =
+            `Closes their stay at ${activeRecord.evacuation_center?.name ?? 'their current location'}, so they no longer count as here now.`;
+        document.getElementById('checkout-status').value = 'returned_home';
+        document.getElementById('checkout-modal-errors').classList.add('hidden');
+        document.getElementById('checkout-modal').classList.remove('hidden');
+        document.getElementById('checkout-modal').classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+        checkingOutEvacueeId = null;
+        document.getElementById('checkout-modal').classList.add('hidden');
+        document.getElementById('checkout-modal').classList.remove('flex');
+    }
+
+    document.getElementById('checkout-modal-close').addEventListener('click', closeCheckoutModal);
+    document.getElementById('checkout-modal-cancel').addEventListener('click', closeCheckoutModal);
+
+    document.getElementById('checkout-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'checkout-modal') closeCheckoutModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('checkout-modal').classList.contains('hidden')) {
+            closeCheckoutModal();
+        }
+    });
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const member = currentFamily.members.find((m) => m.id === checkingOutEvacueeId);
+        if (! member) return;
+
+        const status = document.getElementById('checkout-status').value;
+        const reason = status === 'transferred' ? 'transferred elsewhere' : 'returned home';
+        // A real, lasting change -- confirmed explicitly, like Remove.
+        if (! confirm(`Check out ${memberDisplayName(member)} as ${reason}? They'll no longer count as here now.`)) {
+            return;
+        }
+
+        const button = document.getElementById('checkout-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Checking out...';
+
+        try {
+            await Api.request(`/evacuees/${checkingOutEvacueeId}/check-out`, { method: 'POST', body: JSON.stringify({ status }) });
+            closeCheckoutModal();
+            await loadFamily(); // refresh in place -- the row now reads "Checked out"
+        } catch (error) {
+            const box = document.getElementById('checkout-modal-errors');
+            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+            box.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Check out';
         }
     });
 
