@@ -17,8 +17,15 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+
         $reports = Report::query()
-            ->with(['evacuationEvent', 'generator'])
+            ->with(['evacuationEvent', 'generator', 'evacuationCenter'])
+            // Barangay officials: only their own barangay's EC Information
+            // Board exports -- same rule as Report::isVisibleTo().
+            ->when($user->isBarangayOfficial(), fn ($q) => $q
+                ->where('report_type', 'ec_information_board')
+                ->whereHas('evacuationCenter', fn ($c) => $c->where('barangay_id', $user->barangay_id)))
             ->latest('generated_at')
             ->paginate($request->integer('per_page', 20));
 
@@ -103,6 +110,7 @@ class ReportController extends Controller
 
         $report = Report::create([
             'evacuation_event_id' => $event->id,
+            'evacuation_center_id' => $center->id,
             'report_type' => 'ec_information_board',
             'file_format' => 'xlsx',
             'file_path' => $relativePath,
@@ -130,8 +138,12 @@ class ReportController extends Controller
      * these files, so downloading requires the same auth:sanctum + role
      * check as every other staff-only endpoint.
      */
-    public function download(Report $report)
+    public function download(Request $request, Report $report)
     {
+        if (! $report->isVisibleTo($request->user())) {
+            return $this->error('You can only download EC Information Board reports for evacuation centers in your own barangay.', 403);
+        }
+
         $absolutePath = storage_path('app/'.$report->file_path);
 
         if (! file_exists($absolutePath)) {

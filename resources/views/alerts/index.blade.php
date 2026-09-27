@@ -784,7 +784,7 @@
     // Landing here via the topbar button from another page navigates to
     // /alerts?compose=1 -- auto-open the modal once so the click still
     // feels like one action instead of "go to the list, then click again".
-    if (new URLSearchParams(window.location.search).get('compose') === '1') {
+    if (canManage && new URLSearchParams(window.location.search).get('compose') === '1') {
         openAlertModal();
     }
 

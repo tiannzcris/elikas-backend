@@ -116,7 +116,9 @@
                 const remember = document.getElementById('remember-me').checked;
                 Api.setToken(result.data.token, remember);
                 Api.setUser(result.data.user, remember);
-                window.location.href = '/dashboard';
+                // Barangay officials start on EC Board -- their Dashboard
+                // would be mostly city-wide figures (see layouts/app).
+                window.location.href = result.data.user.role === 'barangay_official' ? '/ec-board' : '/dashboard';
             } catch (error) {
                 showFormErrors(error);
                 button.disabled = false;

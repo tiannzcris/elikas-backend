@@ -84,7 +84,7 @@
             </div>
 
             <nav class="flex flex-col gap-1">
-                <a href="/dashboard" class="nav-link @yield('nav-dashboard')">
+                <a href="/dashboard" id="nav-dashboard-link" class="nav-link @yield('nav-dashboard')">
                     <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
                 </a>
                 {{-- Sole entry path to a center's EC Board -- barangay ->
@@ -94,7 +94,7 @@
                 <a href="/ec-board" class="nav-link @yield('nav-ecboard')">
                     <i class="ti ti-clipboard-list" aria-hidden="true"></i> EC Board
                 </a>
-                <a href="/evacuation-events" class="nav-link @yield('nav-events')">
+                <a href="/evacuation-events" id="nav-events-link" class="nav-link @yield('nav-events')">
                     <i class="ti ti-alert-triangle" aria-hidden="true"></i> Evacuation events
                 </a>
                 <a href="/evacuation-centers" class="nav-link @yield('nav-centers')">
@@ -113,7 +113,7 @@
                     <i class="ti ti-chart-line" aria-hidden="true"></i> Predictive analytics
                 </a>
                 <a href="/reports" class="nav-link @yield('nav-reports')">
-                    <i class="ti ti-file-report" aria-hidden="true"></i> DROMIC reports
+                    <i class="ti ti-file-report" aria-hidden="true"></i> <span id="nav-reports-label">DROMIC reports</span>
                 </a>
                 <a href="/users" id="nav-users-link" class="hidden nav-link @yield('nav-users')">
                     <i class="ti ti-users-group" aria-hidden="true"></i> User management
@@ -220,6 +220,25 @@
             // entirely, not just its write actions.
             if (currentUser.role === 'barangay_official') {
                 document.getElementById('nav-analytics-link').classList.add('hidden');
+
+                // Also not for barangay officials: Dashboard (mostly
+                // city-wide figures, only one scoped to their barangay) and
+                // Evacuation events (view-only for them, and EC Board has
+                // its own event picker). Their start page is EC Board, so
+                // a stray link or bookmark to either lands there instead.
+                document.getElementById('nav-dashboard-link').classList.add('hidden');
+                document.getElementById('nav-events-link').classList.add('hidden');
+                if (/^\/(dashboard|evacuation-events)(\/|$)/.test(window.location.pathname)) {
+                    window.location.replace('/ec-board');
+                }
+
+                // They can't send alerts (admin/CSWD only, enforced
+                // server-side) -- same rule as the Alerts page's own button.
+                document.getElementById('topbar-alert-btn').classList.add('hidden');
+
+                // The only report they can generate is the EC Information
+                // Board, so that's what this page is for them.
+                document.getElementById('nav-reports-label').textContent = 'EC Information Board';
             }
         }
 

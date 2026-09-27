@@ -4,12 +4,12 @@
 @section('nav-reports', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1">DROMIC reports</h1>
-    <p class="text-sm text-gray-500 mb-6">Generate official-format reports directly from registered data.</p>
+    <h1 id="reports-heading" class="text-xl font-semibold mb-1">DROMIC reports</h1>
+    <p id="reports-subtitle" class="text-sm text-gray-500 mb-6">Generate official-format reports directly from registered data.</p>
 
     <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div id="generate-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div id="region-v-card" class="bg-white border border-gray-200 rounded-xl p-4">
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
@@ -109,7 +109,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
             <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Latest report</p>
+                <p id="stat-latest-label" class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Latest report</p>
                 <p id="stat-latest" class="text-lg font-bold text-gray-800">&mdash;</p>
                 <p id="stat-latest-date" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
             </div>
@@ -119,9 +119,9 @@
         </div>
     </div>
 
-    <p class="text-xs text-gray-500 mb-6 max-w-2xl">
+    <p id="dromic-disclaimer" class="text-xs text-gray-500 mb-6 max-w-2xl">
         These reports eliminate manual data entry and arithmetic, but a few columns in the official
-        DROMIC template aren't tracked by this system yet (e.g. "Child-Headed Family" isn't a recorded
+        DROMIC template aren't tracked by this system yet (e.g. "Origin of IDPs" isn't a recorded
         field) and are left blank rather than guessed. Review before submitting anywhere official.
     </p>
 
@@ -150,7 +150,7 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div id="type-chart-card" class="bg-white border border-gray-200 rounded-xl p-4">
                 <p class="text-sm font-semibold text-gray-700 mb-3">Reports by type</p>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
@@ -170,7 +170,7 @@
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
 
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-2.5">
+            <div id="dromic-info-card" class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-2.5">
                 <i class="ti ti-info-circle text-blue-500 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
                 <p class="text-xs text-blue-800">DROMIC reports are submitted to OCD Region V within 24 hours after data validation.</p>
             </div>
@@ -267,7 +267,12 @@
 
         if (allReports.length > 0) {
             const latest = [...allReports].sort((a, b) => new Date(b.generated_at) - new Date(a.generated_at))[0];
-            document.getElementById('stat-latest').textContent = reportTypeLabels[latest.report_type] ?? latest.report_type;
+            // Barangay officials only ever have EC Information Boards, so
+            // naming the type says nothing -- show which center instead.
+            const isOfficial = Api.getUser()?.role === 'barangay_official';
+            document.getElementById('stat-latest').textContent = isOfficial
+                ? (latest.evacuation_center?.name ?? 'EC Information Board')
+                : (reportTypeLabels[latest.report_type] ?? latest.report_type);
             document.getElementById('stat-latest-date').textContent = new Date(latest.generated_at).toLocaleString();
         } else {
             document.getElementById('stat-latest').textContent = 'None yet';
@@ -281,6 +286,17 @@
                 document.getElementById('stat-persons').textContent = '0';
                 return;
             }
+            // Barangay officials: their own barangay's persons in those
+            // events -- /families/stats is scoped to their barangay
+            // server-side, the same source as the Dashboard's "Total
+            // evacuees". Everyone else: the city-wide event totals.
+            if (Api.getUser()?.role === 'barangay_official') {
+                const perEvent = await Promise.all(eventIds.map((id) => Api.get(`/families/stats?evacuation_event_id=${id}`)));
+                const total = perEvent.reduce((sum, r) => sum + (r.data.total_persons ?? 0), 0);
+                document.getElementById('stat-persons').textContent = total.toLocaleString();
+                return;
+            }
+
             const events = await Api.get('/evacuation-events');
             const total = events.data
                 .filter((ev) => eventIds.includes(ev.id))
@@ -398,6 +414,26 @@
             // a Generate button that would just 403.
             if (user && user.role === 'barangay_official') {
                 document.getElementById('region-v-card').classList.add('hidden');
+
+                // The EC Information Board is the only report they can
+                // generate, so the page is named for it; stats read first
+                // for context, then the action; and the DROMIC-template
+                // footnote doesn't apply to them.
+                document.title = document.title.replace('DROMIC reports', 'EC Information Board');
+                document.getElementById('reports-heading').textContent = 'EC Information Board';
+                document.getElementById('reports-subtitle').textContent =
+                    'Generate the EC Information Board for an evacuation center in your barangay.';
+                const grid = document.getElementById('generate-grid');
+                grid.parentNode.insertBefore(document.getElementById('stats-row'), grid);
+                document.getElementById('stat-latest-label').textContent = 'Last generated';
+                document.getElementById('dromic-disclaimer').classList.add('hidden');
+
+                // One report type only, so filtering or charting by type
+                // says nothing; the OCD Region V tip is about DROMIC.
+                document.getElementById('type-filter').classList.add('hidden');
+                document.getElementById('type-chart-card').classList.add('hidden');
+                document.getElementById('dromic-info-card').classList.add('hidden');
+                document.getElementById('search-input').placeholder = 'Search by event...';
             }
 
             const events = await Api.get('/evacuation-events');

@@ -15,6 +15,10 @@ class ReportResource extends JsonResource
                 'id' => $this->evacuationEvent->id,
                 'name' => $this->evacuationEvent->name,
             ] : null),
+            'evacuation_center' => $this->whenLoaded('evacuationCenter', fn () => $this->evacuationCenter ? [
+                'id' => $this->evacuationCenter->id,
+                'name' => $this->evacuationCenter->name,
+            ] : null),
             'report_type' => $this->report_type,
             'file_format' => $this->file_format,
             'generated_by' => $this->whenLoaded('generator', fn () => $this->generator?->name),
