@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Barangay;
 use App\Models\Evacuee;
 use App\Models\EvacuationCenter;
+use App\Models\EvacuationCenterQuickCount;
 use App\Models\EvacuationEvent;
 use App\Models\EvacuationRecord;
 use App\Models\Family;
@@ -143,6 +144,13 @@ class MayonVolcanicEventSeeder extends Seeder
             self::BARANGAY_NAME, $insideFamilies, $insidePersons, self::CENTER_NAME,
             $outsideFamilies, $outsidePersons, $insideFamilies + $outsideFamilies, $insidePersons + $outsidePersons
         ));
+
+        // These records bypass recordArrival(), so bring every board's
+        // cumulative counters up to what was just seeded -- re-seeding can
+        // never leave Cumulative below the records (see
+        // EvacuationCenterQuickCount::backfillCumulative()).
+        $backfilled = EvacuationCenterQuickCount::backfillCumulative(apply: true);
+        $this->command->info("EC Board cumulative counters backfilled for {$backfilled->count()} board(s).");
     }
 
     /**

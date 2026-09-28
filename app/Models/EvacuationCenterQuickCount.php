@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The EC Information Board's remaining stored figures: a running cumulative
@@ -292,5 +294,112 @@ class EvacuationCenterQuickCount extends Model
     public function liveFourPsFamiliesNow(): int
     {
         return $this->currentFamilies()->where('is_4ps_beneficiary', true)->count();
+    }
+
+    private ?array $recordedTotalsCache = null;
+
+    /**
+     * Distinct families and persons with ANY evacuation record at this
+     * center+event -- checked-out ones included, so it never drops when
+     * someone departs. The floor under the stored cumulative counters
+     * (see cumulativeFamilies()/cumulativePersons()).
+     *
+     * @return array{families: int, persons: int}
+     */
+    public function recordedTotals(): array
+    {
+        if ($this->recordedTotalsCache !== null) {
+            return $this->recordedTotalsCache;
+        }
+
+        $row = EvacuationRecord::query()
+            ->join('evacuees', 'evacuees.id', '=', 'evacuation_records.evacuee_id')
+            ->where('evacuation_records.evacuation_center_id', $this->evacuation_center_id)
+            ->where('evacuation_records.evacuation_event_id', $this->evacuation_event_id)
+            ->selectRaw('COUNT(DISTINCT evacuees.family_id) AS families, COUNT(DISTINCT evacuees.id) AS persons')
+            ->first();
+
+        return $this->recordedTotalsCache = ['families' => (int) $row?->families, 'persons' => (int) $row?->persons];
+    }
+
+    /**
+     * Cumulative families as shown everywhere (board API, EC Information
+     * Board export): the stored counter, but never less than the
+     * families with a record here. The counter keeps people it counted
+     * even after they're deleted or moved to another center; the floor
+     * covers records that never went through recordArrival() (seeded
+     * data), so Now can never exceed Cumulative. Writes nothing.
+     */
+    public function cumulativeFamilies(): int
+    {
+        return max((int) $this->families_cumulative, $this->recordedTotals()['families']);
+    }
+
+    /** Cumulative persons -- same rule as cumulativeFamilies(). */
+    public function cumulativePersons(): int
+    {
+        return max((int) $this->persons_cumulative, $this->recordedTotals()['persons']);
+    }
+
+    /**
+     * Raises the STORED cumulative counters to at least the recorded
+     * totals, for every center+event with evacuation records (or only
+     * $eventIds): creates a missing board row (firstOrCreate, zeroed) and
+     * raises low counters with GREATEST, so a counter is never lowered and
+     * a second run changes nothing. This is what makes the floor's figures
+     * permanent -- once stored, people later deleted or moved elsewhere
+     * stay counted. Dry run unless $apply; either way returns what it
+     * would change / changed. Used by `php artisan elikas:backfill-cumulative`
+     * and the demo seeders.
+     *
+     * @param  list<int>  $eventIds
+     * @return Collection<int, array{center_id: int, event_id: int, created: bool, families_before: ?int, families_after: int, persons_before: ?int, persons_after: int}>
+     */
+    public static function backfillCumulative(bool $apply = false, array $eventIds = []): Collection
+    {
+        $recorded = EvacuationRecord::query()
+            ->join('evacuees', 'evacuees.id', '=', 'evacuation_records.evacuee_id')
+            ->whereNotNull('evacuation_records.evacuation_center_id')
+            ->when($eventIds, fn ($q) => $q->whereIn('evacuation_records.evacuation_event_id', $eventIds))
+            ->groupBy('evacuation_records.evacuation_center_id', 'evacuation_records.evacuation_event_id')
+            ->orderBy('evacuation_records.evacuation_event_id')
+            ->orderBy('evacuation_records.evacuation_center_id')
+            ->selectRaw('evacuation_records.evacuation_center_id AS center_id, evacuation_records.evacuation_event_id AS event_id,
+                COUNT(DISTINCT evacuees.family_id) AS families, COUNT(DISTINCT evacuees.id) AS persons')
+            ->get();
+
+        $changes = collect();
+
+        foreach ($recorded as $r) {
+            $key = ['evacuation_center_id' => $r->center_id, 'evacuation_event_id' => $r->event_id];
+            $board = static::where($key)->first();
+
+            $familiesBefore = $board?->families_cumulative;
+            $personsBefore = $board?->persons_cumulative;
+            $familiesAfter = max((int) $familiesBefore, (int) $r->families);
+            $personsAfter = max((int) $personsBefore, (int) $r->persons);
+
+            if ($board && $familiesAfter === (int) $familiesBefore && $personsAfter === (int) $personsBefore) {
+                continue;
+            }
+
+            $changes->push([
+                'center_id' => (int) $r->center_id, 'event_id' => (int) $r->event_id, 'created' => ! $board,
+                'families_before' => $familiesBefore, 'families_after' => $familiesAfter,
+                'persons_before' => $personsBefore, 'persons_after' => $personsAfter,
+            ]);
+
+            if ($apply) {
+                DB::transaction(function () use ($key, $r) {
+                    $board = static::firstOrCreate($key, ['families_cumulative' => 0, 'persons_cumulative' => 0, 'beneficiaries_4ps' => 0]);
+                    static::whereKey($board->getKey())->update([
+                        'families_cumulative' => DB::raw('GREATEST(families_cumulative, '.(int) $r->families.')'),
+                        'persons_cumulative' => DB::raw('GREATEST(persons_cumulative, '.(int) $r->persons.')'),
+                    ]);
+                });
+            }
+        }
+
+        return $changes;
     }
 }

@@ -37,9 +37,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  * unlike the sectoral table (where this stays a silent, expected gap; see
  * DromicRegionVReportService's docblock), the age/sex table's own "Not Yet
  * Classified" row (see generate()) counts them explicitly, so this
- * table's own total always still equals $now->count() /
- * $allEvacuees->count() (plain row counts, not identity-filtered) instead
- * of quietly under-representing the real headcount on an official export.
+ * table's own total always still equals $now->count() (a plain row count,
+ * not identity-filtered) instead of quietly under-representing the real
+ * headcount on an official export.
  */
 class EcInformationBoardReportService
 {
@@ -60,14 +60,22 @@ class EcInformationBoardReportService
             ->where('status', 'currently_evacuated')
             ->exists());
 
-        $familiesCum = $allEvacuees->pluck('family_id')->unique()->count();
         $familiesNow = $now->pluck('family_id')->unique()->count();
 
-        // Every sectoral/4Ps figure is live, so an unsaved board instance for
-        // this center+event is all that's needed -- the SAME live*() methods
-        // the EC Board API uses (see the class docblock's SOURCE note).
-        $board = new EvacuationCenterQuickCount(['evacuation_center_id' => $center->id, 'evacuation_event_id' => $event->id]);
+        // The stored board row when there is one (its cumulative counters),
+        // otherwise an unsaved stand-in -- exactly what the EC Board API
+        // uses, so this export shows the SAME cumulative figures as the
+        // board (stored counter floored at what's on record -- see
+        // EvacuationCenterQuickCount::cumulativeFamilies()) and the same
+        // live sectoral/4Ps figures (see the class docblock's SOURCE note).
+        $board = EvacuationCenterQuickCount::where('evacuation_center_id', $center->id)
+            ->where('evacuation_event_id', $event->id)
+            ->first()
+            ?? new EvacuationCenterQuickCount(['evacuation_center_id' => $center->id, 'evacuation_event_id' => $event->id]);
         $board->setRelation('evacuationCenter', $center);
+
+        $familiesCum = $board->cumulativeFamilies();
+        $personsCum = $board->cumulativePersons();
 
         $fourPsCount = $board->liveFourPsFamiliesNow();
         $sectoralRows = collect($board->liveSectoralBreakdown())->keyBy('sectoral_group');
@@ -92,7 +100,7 @@ class EcInformationBoardReportService
         $sheet->setCellValue("A{$row}", 'No. of Families (Cum/Now):');
         $sheet->setCellValue("C{$row}", "{$familiesCum} / {$familiesNow}");
         $sheet->setCellValue("F{$row}", 'No. of Persons (Cum/Now):');
-        $sheet->setCellValue("H{$row}", "{$allEvacuees->count()} / {$now->count()}");
+        $sheet->setCellValue("H{$row}", "{$personsCum} / {$now->count()}");
         $row++;
 
         $sheet->setCellValue("F{$row}", '4Ps Beneficiaries:');

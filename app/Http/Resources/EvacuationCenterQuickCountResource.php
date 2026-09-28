@@ -31,9 +31,11 @@ class EvacuationCenterQuickCountResource extends JsonResource
             'id' => $this->id,
             'evacuation_center_id' => $this->evacuation_center_id,
             'evacuation_event_id' => $this->evacuation_event_id,
-            'families_cumulative' => $this->families_cumulative,
+            // Stored counter, floored at the families/persons actually on
+            // record here -- see EvacuationCenterQuickCount::cumulativeFamilies().
+            'families_cumulative' => $this->resource->cumulativeFamilies(),
             'families_now' => $this->resource->liveFamiliesNow(),
-            'persons_cumulative' => $this->persons_cumulative,
+            'persons_cumulative' => $this->resource->cumulativePersons(),
             'persons_now' => $this->resource->livePersonsNow(),
             // Same field name older clients already read; always live now.
             'beneficiaries_4ps' => $this->resource->liveFourPsFamiliesNow(),
