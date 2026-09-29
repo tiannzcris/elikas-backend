@@ -36,7 +36,8 @@
                             700: '#1D4ED8',
                             800: '#1E40AF',
                         },
-                        navy: { DEFAULT: '#1F3A6E', dark: '#172D57' },
+                        // The logo's own navy (public/images/elikas-logo-mark.png).
+                        navy: { DEFAULT: '#094776', dark: '#073A61' },
                         // Form-field border: 3.30:1 on white, the WCAG 1.4.11
                         // minimum for a control's boundary (gray-300 was 1.47).
                         field: '#868E9C',
@@ -160,7 +161,8 @@
             .nav-link { @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium leading-5 text-[#C7D7F0] transition-colors hover:bg-white/10 hover:text-white; }
             .nav-link i { font-size: 18px; width: 18px; text-align: center; }
             .nav-link.active { @apply bg-white/15 text-white font-semibold; }
-            .nav-link.active::before { content: ''; @apply absolute -left-3 top-1.5 bottom-1.5 w-[3px] rounded-r bg-blue-300; }
+            .nav-link.active::before { content: ''; @apply absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-blue-300; }
+            .nav-group-label { @apply px-3 mb-1 text-xs font-semibold text-[#A8C2E8]; }
         }
     </style>
 </head>
@@ -181,32 +183,11 @@
             are absolutely/relatively positioned against IT, and `static`
             would stop it from being their containing block on desktop. --}}
         <aside id="sidebar" class="w-60 shrink-0 h-full p-3 flex flex-col overflow-hidden bg-navy fixed md:relative inset-y-0 left-0 z-40 -translate-x-full md:translate-x-0 transition-transform duration-200">
-            {{-- Decorative watermark art covering the FULL sidebar height (not
-                just a natural-aspect-ratio slice pinned to the bottom, which
-                left a visible gap on tall viewports) -- object-fit:cover with
-                object-position:bottom keeps the family/evacuation-center
-                scene anchored at the bottom edge while stretching to fill
-                whatever space is available above it. --}}
-            <img src="/images/elikas-sidebar-art.png" alt=""
-                class="absolute inset-0 w-full h-full pointer-events-none select-none"
-                style="z-index: 0; opacity: 0.65; object-fit: cover; object-position: bottom;">
-            {{-- Fades the art out behind the link list, so nav text always
-                sits on solid navy (never on the illustration) at any
-                viewport height. The scene still shows below the links. --}}
-            <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
-                style="z-index: 0; background: linear-gradient(to bottom, #1F3A6E 0%, #1F3A6E 55%, rgba(31,58,110,0) 80%);"></div>
-
-            <div class="relative flex flex-col h-full" style="z-index: 1;">
-            <div class="flex items-center gap-3 px-1 pb-4 mb-3 border-b border-white/10">
-                {{-- elikas-emblem-icon.png is a pre-processed crop of the full
-                    poster-style emblem (public/images/elikas-emblem.png) --
-                    just the circular badge, with its black background
-                    actually removed (real alpha transparency, not a
-                    mix-blend-mode trick against the sidebar's own navy).
-                    That's what let it sit on a plain white circle here
-                    instead of relying on the surrounding color to mask it. --}}
-                <div class="w-16 h-16 rounded-full shrink-0 bg-white flex items-center justify-center overflow-hidden ring-2 ring-white/20">
-                    <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-[85%] h-[85%] object-contain">
+            <div class="flex items-center gap-3 px-1 pb-4 mb-4 border-b border-white/10">
+                {{-- The logo's dark-navy arms disappear against the navy
+                    sidebar, so the mark always sits on a white circle. --}}
+                <div class="w-12 h-12 rounded-full shrink-0 bg-white flex items-center justify-center overflow-hidden">
+                    <img src="/images/elikas-logo-mark.png" alt="E-LIKAS" class="w-[78%] h-[78%] object-contain">
                 </div>
                 <div class="leading-tight min-w-0">
                     <p class="text-white font-semibold text-base tracking-tight">E-LIKAS</p>
@@ -214,50 +195,73 @@
                 </div>
             </div>
 
-            <nav class="flex flex-col gap-0.5" aria-label="Main">
-                <a href="/dashboard" id="nav-dashboard-link" class="nav-link @yield('nav-dashboard')">
-                    <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
-                </a>
-                {{-- Sole entry path to a center's EC Board -- barangay ->
-                    center -> board, skipping the occupancy/facilities-
-                    focused Evacuation Centers page entirely (that page has
-                    no EC Board link of its own; see show.blade.php). --}}
-                <a href="/ec-board" class="nav-link @yield('nav-ecboard')">
-                    <i class="ti ti-clipboard-list" aria-hidden="true"></i> EC Board
-                </a>
-                <a href="/evacuation-events" id="nav-events-link" class="nav-link @yield('nav-events')">
-                    <i class="ti ti-alert-triangle" aria-hidden="true"></i> Evacuation events
-                </a>
-                <a href="/evacuation-centers" class="nav-link @yield('nav-centers')">
-                    <i class="ti ti-building" aria-hidden="true"></i> Evacuation centers
-                </a>
-                <a href="/families" class="nav-link @yield('nav-families')">
-                    <i class="ti ti-users" aria-hidden="true"></i> Evacuees
-                </a>
-                <a href="/gis-map" class="nav-link @yield('nav-gis')">
-                    <i class="ti ti-map" aria-hidden="true"></i> GIS map
-                </a>
-                <a href="/alerts" class="nav-link @yield('nav-alerts')">
-                    <i class="ti ti-speakerphone" aria-hidden="true"></i> Alerts
-                </a>
-                <a href="/predictive-analytics" id="nav-analytics-link" class="nav-link @yield('nav-analytics')">
-                    <i class="ti ti-chart-line" aria-hidden="true"></i> Predictive analytics
-                </a>
-                <a href="/reports" class="nav-link @yield('nav-reports')">
-                    <i class="ti ti-file-report" aria-hidden="true"></i> <span id="nav-reports-label">DROMIC reports</span>
-                </a>
-                <a href="/users" id="nav-users-link" class="hidden nav-link @yield('nav-users')">
-                    <i class="ti ti-users-group" aria-hidden="true"></i> User management
-                </a>
+            {{-- Grouped by what staff are doing. A group whose links are all
+                hidden for the signed-in role (see the script below) hides its
+                label too, so no one sees an empty heading. Scrolls on its own
+                on short screens; the status box below stays pinned. --}}
+            <nav class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4" aria-label="Main">
+                <div class="flex flex-col gap-0.5" data-nav-group>
+                    <a href="/dashboard" id="nav-dashboard-link" class="nav-link @yield('nav-dashboard')">
+                        <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
+                    </a>
+                </div>
+
+                <div class="flex flex-col gap-0.5" data-nav-group>
+                    <p class="nav-group-label">Operations</p>
+                    {{-- Sole entry path to a center's EC Board -- barangay ->
+                        center -> board, skipping the occupancy/facilities-
+                        focused Evacuation Centers page entirely (that page has
+                        no EC Board link of its own; see show.blade.php). --}}
+                    <a href="/ec-board" class="nav-link @yield('nav-ecboard')">
+                        <i class="ti ti-clipboard-list" aria-hidden="true"></i> EC Board
+                    </a>
+                    <a href="/evacuation-events" id="nav-events-link" class="nav-link @yield('nav-events')">
+                        <i class="ti ti-alert-triangle" aria-hidden="true"></i> Evacuation events
+                    </a>
+                    <a href="/evacuation-centers" class="nav-link @yield('nav-centers')">
+                        <i class="ti ti-building" aria-hidden="true"></i> Evacuation centers
+                    </a>
+                    <a href="/families" class="nav-link @yield('nav-families')">
+                        <i class="ti ti-users" aria-hidden="true"></i> Evacuees
+                    </a>
+                </div>
+
+                <div class="flex flex-col gap-0.5" data-nav-group>
+                    <p class="nav-group-label">Monitoring</p>
+                    <a href="/gis-map" class="nav-link @yield('nav-gis')">
+                        <i class="ti ti-map" aria-hidden="true"></i> GIS map
+                    </a>
+                    <a href="/alerts" class="nav-link @yield('nav-alerts')">
+                        <i class="ti ti-speakerphone" aria-hidden="true"></i> Alerts
+                    </a>
+                    <a href="/predictive-analytics" id="nav-analytics-link" class="nav-link @yield('nav-analytics')">
+                        <i class="ti ti-chart-line" aria-hidden="true"></i> Predictive analytics
+                    </a>
+                </div>
+
+                <div class="flex flex-col gap-0.5" data-nav-group>
+                    <p class="nav-group-label">Reports</p>
+                    <a href="/reports" class="nav-link @yield('nav-reports')">
+                        <i class="ti ti-file-report" aria-hidden="true"></i> <span id="nav-reports-label">DROMIC reports</span>
+                    </a>
+                </div>
+
+                {{-- Starts hidden: its only link is admin-only, so non-admins
+                    never see the label flash in before the script runs. --}}
+                <div class="hidden flex flex-col gap-0.5" data-nav-group>
+                    <p class="nav-group-label">Administration</p>
+                    <a href="/users" id="nav-users-link" class="hidden nav-link @yield('nav-users')">
+                        <i class="ti ti-users-group" aria-hidden="true"></i> User management
+                    </a>
+                </div>
             </nav>
 
-            <div id="sidebar-status" class="mt-auto rounded-lg border border-white/15 px-3 py-2.5" style="background: rgba(23,45,87,0.85);">
+            <div id="sidebar-status" class="shrink-0 mt-3 rounded-lg border border-white/15 bg-navy-dark px-3 py-2.5">
                 <p id="sidebar-status-label" class="text-xs text-[#C7D7F0]">Loading...</p>
                 <div id="sidebar-status-indicator" class="hidden items-center gap-1.5 mt-1">
                     <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true"></span>
                     <p class="text-xs text-green-300 font-semibold">Operations active</p>
                 </div>
-            </div>
             </div>
         </aside>
 
@@ -372,6 +376,13 @@
                 document.getElementById('nav-reports-label').textContent = 'EC Information Board';
             }
         }
+
+        // After the role rules above: a nav group with no visible links for
+        // this role hides its label as well.
+        document.querySelectorAll('[data-nav-group]').forEach((group) => {
+            const anyVisible = [...group.querySelectorAll('.nav-link')].some((link) => ! link.classList.contains('hidden'));
+            group.classList.toggle('hidden', ! anyVisible);
+        });
 
         // Live date/time in the topbar, matching the reference design --
         // simple setInterval, no library needed.

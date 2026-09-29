@@ -32,8 +32,8 @@ total. EC Board (`ec-board/show.blade.php`) is the reference page.
    (4.5:1, or 3:1 for large text). Form-field borders meet the 3:1 non-text
    rule. Focus is always visible. Motion respects `prefers-reduced-motion`.
 
-The navy sidebar with the illustrated emblem is the one bold element. Everything
-around it stays quiet.
+The solid navy sidebar carrying the E-LIKAS logo is the one bold element.
+Everything around it stays quiet.
 
 ## 1. Color tokens
 
@@ -41,7 +41,8 @@ around it stays quiet.
 
 | Token | Hex | Tailwind | Use |
 |---|---|---|---|
-| Navy | `#1F3A6E` | `navy` | Sidebar only (identity) |
+| Navy | `#094776` | `navy` | Sidebar only: the logo's own navy |
+| Navy dark | `#073A61` | `navy-dark` | Sidebar status box |
 | Brand | `#2563EB` | `brand`, `brand-600` | Primary buttons, links, active nav, focus |
 | Brand dark | `#1D4ED8` | `brand-dark`, `brand-700` | Hover on brand; text on brand tints |
 | Brand 800 | `#1E40AF` | `brand-800` | Strong text on brand tints |
@@ -327,13 +328,21 @@ A 40px `gray-300` decorative icon, a 14px `gray-700` medium line, a 14px
 
 ### Sidebar navigation
 
-- `.nav-link` rows: 40px tall, 18px icon, 14px medium `#C7D7F0` text on navy
-  (7.63:1).
-- Hover: `white/10` fill.
-- Active: `white/15` fill, white semibold text and a 3px `blue-300` bar on the
-  left edge, so the active item reads by shape as well as by fill.
-- The illustrated art is faded out behind the link list, so link text always
-  sits on solid navy.
+- **Background:** solid `navy` (`#094776`, the logo's navy), with no artwork.
+- **Logo:** `public/images/elikas-logo-mark.png` on a 48px white circle. The
+  mark's dark-navy arms would vanish against the navy otherwise.
+- **Groups:** Operations, Monitoring, Reports, Administration, with Dashboard
+  on its own at the top. Wrap each group in `[data-nav-group]` with a
+  `.nav-group-label` (12px semibold, `#A8C2E8`, 5.31:1, sentence case). The
+  layout script hides a group whose links are all hidden for the signed-in
+  role, so a barangay official never sees an empty "Administration" heading.
+- **Rows:** `.nav-link`, 40px tall, 18px icon, 14px medium `#C7D7F0` text on
+  navy (6.63:1).
+- **States:** hover is a `white/10` fill. Active is a `white/15` fill, white
+  semibold text and a 3px `blue-300` bar at the link's left edge, so the active
+  item reads by shape as well as by fill.
+- **Short screens:** the link list scrolls on its own and the status box stays
+  pinned below it.
 
 ## Checking your work
 
