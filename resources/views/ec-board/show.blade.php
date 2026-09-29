@@ -159,7 +159,7 @@
                 fitAddEvacueePanel()) -- its fields scroll inside it
                 instead, under the pinned read-back + button. --}}
             <section data-region="add-evacuee" class="card px-4 pt-4 lg:sticky lg:top-2 lg:overflow-y-auto">
-                <p class="text-sm font-semibold text-gray-800">Add evacuee</p>
+                <h2 class="card-title">Add evacuee</h2>
                 <p class="text-xs text-gray-500 mt-0.5 mb-3">Name and birthdate can be added later on the Evacuees page.</p>
 
                 <div id="add-evacuee-errors" class="hidden callout callout-danger mb-3"></div>
@@ -327,7 +327,7 @@
             quantity rather than by name, for the same speed reason. Used
             far less often than adding, so it sits last, as one compact row. --}}
         <section data-region="quick-departure" class="card p-4">
-            <p class="text-sm font-semibold text-gray-800">Quick departure</p>
+            <h2 class="card-title">Quick departure</h2>
             <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one specific person, open their family on the Evacuees page and use Check out on their row.</p>
 
             <div id="quick-departure-errors" class="hidden callout callout-danger mb-3"></div>

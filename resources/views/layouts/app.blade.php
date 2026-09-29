@@ -134,7 +134,9 @@
             .callout-success { @apply bg-green-50 border-green-200 text-green-900; }
 
             /* Tables */
-            .data-table { @apply w-full text-sm; }
+            /* relative: contains the sr-only header labels, so they stay inside
+               the table's own overflow-x-auto wrapper on narrow screens. */
+            .data-table { @apply relative w-full text-sm; }
             .data-table thead th { @apply bg-gray-50 px-4 py-2.5 text-left text-xs font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap; }
             .data-table tbody td { @apply px-4 py-3 text-gray-700 border-b border-gray-100 align-middle; }
             .data-table tbody tr:last-child td { @apply border-b-0; }

@@ -427,25 +427,25 @@
         // docblock), so they come from sectoralQuickCount instead of being
         // filtered from `members`.
         const sectoral = [
-            ['is_4ps_beneficiary', '4Ps beneficiary', 'ti-gift', 'text-blue-500', 'bg-blue-50'],
-            ['is_pwd', 'PWD', 'ti-wheelchair', 'text-red-500', 'bg-red-50'],
-            ['is_pregnant', 'Pregnant', 'ti-baby-carriage', 'text-amber-500', 'bg-amber-50'],
-            ['is_lactating', 'Lactating', 'ti-droplet', 'text-pink-500', 'bg-pink-50'],
-            ['is_solo_parent', 'Solo parent', 'ti-user-check', 'text-purple-500', 'bg-purple-50'],
-            ['is_indigenous_person', 'Indigenous', 'ti-leaf', 'text-green-500', 'bg-green-50'],
+            ['is_4ps_beneficiary', '4Ps beneficiary', 'ti-gift'],
+            ['is_pwd', 'PWD', 'ti-wheelchair'],
+            ['is_pregnant', 'Pregnant', 'ti-baby-carriage'],
+            ['is_lactating', 'Lactating', 'ti-droplet'],
+            ['is_solo_parent', 'Solo parent', 'ti-user-check'],
+            ['is_indigenous_person', 'Indigenous', 'ti-leaf'],
         ];
-        const sectoralCards = sectoral.map(([key, label, icon, color, bg]) =>
-            sectoralCardHtml(members.filter((m) => m.sectoral?.[key]).length, label, icon, color, bg));
+        const sectoralCards = sectoral.map(([key, label, icon]) =>
+            sectoralCardHtml(members.filter((m) => m.sectoral?.[key]).length, label, icon));
 
         const childHeaded = sectoralQuickCount?.child_headed_family ?? { male: 0, female: 0 };
         const singleHeaded = sectoralQuickCount?.single_headed_family ?? { male: 0, female: 0 };
-        sectoralCards.push(sectoralCardHtml(childHeaded.male + childHeaded.female, 'Child-headed family', 'ti-baby', 'text-cyan-500', 'bg-cyan-50'));
-        sectoralCards.push(sectoralCardHtml(singleHeaded.male + singleHeaded.female, 'Single-headed family', 'ti-user', 'text-teal-500', 'bg-teal-50'));
+        sectoralCards.push(sectoralCardHtml(childHeaded.male + childHeaded.female, 'Child-headed family', 'ti-baby'));
+        sectoralCards.push(sectoralCardHtml(singleHeaded.male + singleHeaded.female, 'Single-headed family', 'ti-user'));
 
         document.getElementById('sectoral-summary').innerHTML = sectoralCards.join('');
     }
 
-    function sectoralCardHtml(count, label, icon, color, bg) {
+    function sectoralCardHtml(count, label, icon) {
         return `
             <div class="flex items-center gap-2">
                 <div class="icon-chip w-8 h-8 rounded-md">
