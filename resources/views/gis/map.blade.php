@@ -4,16 +4,16 @@
 @section('nav-gis', 'active')
 
 @section('content')
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <h1 class="text-xl font-semibold mb-1">GIS map</h1>
-            <p class="text-sm text-gray-500">Evacuation centers and mapped hazard zones across Ligao City.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title">GIS map</h1>
+            <p class="page-subtitle">Evacuation centers and mapped hazard zones across Ligao City.</p>
         </div>
     </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
-    <div id="stats-row" class="stat-strip grid-cols-2 lg:grid-cols-4 mb-4">
+    <div id="stats-row" class="stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
         <div class="stat">
             <p class="stat-label">Active centers</p>
             <p id="stat-active" class="stat-value">&mdash;</p>
@@ -40,12 +40,12 @@
             width, where they already sit side by side anyway. --}}
         <div class="order-2 lg:order-none lg:col-span-1 flex flex-col gap-4">
             <div class="card p-4">
-                <label class="flex items-center justify-between mb-2 cursor-pointer">
-                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Evacuation centers</span>
-                    <input type="checkbox" id="layer-centers" checked class="rounded border-gray-300 text-brand focus:ring-brand">
+                <label class="flex items-center justify-between mb-3 cursor-pointer">
+                    <span class="card-title">Evacuation centers</span>
+                    <input type="checkbox" id="layer-centers" checked class="w-4 h-4">
                 </label>
-                <div class="flex flex-col gap-2 text-sm">
-                    <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#16a34a"></span> Active — accepting evacuees</span>
+                <div class="flex flex-col gap-2 text-sm text-gray-700">
+                    <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#15803D"></span> Active — accepting evacuees</span>
                     <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#6b7280"></span> On standby</span>
                     <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#dc2626"></span> Full — at/near capacity</span>
                     <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#9ca3af"></span> Closed — not in operation</span>
@@ -53,25 +53,25 @@
             </div>
 
             <div class="card p-4">
-                <label class="flex items-center justify-between mb-2 cursor-pointer">
-                    <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Hazard zones</span>
-                    <input type="checkbox" id="layer-hazards" checked class="rounded border-gray-300 text-brand focus:ring-brand">
+                <label class="flex items-center justify-between mb-3 cursor-pointer">
+                    <span class="card-title">Hazard zones</span>
+                    <input type="checkbox" id="layer-hazards" checked class="w-4 h-4">
                 </label>
-                <div class="flex flex-col gap-2 text-sm">
+                <div class="flex flex-col gap-2 text-sm text-gray-700">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="hazard-type-toggle rounded border-gray-300 text-brand focus:ring-brand" data-group="flood" checked>
+                        <input type="checkbox" class="hazard-type-toggle w-4 h-4" data-group="flood" checked>
                         <span class="w-3 h-3 rounded inline-block" style="background:#2563eb"></span> Flood
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="hazard-type-toggle rounded border-gray-300 text-brand focus:ring-brand" data-group="landslide_lahar" checked>
+                        <input type="checkbox" class="hazard-type-toggle w-4 h-4" data-group="landslide_lahar" checked>
                         <span class="w-3 h-3 rounded inline-block" style="background:#ea580c"></span> Landslide / lahar
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="hazard-type-toggle rounded border-gray-300 text-brand focus:ring-brand" data-group="storm_surge" checked>
+                        <input type="checkbox" class="hazard-type-toggle w-4 h-4" data-group="storm_surge" checked>
                         <span class="w-3 h-3 rounded inline-block" style="background:#0d9488"></span> Storm surge
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="hazard-type-toggle rounded border-gray-300 text-brand focus:ring-brand" data-group="volcanic" checked>
+                        <input type="checkbox" class="hazard-type-toggle w-4 h-4" data-group="volcanic" checked>
                         <span class="w-3 h-3 rounded inline-block" style="background:#dc2626"></span> Volcanic danger zone
                     </label>
                 </div>
@@ -82,15 +82,15 @@
                 centers -- the map follows, zooming to that barangay's
                 centers. The search box filters whichever list is showing. --}}
             <div class="card p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Evacuation centers</p>
-                <nav id="gis-breadcrumb" class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"></nav>
+                <h2 class="card-title mb-2">Evacuation centers</h2>
+                <nav id="gis-breadcrumb" aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-xs text-gray-600 mb-2"></nav>
                 <div class="relative mb-2">
                     <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 14px;" aria-hidden="true"></i>
-                    <input id="center-search" type="text" placeholder="Search barangays..."
-                        class="w-full border border-gray-300 rounded-lg pl-8 pr-2 py-1.5 text-xs">
+                    <input id="center-search" type="text" placeholder="Search barangays..." aria-label="Search"
+                        class="input input-sm pl-8">
                 </div>
                 <p id="gis-own-barangay-note" class="hidden text-xs text-gray-500 mb-2">Your barangay is shown first. Other barangays are included so you can help register displaced residents temporarily staying in your area, or view city-wide activity.</p>
-                <select id="center-status-filter" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs mb-3">
+                <select id="center-status-filter" aria-label="Center status" class="input input-sm mb-3">
                     <option value="">All status</option>
                     <option value="active">Active</option>
                     <option value="on_standby">On standby</option>
@@ -106,7 +106,7 @@
                 instead of under a barangay. What IS exact is whether an
                 evacuation center sits inside one -- see centersInside(). --}}
             <div class="card p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hazard zones (city-wide)</p>
+                <h2 class="card-title mb-1">Hazard zones (city-wide)</h2>
                 <p class="text-xs text-gray-500 mb-3">Each covers several barangays. Select one to see it on the map.</p>
                 <div id="hazard-list" class="flex flex-col gap-2 text-sm"></div>
             </div>
@@ -118,13 +118,13 @@
 
         <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
             <div class="card p-2 flex flex-wrap items-center justify-between gap-2">
-                <p id="map-updated" class="text-xs text-gray-500 pl-1"></p>
+                <p id="map-updated" class="text-xs text-gray-600 pl-1"></p>
                 <div class="flex items-center gap-2">
-                    <button id="reset-view-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
-                        <i class="ti ti-refresh" style="font-size: 13px;" aria-hidden="true"></i> Reset view
+                    <button type="button" id="reset-view-btn" class="btn btn-secondary btn-sm">
+                        <i class="ti ti-refresh" style="font-size: 14px;" aria-hidden="true"></i> Reset view
                     </button>
-                    <button id="fullscreen-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
-                        <i class="ti ti-maximize" style="font-size: 13px;" aria-hidden="true"></i> Fullscreen
+                    <button type="button" id="fullscreen-btn" class="btn btn-secondary btn-sm">
+                        <i class="ti ti-maximize" style="font-size: 14px;" aria-hidden="true"></i> Fullscreen
                     </button>
                 </div>
             </div>
@@ -132,7 +132,7 @@
                 comparable to a typical mobile maps app), the original 680px
                 restored from lg up where there's room for it beside the
                 control sidebar. --}}
-            <div id="map" class="rounded-xl h-[420px] lg:h-[680px]"></div>
+            <div id="map" class="rounded-xl border border-gray-200 h-[420px] lg:h-[680px]"></div>
         </div>
     </div>
 
@@ -151,7 +151,7 @@
         layer-switcher icons) default to z-index:1000 in leaflet.css. A
         plain z-50 (z-index:50) sits far below that, so the map's controls
         rendered on top of the modal instead of being dimmed behind it. --}}
-    <div id="hazard-form-panel" class="hidden fixed inset-0 bg-black/50 z-[9999] items-center justify-center p-4">
+    <div id="hazard-form-panel" class="hidden modal-backdrop z-[9999]">
         <div class="modal max-w-md">
             <div class="modal-header">
                 <h2 id="hazard-form-heading" class="modal-title">New hazard zone</h2>
@@ -159,14 +159,14 @@
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="flex flex-col gap-3 p-5">
+            <div class="flex flex-col gap-4 p-5">
                 <div>
-                    <label class="label-sm">Area name</label>
-                    <input type="text" id="hz-name" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                    <label for="hz-name" class="label">Area name</label>
+                    <input type="text" id="hz-name" class="input">
                 </div>
                 <div>
-                    <label class="label-sm">Hazard type</label>
-                    <select id="hz-type" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                    <label for="hz-type" class="label">Hazard type</label>
+                    <select id="hz-type" class="input">
                         <option value="" disabled selected>-- Select hazard type --</option>
                         <option value="flood">Flood</option>
                         <option value="landslide">Landslide</option>
@@ -176,18 +176,16 @@
                     </select>
                 </div>
                 <div>
-                    <label class="label-sm">Barangay (optional)</label>
-                    <select id="hz-barangay" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></select>
+                    <label for="hz-barangay" class="label">Barangay (optional)</label>
+                    <select id="hz-barangay" class="input"></select>
                 </div>
                 <div>
-                    <label class="label-sm">Description</label>
-                    <textarea id="hz-description" rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></textarea>
+                    <label for="hz-description" class="label">Description</label>
+                    <textarea id="hz-description" rows="2" class="input"></textarea>
                 </div>
-                <div class="flex gap-2">
-                    <button type="button" id="hz-save"
-                        class="flex-1 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg py-2">Save</button>
-                    <button type="button" id="hz-cancel"
-                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg py-2">Cancel</button>
+                <div class="modal-footer mt-1">
+                    <button type="button" id="hz-cancel" class="btn btn-secondary">Cancel</button>
+                    <button type="button" id="hz-save" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
@@ -229,7 +227,7 @@
         storm_surge: ['storm_surge'], volcanic: ['volcanic_danger_zone'],
     };
     const centerColors = {
-        active: '#16a34a', on_standby: '#6b7280', full: '#dc2626', closed: '#9ca3af',
+        active: '#15803D', on_standby: '#6B7280', full: '#DC2626', closed: '#9CA3AF',
     };
 
     const drawnItems = new L.FeatureGroup().addTo(map);
@@ -472,10 +470,10 @@
 
     function renderGisBreadcrumb() {
         document.getElementById('gis-breadcrumb').innerHTML = gisBarangay === null
-            ? '<span class="text-gray-700 font-medium">All barangays</span>'
-            : `<a href="#" data-gis-goto="all" class="hover:text-brand hover:underline">All barangays</a>
+            ? '<span class="text-gray-900 font-medium">All barangays</span>'
+            : `<a href="#" data-gis-goto="all" class="link font-normal">All barangays</a>
                <i class="ti ti-chevron-right" style="font-size:11px" aria-hidden="true"></i>
-               <span class="text-gray-700 font-medium">${escapeHtml(gisBarangay)}</span>`;
+               <span class="text-gray-900 font-medium">${escapeHtml(gisBarangay)}</span>`;
         document.getElementById('center-search').placeholder = gisBarangay === null ? 'Search barangays...' : 'Search centers...';
     }
 
@@ -573,11 +571,11 @@
                     return `
                         <button type="button" class="gis-barangay-item text-left w-full flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50" data-barangay="${escapeHtml(name)}">
                             <span class="flex-1 min-w-0">
-                                <span class="font-medium text-gray-700">${escapeHtml(name)}</span>
-                                ${name === ownBarangayName ? '<span class="ml-1 text-xs font-medium px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">Your barangay</span>' : ''}
-                                <span class="block text-xs text-gray-500">${centers.length} center${centers.length === 1 ? '' : 's'}${flagged ? `, <span class="text-red-600">${flagged} inside a hazard zone</span>` : ''}</span>
+                                <span class="font-medium text-gray-900">${escapeHtml(name)}</span>
+                                ${name === ownBarangayName ? '<span class="ml-1 badge badge-info">Your barangay</span>' : ''}
+                                <span class="block text-xs text-gray-500">${centers.length} center${centers.length === 1 ? '' : 's'}${flagged ? `, <span class="text-red-700">${flagged} inside a hazard zone</span>` : ''}</span>
                             </span>
-                            <i class="ti ti-chevron-right text-gray-300 shrink-0" style="font-size: 14px;" aria-hidden="true"></i>
+                            <i class="ti ti-chevron-right text-gray-400 shrink-0" style="font-size: 14px;" aria-hidden="true"></i>
                         </button>`;
                 }).join('');
             return;
@@ -597,13 +595,13 @@
                 const pct = p.occupancy_percent ?? 0;
                 const inside = centerHazards[p.id];
                 return `
-                    <button class="center-list-item text-left w-full" data-lat="${lat}" data-lng="${lng}">
+                    <button type="button" class="center-list-item text-left w-full rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50" data-lat="${lat}" data-lng="${lng}">
                         <span class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:${centerColors[p.status] ?? '#666'}"></span>
-                            <span class="font-medium text-gray-700">${escapeHtml(p.name)}</span>
+                            <span class="font-medium text-gray-900">${escapeHtml(p.name)}</span>
                         </span>
-                        ${p.capacity_persons ? `<p class="text-xs text-gray-500 pl-4">${p.current_occupancy} / ${p.capacity_persons} (${pct}%)</p>` : ''}
-                        ${inside ? `<p class="text-xs text-red-600 pl-4 flex items-start gap-1"><i class="ti ti-alert-triangle shrink-0 mt-px" style="font-size: 12px;" aria-hidden="true"></i><span>Inside: ${inside.map(escapeHtml).join(', ')}</span></p>` : ''}
+                        ${p.capacity_persons ? `<p class="text-xs text-gray-500 pl-4 tabular-nums">${p.current_occupancy} / ${p.capacity_persons} (${pct}%)</p>` : ''}
+                        ${inside ? `<p class="text-xs text-red-700 pl-4 flex items-start gap-1"><i class="ti ti-alert-triangle shrink-0 mt-px" style="font-size: 12px;" aria-hidden="true"></i><span>Inside: ${inside.map(escapeHtml).join(', ')}</span></p>` : ''}
                     </button>`;
             }).join('');
 
@@ -641,8 +639,8 @@
                     <button type="button" class="hazard-list-item text-left w-full flex items-start gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50" data-index="${index}">
                         <span class="w-3 h-3 rounded-sm shrink-0 mt-1" style="background:${hazardColors[p.hazard_type] ?? '#666'}"></span>
                         <span class="flex-1 min-w-0">
-                            <span class="font-medium text-gray-700">${escapeHtml(p.area_name)}</span>
-                            <span class="block text-xs text-gray-500">${escapeHtml(p.hazard_type.replace(/_/g, ' '))}, ${count ? `<span class="text-red-600">${count} evacuation center${count === 1 ? '' : 's'} inside</span>` : 'no evacuation centers inside'}</span>
+                            <span class="font-medium text-gray-900">${escapeHtml(p.area_name)}</span>
+                            <span class="block text-xs text-gray-500">${escapeHtml(p.hazard_type.replace(/_/g, ' '))}, ${count ? `<span class="text-red-700">${count} evacuation center${count === 1 ? '' : 's'} inside</span>` : 'no evacuation centers inside'}</span>
                         </span>
                     </button>`;
             }).join('');
@@ -673,8 +671,8 @@
                 // officials get the same read-only popup as before.
                 const manageButtons = canManage ? `
                     <div class="flex gap-2 mt-2">
-                        <button type="button" class="hazard-edit-btn flex-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-2 py-1">Edit</button>
-                        <button type="button" class="hazard-delete-btn flex-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded px-2 py-1">Delete</button>
+                        <button type="button" class="hazard-edit-btn btn btn-secondary btn-sm flex-1">Edit</button>
+                        <button type="button" class="hazard-delete-btn btn btn-danger-secondary btn-sm flex-1">Delete</button>
                     </div>` : '';
 
                 layer.bindPopup(`

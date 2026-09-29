@@ -59,6 +59,10 @@
             input[type="checkbox"], input[type="radio"] { accent-color: #2563EB; }
             :focus-visible { outline: 2px solid #1D4ED8; outline-offset: 2px; }
             #sidebar :focus-visible { outline-color: #FFFFFF; }
+            /* Leaflet sets its own Helvetica stack; keep map popups/controls in
+               the app's typeface. (body prefix outranks leaflet.css, which
+               loads later.) */
+            body .leaflet-container { font-family: inherit; }
             @media (prefers-reduced-motion: reduce) {
                 *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
             }

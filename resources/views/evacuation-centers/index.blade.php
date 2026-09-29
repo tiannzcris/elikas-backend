@@ -278,8 +278,8 @@
     const statusColors = {
         active: 'badge-success',
         on_standby: 'badge-neutral',
-        full: 'badge-warning',
-        closed: 'badge-danger',
+        full: 'badge-danger',
+        closed: 'badge-neutral',
     };
     const STATUS_LABELS = { active: 'Active', on_standby: 'On standby', full: 'Full', closed: 'Closed' };
 

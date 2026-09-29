@@ -273,7 +273,7 @@ turns `red-700`. At 0 it stays calm and ink-colored.
 | Domain | Mapping |
 |---|---|
 | Event status | active → success · monitoring → warning · closed → neutral |
-| Center status | active → success · on standby → neutral · full → warning · closed → danger |
+| Center status | active → success · on standby → neutral · full → danger · closed → neutral (matches the GIS map legend and the ≥ 90% at-risk rule) |
 | Alert severity | mandatory → danger · advisory → advisory · info → info · all clear → success |
 | User status | active → success · inactive → neutral · suspended → danger |
 | Records | details pending → warning · legacy bulk entry → danger · sectoral tags (4Ps, PWD, senior…) → neutral |
