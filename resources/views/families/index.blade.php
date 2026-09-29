@@ -6,8 +6,8 @@
 @section('content')
     <div class="page-header">
         <div>
-            <h1 class="text-xl font-semibold mb-1">Evacuees</h1>
-            <p class="text-sm text-gray-500">List of registered evacuee families and their members.</p>
+            <h1 class="page-title">Evacuees</h1>
+            <p class="page-subtitle">List of registered evacuee families and their members.</p>
         </div>
         {{-- Hidden per CSWDO: outside_center registration has no real
             operational use for them (people not physically at a center
@@ -73,27 +73,27 @@
             {{-- Barangay -> center -> family drill-down. "All barangays" is
                 always clickable to jump back to the landing view; the
                 current level's own label is plain text, not a link. --}}
-            <nav id="drill-breadcrumb" class="flex items-center gap-1.5 text-sm text-gray-500 mb-4"></nav>
+            <nav id="drill-breadcrumb" aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-sm text-gray-600 mb-4"></nav>
 
             {{-- Level 1 (default/landing view): one row per barangay. --}}
             <div id="barangay-summary-view">
                 <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 card">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
-                    <p class="text-sm font-medium text-gray-600 mb-1">No families registered yet</p>
+                    <p class="text-sm font-medium text-gray-700 mb-1">No families registered yet</p>
                     <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                     {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
-                    <button type="button" id="register-family-empty-btn" class="hidden text-sm text-brand hover:underline">+ Register the first family</button>
+                    <button type="button" id="register-family-empty-btn" class="hidden btn btn-secondary">+ Register the first family</button>
                 </div>
                 <div id="barangay-table-wrap" class="hidden card overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <th class="text-left px-4 py-3">Barangay</th>
-                                    <th class="text-left px-4 py-3">Families</th>
-                                    <th class="text-left px-4 py-3">Persons</th>
-                                    <th class="text-left px-4 py-3">Pending details</th>
-                                    <th class="text-left px-4 py-3"></th>
+                                    <th>Barangay</th>
+                                    <th class="num">Families</th>
+                                    <th class="num">Persons</th>
+                                    <th>Pending details</th>
+                                    <th><span class="sr-only">Open</span></th>
                                 </tr>
                             </thead>
                             <tbody id="barangay-summary-tbody"></tbody>
@@ -105,17 +105,17 @@
             {{-- Level 2: evacuation centers within the selected barangay. --}}
             <div id="center-summary-view" class="hidden">
                 {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
-                <button type="button" id="register-in-barangay-btn" class="hidden text-sm text-brand hover:underline mb-3"></button>
+                <button type="button" id="register-in-barangay-btn" class="hidden btn btn-secondary mb-3"></button>
                 <div id="center-table-wrap" class="card overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <th class="text-left px-4 py-3">Evacuation center</th>
-                                    <th class="text-left px-4 py-3">Families</th>
-                                    <th class="text-left px-4 py-3">Persons</th>
-                                    <th class="text-left px-4 py-3">Pending details</th>
-                                    <th class="text-left px-4 py-3"></th>
+                                    <th>Evacuation center</th>
+                                    <th class="num">Families</th>
+                                    <th class="num">Persons</th>
+                                    <th>Pending details</th>
+                                    <th><span class="sr-only">Open</span></th>
                                 </tr>
                             </thead>
                             <tbody id="center-summary-tbody"></tbody>
@@ -129,8 +129,8 @@
             <div id="family-list-view" class="hidden">
                 <div class="flex flex-wrap items-center justify-end gap-3 mb-4">
                     {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
-                    <button type="button" id="register-at-center-btn" class="hidden text-sm text-brand hover:underline"></button>
-                    <select id="sectoral-filter" class="input">
+                    <button type="button" id="register-at-center-btn" class="hidden btn btn-secondary"></button>
+                    <select id="sectoral-filter" aria-label="Sectoral group" class="input w-auto">
                         <option value="">All sectoral groups</option>
                         <option value="is_4ps_beneficiary">4Ps beneficiary</option>
                         <option value="is_pwd">PWD</option>
@@ -140,35 +140,35 @@
                         <option value="is_solo_parent">Solo parent</option>
                         <option value="is_indigenous_person">Indigenous person</option>
                     </select>
-                    <button id="export-btn" class="flex items-center gap-1.5 text-brand border border-brand/30 rounded-lg px-3 py-2 text-sm hover:bg-brand-light">
-                        <i class="ti ti-download" style="font-size: 15px;" aria-hidden="true"></i> Export
+                    <button id="export-btn" type="button" class="btn btn-secondary">
+                        <i class="ti ti-download" style="font-size: 16px;" aria-hidden="true"></i> Export
                     </button>
                 </div>
 
                 <div id="empty-state" class="hidden flex-col items-center text-center py-20 card">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
-                    <p class="text-sm font-medium text-gray-600 mb-1">No families here yet</p>
+                    <p class="text-sm font-medium text-gray-700 mb-1">No families here yet</p>
                     <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                 </div>
 
                 <div id="table-wrap" class="hidden card overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <th class="text-left px-4 py-3">Family head</th>
-                                    <th class="text-left px-4 py-3">Barangay</th>
-                                    <th class="text-left px-4 py-3">Persons</th>
-                                    <th class="text-left px-4 py-3">Evacuation center</th>
-                                    <th class="text-left px-4 py-3">Sectoral tags</th>
-                                    <th class="text-left px-4 py-3">Date registered</th>
-                                    <th class="text-left px-4 py-3"></th>
+                                    <th>Family head</th>
+                                    <th>Barangay</th>
+                                    <th class="num">Persons</th>
+                                    <th>Evacuation center</th>
+                                    <th>Sectoral tags</th>
+                                    <th>Date registered</th>
+                                    <th><span class="sr-only">Open</span></th>
                                 </tr>
                             </thead>
                             <tbody id="families-tbody"></tbody>
                         </table>
                     </div>
-                    <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
+                    <div class="table-meta">
                         Showing <span id="showing-count">0</span> of <span id="total-count">0</span> families
                     </div>
                 </div>
@@ -223,7 +223,7 @@
             <div id="family-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="register-form" class="flex flex-col gap-6 p-5">
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="label">Barangay</label>
                         <select id="f-barangay_id" required class="input"></select>
@@ -251,7 +251,7 @@
                         <label class="label">Evacuation center</label>
                         <select id="f-evacuation_center_id" class="input"></select>
                     </div>
-                    <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
+                    <label class="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
                         <input type="checkbox" id="f-is_4ps_beneficiary"> Family is a 4Ps beneficiary
                     </label>
                 </div>
@@ -264,7 +264,7 @@
                     Full-detail registration is the only path here. --}}
                 <div id="f-full-mode-section">
                     <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-sm font-medium text-gray-700">Family members</h2>
+                        <h3 class="card-title">Family members</h3>
                         <button type="button" id="f-add-member-btn" class="link text-sm">+ Add another member</button>
                     </div>
                     <div id="f-members-container" class="flex flex-col gap-4"></div>
@@ -296,7 +296,8 @@
     let totalFamilies = 0;
     let totalPersonsCount = 0;
 
-    const AVATAR_COLORS = ['#2563EB', '#16A34A', '#D97706', '#DB2777', '#7C3AED', '#0891B2'];
+    // White initials on each clear WCAG AA (see docs/design-system.md, Avatars).
+    const AVATAR_COLORS = ['#1D4ED8', '#15803D', '#B45309', '#BE185D', '#6D28D9', '#0E7490'];
 
     function avatarFor(name) {
         const label = name || '?';
@@ -335,17 +336,19 @@
         const tbody = document.getElementById('families-tbody');
         tbody.innerHTML = families.map((f) => {
             const tags = [];
-            if (f.is_4ps_beneficiary) tags.push('<span class="text-xs px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">4Ps</span>');
-            if (f.has_pwd_member) tags.push('<span class="text-xs px-2 py-0.5 rounded-lg bg-red-50 text-red-700">PWD</span>');
-            if (f.has_senior_member) tags.push('<span class="text-xs px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700">Senior</span>');
-            if (f.has_lactating_member) tags.push('<span class="text-xs px-2 py-0.5 rounded-lg bg-pink-50 text-pink-700">Lactating</span>');
-            if ((f.members ?? []).some((m) => m.sectoral?.is_pregnant)) tags.push('<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700">Pregnant</span>');
+            // Sectoral tags are categories, not states -- neutral, so the
+            // amber "pending" tag below is the one thing asking for attention.
+            if (f.is_4ps_beneficiary) tags.push('<span class="badge badge-neutral">4Ps</span>');
+            if (f.has_pwd_member) tags.push('<span class="badge badge-neutral">PWD</span>');
+            if (f.has_senior_member) tags.push('<span class="badge badge-neutral">Senior</span>');
+            if (f.has_lactating_member) tags.push('<span class="badge badge-neutral">Lactating</span>');
+            if ((f.members ?? []).some((m) => m.sectoral?.is_pregnant)) tags.push('<span class="badge badge-neutral">Pregnant</span>');
 
             const pendingCount = (f.members ?? []).filter((m) => m.is_placeholder).length;
-            if (pendingCount > 0) tags.push(`<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800">${pendingCount} pending</span>`);
+            if (pendingCount > 0) tags.push(`<span class="badge badge-warning">${pendingCount} pending</span>`);
             // Not a real household: anonymous people from an old typed
             // headcount, lumped together -- first tag, so it's never missed.
-            if (f.is_legacy_bulk_entry) tags.unshift('<span class="text-xs px-2 py-0.5 rounded-lg bg-red-50 text-red-700 border border-red-200">Legacy bulk entry -- needs manual review</span>');
+            if (f.is_legacy_bulk_entry) tags.unshift('<span class="badge badge-danger">Legacy bulk entry -- needs manual review</span>');
 
             // f.name is set when this household was created via the EC
             // Board's "Add Evacuee -> New household" path (see
@@ -354,24 +357,19 @@
             const headName = f.name || f.head_of_family?.full_name || f.members?.[0]?.full_name || '';
 
             return `
-            <tr class="border-t border-gray-100 hover:bg-gray-50">
-                <td class="px-4 py-3">
+            <tr class="hover:bg-gray-50">
+                <td>
                     <div class="flex items-center gap-2.5">
                         ${avatarFor(headName)}
-                        <span class="font-medium">${headName || '&mdash;'}</span>
+                        <span class="font-medium text-gray-900">${headName || '&mdash;'}</span>
                     </div>
                 </td>
-                <td class="px-4 py-3">${f.barangay?.name ?? '&mdash;'}</td>
-                <td class="px-4 py-3">
-                    <span class="inline-flex items-center gap-1.5">
-                        <i class="ti ti-users text-gray-500" style="font-size: 14px;" aria-hidden="true"></i>
-                        ${f.member_count ?? '&mdash;'}
-                    </span>
-                </td>
-                <td class="px-4 py-3 text-gray-600">${f.evacuation_center?.name ?? '&mdash;'}</td>
-                <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${tags.join('') || '<span class="text-gray-300 text-xs">&mdash;</span>'}</div></td>
-                <td class="px-4 py-3 text-gray-500">${new Date(f.created_at).toLocaleDateString()}</td>
-                <td class="px-4 py-3"><a href="/families/${f.id}?${familyDetailReturnParams()}" class="link">View</a></td>
+                <td>${f.barangay?.name ?? '&mdash;'}</td>
+                <td class="num">${f.member_count ?? '&mdash;'}</td>
+                <td>${f.evacuation_center?.name ?? '&mdash;'}</td>
+                <td><div class="flex flex-wrap gap-1">${tags.join('') || '<span class="text-gray-500 text-xs">&mdash;</span>'}</div></td>
+                <td class="text-gray-600 whitespace-nowrap tabular-nums">${new Date(f.created_at).toLocaleDateString()}</td>
+                <td><a href="/families/${f.id}?${familyDetailReturnParams()}" class="btn btn-secondary btn-sm">View</a></td>
             </tr>`;
         }).join('');
     }
@@ -389,11 +387,11 @@
         const female = members.filter((m) => m.sex === 'female').length;
         document.getElementById('sex-legend').innerHTML = `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#3B82F6"></span>Male</span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#2563EB"></span>Male</span>
                 <span class="font-medium text-gray-900 tabular-nums">${male} <span class="text-gray-500 font-normal">(${Math.round(male / total * 100)}%)</span></span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#EC4899"></span>Female</span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#DB2777"></span>Female</span>
                 <span class="font-medium text-gray-900 tabular-nums">${female} <span class="text-gray-500 font-normal">(${Math.round(female / total * 100)}%)</span></span>
             </div>`;
 
@@ -402,7 +400,7 @@
             type: 'doughnut',
             data: {
                 labels: ['Male', 'Female'],
-                datasets: [{ data: [male, female], backgroundColor: ['#3B82F6', '#EC4899'], borderColor: '#FFFFFF', borderWidth: 2 }],
+                datasets: [{ data: [male, female], backgroundColor: ['#2563EB', '#DB2777'], borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -450,12 +448,12 @@
     function sectoralCardHtml(count, label, icon, color, bg) {
         return `
             <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-md ${bg} flex items-center justify-center shrink-0">
-                    <i class="ti ${icon} ${color}" style="font-size:14px;" aria-hidden="true"></i>
+                <div class="icon-chip w-8 h-8 rounded-md">
+                    <i class="ti ${icon}" style="font-size:15px;" aria-hidden="true"></i>
                 </div>
-                <div class="leading-tight">
-                    <p class="text-sm font-semibold text-gray-800">${count}</p>
-                    <p class="text-[11px] text-gray-500">${label}</p>
+                <div class="leading-tight min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 tabular-nums">${count}</p>
+                    <p class="text-xs text-gray-600">${label}</p>
                 </div>
             </div>`;
     }
@@ -675,19 +673,19 @@
         const atCenterLevel = currentBarangayId !== null && currentCenterId === null;
 
         parts.push(atBarangayLevel
-            ? '<span class="text-gray-700 font-medium">All barangays</span>'
-            : '<a href="#" data-goto="barangay" class="hover:text-brand hover:underline">All barangays</a>');
+            ? '<span class="text-gray-900 font-medium">All barangays</span>'
+            : '<a href="#" data-goto="barangay" class="link font-normal">All barangays</a>');
 
         if (currentBarangayId !== null) {
             parts.push('<i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>');
             parts.push(atCenterLevel
-                ? `<span class="text-gray-700 font-medium">${currentBarangayName}</span>`
-                : `<a href="#" data-goto="center" class="hover:text-brand hover:underline">${currentBarangayName}</a>`);
+                ? `<span class="text-gray-900 font-medium">${currentBarangayName}</span>`
+                : `<a href="#" data-goto="center" class="link font-normal">${currentBarangayName}</a>`);
         }
 
         if (currentCenterId !== null) {
             parts.push('<i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>');
-            parts.push(`<span class="text-gray-700 font-medium">${currentCenterName}</span>`);
+            parts.push(`<span class="text-gray-900 font-medium">${currentCenterName}</span>`);
         }
 
         document.getElementById('drill-breadcrumb').innerHTML = parts.join(' ');
@@ -720,14 +718,14 @@
         tableWrap.classList.remove('hidden');
 
         document.getElementById('barangay-summary-tbody').innerHTML = rows.map((r) => `
-            <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer" data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
-                <td class="px-4 py-3 font-medium">${r.barangay_name}</td>
-                <td class="px-4 py-3">${r.family_count}</td>
-                <td class="px-4 py-3">${r.person_count}</td>
-                <td class="px-4 py-3">${r.pending_count > 0
-                    ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800">${r.pending_count} pending</span>`
-                    : '<span class="text-gray-300">&mdash;</span>'}</td>
-                <td class="px-4 py-3 text-right"><i class="ti ti-chevron-right text-gray-400" aria-hidden="true"></i></td>
+            <tr class="row-link" data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
+                <td class="font-medium text-gray-900">${r.barangay_name}</td>
+                <td class="num">${r.family_count}</td>
+                <td class="num">${r.person_count}</td>
+                <td>${r.pending_count > 0
+                    ? `<span class="badge badge-warning">${r.pending_count} pending</span>`
+                    : '<span class="text-gray-500">&mdash;</span>'}</td>
+                <td class="text-right"><i class="ti ti-chevron-right text-gray-500" aria-hidden="true"></i></td>
             </tr>`).join('');
     }
 
@@ -750,17 +748,17 @@
     function renderCenterSummaryTable(rows) {
         document.getElementById('center-summary-tbody').innerHTML = rows.length
             ? rows.map((r) => `
-                <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer"
+                <tr class="row-link"
                     data-center-id="${r.evacuation_center_id ?? 'none'}" data-center-name="${r.evacuation_center_name}">
-                    <td class="px-4 py-3 font-medium">${r.evacuation_center_name}</td>
-                    <td class="px-4 py-3">${r.family_count}</td>
-                    <td class="px-4 py-3">${r.person_count}</td>
-                    <td class="px-4 py-3">${r.pending_count > 0
-                        ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800">${r.pending_count} pending</span>`
-                        : '<span class="text-gray-300">&mdash;</span>'}</td>
-                    <td class="px-4 py-3 text-right"><i class="ti ti-chevron-right text-gray-400" aria-hidden="true"></i></td>
+                    <td class="font-medium text-gray-900">${r.evacuation_center_name}</td>
+                    <td class="num">${r.family_count}</td>
+                    <td class="num">${r.person_count}</td>
+                    <td>${r.pending_count > 0
+                        ? `<span class="badge badge-warning">${r.pending_count} pending</span>`
+                        : '<span class="text-gray-500">&mdash;</span>'}</td>
+                    <td class="text-right"><i class="ti ti-chevron-right text-gray-500" aria-hidden="true"></i></td>
                 </tr>`).join('')
-            : `<tr><td colspan="5" class="px-4 py-10 text-center text-gray-500 text-sm">No families registered in this barangay yet.</td></tr>`;
+            : `<tr><td colspan="5" class="py-10 text-center text-gray-500">No families registered in this barangay yet.</td></tr>`;
     }
 
     async function drillIntoBarangay(barangayId, barangayName) {
@@ -955,14 +953,14 @@
 
             resultsBox.innerHTML = evacuees.length
                 ? evacuees.map((ev) => `
-                    <a href="/families/${ev.family_id}" class="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50 border-b border-gray-50 last:border-0">
+                    <a href="/families/${ev.family_id}" class="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0">
                         <span class="min-w-0">
-                            <span class="text-sm font-medium text-gray-800">
-                                ${ev.is_placeholder ? '<span class="text-amber-600">Member — details pending</span>' : ev.full_name}
+                            <span class="text-sm font-medium text-gray-900">
+                                ${ev.is_placeholder ? '<span class="text-amber-800">Member — details pending</span>' : ev.full_name}
                             </span>
                             ${ev.barangay_name ? `<span class="block text-xs text-gray-500">${ev.barangay_name}</span>` : ''}
                         </span>
-                        <i class="ti ti-chevron-right text-gray-300 shrink-0" aria-hidden="true"></i>
+                        <i class="ti ti-chevron-right text-gray-400 shrink-0" aria-hidden="true"></i>
                     </a>`).join('')
                 : '<p class="px-4 py-3 text-sm text-gray-500">No evacuees match that name.</p>';
 

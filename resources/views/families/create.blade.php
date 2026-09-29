@@ -36,7 +36,7 @@
                 <label class="label">Evacuation center</label>
                 <select id="evacuation_center_id" class="input"></select>
             </div>
-            <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
+            <label class="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
                 <input type="checkbox" id="is_4ps_beneficiary"> Household is a 4Ps beneficiary
             </label>
         </div>
@@ -49,7 +49,7 @@
             is the only path here. --}}
         <div id="full-mode-section">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-medium text-gray-700">Household members</h2>
+                <h2 class="card-title">Household members</h2>
                 <button type="button" id="add-member-btn" class="link text-sm">+ Add another member</button>
             </div>
             <div id="members-container" class="flex flex-col gap-4"></div>

@@ -4,10 +4,13 @@
 @section('nav-families', 'active')
 
 @section('content')
-    <a id="back-link" href="/families" class="link text-sm">&larr; Back to families</a>
+    <a id="back-link" href="/families" class="btn btn-secondary px-3 py-1.5">
+        <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i>
+        <span id="back-link-label">Back to families</span>
+    </a>
 
     <div id="content-wrap" class="hidden mt-4">
-        <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
+        <h1 class="page-title mb-2" id="family-title">Family</h1>
         {{-- A leftover "EC Board bulk entry" household, not a real family
             (see the 2026_09_27_000001 migration): says so, plainly, before
             anything else on the page. --}}
@@ -15,31 +18,32 @@
             <i class="ti ti-alert-triangle shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
             <span><span class="font-semibold">Legacy bulk entry -- needs manual review.</span> These people were created together from an old headcount, not registered as one household, so they're counted as a single family until someone who knows who's who moves them into their real households. No one new can be added here.</span>
         </div>
-        <p class="text-sm text-gray-500" id="family-subtitle"></p>
-        <p class="text-sm text-gray-500 hidden" id="family-address"></p>
+        <p class="text-sm text-gray-600" id="family-subtitle"></p>
+        <p class="text-sm text-gray-600 hidden" id="family-address"></p>
 
-        <div class="flex items-center justify-between gap-3 mt-2">
-            <p class="text-sm text-gray-600" id="family-center">Evacuation center: &mdash;</p>
-            <button type="button" id="change-center-btn" class="link text-xs shrink-0">Change evacuation center</button>
+        <div class="card mt-4 divide-y divide-gray-100">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <p class="text-sm text-gray-700" id="family-center">Evacuation center: &mdash;</p>
+            <button type="button" id="change-center-btn" class="btn btn-secondary btn-sm shrink-0">Change evacuation center</button>
         </div>
         {{-- Household-level status behind the EC Board's child-/single-
             headed rows (see Family::isChildHeaded()/isSingleHeaded()/
             headSex()) -- editable at any time, for households created
             before these questions existed or answered "not yet known". --}}
-        <div class="flex items-center justify-between gap-3 mt-1">
-            <p class="text-sm text-gray-600" id="family-household">Household: &mdash;</p>
-            <button type="button" id="edit-household-btn" class="link text-xs shrink-0">Edit household</button>
+        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <p class="text-sm text-gray-700" id="family-household">Household: &mdash;</p>
+            <button type="button" id="edit-household-btn" class="btn btn-secondary btn-sm shrink-0">Edit household</button>
+        </div>
         </div>
         {{-- Visible reminder for a household whose head is someone who
             hasn't been linked as a member yet -- its head figures are the
             answers given for them, not a real person's record. Amber, the
             same "needs attention" convention as "details pending". --}}
-        <p id="family-head-unlinked" class="hidden mt-2 items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        <p id="family-head-unlinked" class="hidden mt-3 items-start gap-1.5 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <i class="ti ti-alert-circle shrink-0 mt-px" style="font-size: 14px;" aria-hidden="true"></i>
             <span id="family-head-unlinked-text"></span>
         </p>
-        <div class="mb-6"></div>
-
+        <h2 class="card-title mt-6 mb-3">Members</h2>
         <div class="card divide-y divide-gray-100" id="members-list"></div>
     </div>
 
@@ -59,21 +63,21 @@
 
             <form id="member-form" class="flex flex-col gap-4 p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="text" placeholder="First name" id="m-first_name" class="input" required>
-                    <input type="text" placeholder="Middle name" id="m-middle_name" class="input">
-                    <input type="text" placeholder="Last name" id="m-last_name" class="input" required>
+                    <input type="text" placeholder="First name" aria-label="First name" id="m-first_name" class="input" required>
+                    <input type="text" placeholder="Middle name" aria-label="Middle name" id="m-middle_name" class="input">
+                    <input type="text" placeholder="Last name" aria-label="Last name" id="m-last_name" class="input" required>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <select id="m-sex" class="input" required>
+                    <select id="m-sex" aria-label="Sex" class="input self-end" required>
                         <option value="">Sex</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                     <div>
-                        <label class="text-xs text-gray-500 block mb-1">Date of birth</label>
+                        <label for="m-date_of_birth" class="label-sm">Date of birth</label>
                         <input type="date" id="m-date_of_birth" class="input" required>
                     </div>
-                    <select id="m-civil_status" class="input">
+                    <select id="m-civil_status" aria-label="Civil status" class="input self-end">
                         <option value="">Civil status (optional)</option>
                         <option value="single">Single</option>
                         <option value="married">Married</option>
@@ -83,9 +87,9 @@
                     </select>
                 </div>
                 <div>
-                    <input type="text" placeholder="09XXXXXXXXX" id="m-contact_number" class="input">
+                    <input type="text" placeholder="09XXXXXXXXX" aria-label="Contact number" id="m-contact_number" class="input">
                 </div>
-                <div class="flex flex-wrap gap-4 text-xs text-gray-600 items-center bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-700 items-center bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_pwd"> PWD</label>
                     <input type="text" placeholder="PWD type (e.g. visual, mobility)" id="m-pwd_type" class="hidden input input-sm w-auto text-xs">
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_pregnant"> Pregnant</label>
@@ -138,7 +142,7 @@
                     <button type="button" id="checkout-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="checkout-submit-btn" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="checkout-submit-btn" class="btn btn-neutral">
                         Check out
                     </button>
                 </div>
@@ -246,6 +250,8 @@
     let currentFamily = null;
     let editingEvacueeId = null;
 
+    const sentenceCase = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
     function renderMembers() {
         document.getElementById('members-list').innerHTML = currentFamily.members.map((m, idx) => {
             const activeRecord = m.evacuation_records.find(r => ! r.date_out);
@@ -262,30 +268,26 @@
             // both null for these (see Evacuee::getAgeBracketAttribute()),
             // so that line is skipped entirely rather than shown as blank.
             const nameLine = m.is_placeholder
-                ? `Member ${idx + 1} <span class="text-amber-600 font-normal">— details pending</span>`
-                : `${m.full_name} <span class="text-gray-500 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>`;
+                ? `Member ${idx + 1} <span class="text-amber-800 font-normal">— details pending</span>`
+                : `${m.full_name} <span class="text-gray-600 font-normal">(${m.age} yrs, ${m.age_bracket.replace('_', ' ')})</span>`;
 
             return `
-            <div class="p-4 flex items-center justify-between gap-3">
+            <div class="p-4 flex flex-wrap items-center justify-between gap-3">
                 <div class="min-w-0">
-                    <p class="text-sm font-medium">
+                    <p class="text-sm font-medium text-gray-900">
                         ${nameLine}
-                        ${isHead ? '<span class="text-xs px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 ml-1">Head of family</span>' : ''}
+                        ${isHead ? '<span class="badge badge-info ml-1">Head of family</span>' : ''}
                     </p>
                     <p class="text-xs text-gray-500 mt-0.5">
                         ${activeRecord ? `Checked in at ${activeRecord.evacuation_center?.name ?? 'unspecified location'}` : 'Checked out'}
                         ${sectoral ? ' · ' + sectoral : ''}
                     </p>
                 </div>
-                <div class="flex items-center gap-3 shrink-0">
-                    <span class="text-xs px-2 py-1 rounded-lg ${m.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
-                        ${m.status.replace('_', ' ')}
-                    </span>
-                    <button type="button" class="edit-member-btn text-xs ${m.is_placeholder ? 'text-amber-600 font-medium' : 'text-brand'} hover:underline" data-id="${m.id}">
-                        ${m.is_placeholder ? 'Add details' : 'Edit'}
-                    </button>
-                    ${activeRecord ? `<button type="button" class="checkout-member-btn text-xs text-gray-700 hover:underline" data-id="${m.id}">Check out</button>` : ''}
-                    <button type="button" class="remove-member-btn text-xs text-red-500 hover:underline" data-id="${m.id}">Remove</button>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <span class="badge ${m.status === 'active' ? 'badge-success' : 'badge-neutral'} mr-1">${sentenceCase(m.status.replace('_', ' '))}</span>
+                    <button type="button" class="edit-member-btn btn btn-sm ${m.is_placeholder ? 'btn-attention' : 'btn-secondary'}" data-id="${m.id}">${m.is_placeholder ? 'Add details' : 'Edit'}</button>
+                    ${activeRecord ? `<button type="button" class="checkout-member-btn btn btn-sm btn-secondary" data-id="${m.id}">Check out</button>` : ''}
+                    <button type="button" class="remove-member-btn btn btn-sm btn-danger-secondary" data-id="${m.id}">Remove</button>
                 </div>
             </div>`;
         }).join('');
@@ -336,9 +338,9 @@
                 const barangayId = params.get('barangay');
                 const centerId = params.get('center');
                 backLink.href = `/families?barangay=${barangayId}${centerId ? `&center=${centerId}` : ''}`;
-                backLink.textContent = centerId && centerId !== 'none'
-                    ? `← Back to ${currentFamily.evacuation_center?.name ?? 'this center'}`
-                    : `← Back to ${currentFamily.barangay?.name ?? 'this barangay'}`;
+                document.getElementById('back-link-label').textContent = centerId && centerId !== 'none'
+                    ? `Back to ${currentFamily.evacuation_center?.name ?? 'this center'}`
+                    : `Back to ${currentFamily.barangay?.name ?? 'this barangay'}`;
             }
 
             renderMembers();
