@@ -35,9 +35,9 @@
     <header class="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
             <a href="/" class="flex items-center gap-2.5 shrink-0">
-                <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
+                <img src="/images/elikas-logo-mark.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
-                    <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
+                    <p class="font-extrabold text-lg tracking-tight"><span class="text-[#094776]">E-LIKAS</span></p>
                     <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
@@ -219,7 +219,7 @@
         <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 gap-10">
             <div>
                 <div class="flex items-center gap-2.5 mb-3">
-                    <img src="/images/elikas-emblem-icon.png" alt="" class="w-9 h-9 object-contain">
+                    <span class="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0"><img src="/images/elikas-logo-mark.png" alt="" class="w-[78%] h-[78%] object-contain"></span>
                     <div class="leading-tight">
                         <p class="font-extrabold">E-LIKAS</p>
                         <p class="text-[9px] text-blue-200/70 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
@@ -690,7 +690,7 @@
                     status.textContent = 'Showing distances from your current location -- nearest barangays and centers first.';
                     status.classList.remove('hidden');
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="ti ti-current-location-filled" style="font-size: 15px;" aria-hidden="true"></i> Location found';
+                    btn.innerHTML = '<i class="ti ti-current-location" style="font-size: 15px;" aria-hidden="true"></i> Location found';
                     renderCenterList();
                 },
                 (error) => {

@@ -1,17 +1,20 @@
 # E-LIKAS staff dashboard: design system
 
 The one written source of truth for how the staff dashboard looks. Every staff
-page (everything that extends `layouts/app.blade.php`) uses these tokens and
-component classes. The public resident pages (home, find-evacuation-centers,
-community-alerts, hotlines) are out of scope for now.
+page (everything that extends `layouts/app.blade.php`) and the staff login page
+use these tokens and component classes. The public resident pages (home,
+find-evacuation-centers, community-alerts, hotlines) keep their own styling for
+now; they share only the logo (see "Logo" below).
 
 Where it lives in code:
 
-- **Tokens:** `tailwind.config` in `resources/views/layouts/app.blade.php`
+- **Tokens:** `tailwind.config` in `resources/views/partials/design-system.blade.php`
   (`brand`, `navy`, `field` colors; `Public Sans` as `font-sans`).
 - **Component classes:** the `<style type="text/tailwindcss">` block in the same
-  layout (`@layer base` + `@layer components`). Pages use these class names
+  partial (`@layer base` + `@layer components`). Pages use these class names
   instead of re-typing long utility strings.
+- **Included by:** `layouts/app.blade.php` and `auth/login.blade.php`, each with
+  `@include('partials.design-system')` in `<head>`.
 
 ## Direction
 
@@ -178,7 +181,7 @@ right-aligned.
 
 ## 4. Components
 
-All classes live in the layout's `@layer components`, so a utility on the same
+All classes live in the partial's `@layer components`, so a utility on the same
 element still wins (`btn btn-primary w-full` works). None of these classes set
 `display` where a page toggles `hidden`/`flex` itself: modals, empty states,
 callouts.
@@ -343,6 +346,21 @@ A 40px `gray-300` decorative icon, a 14px `gray-700` medium line, a 14px
   item reads by shape as well as by fill.
 - **Short screens:** the link list scrolls on its own and the status box stays
   pinned below it.
+
+### Logo
+
+- **File:** `public/images/elikas-logo-mark.png` (the swirl mark alone, 256px,
+  transparent). `public/favicon.ico` is generated from the same mark.
+- **On white or light gray:** the mark as is, 40 to 48px, next to the
+  "E-LIKAS" wordmark set in text, `navy` semibold. The wordmark is text, not
+  part of the image, so it stays sharp and translatable.
+- **On navy or any dark background** (sidebar, public footer): put the mark on
+  a white circle, mark at 78% of the circle. Its dark-navy arms vanish against
+  navy otherwise.
+- **About page mockup:** `public/images/about-dashboard-mockup.png` is built
+  from real screenshots of the dashboard (laptop), the dashboard on a phone,
+  and the resident home page on a phone. When the dashboard changes, retake
+  the screenshots rather than editing the image by hand.
 
 ## Checking your work
 

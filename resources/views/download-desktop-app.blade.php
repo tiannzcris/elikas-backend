@@ -41,9 +41,9 @@
 
     <div class="w-full max-w-lg mx-auto pt-6 sm:pt-16">
         <a href="{{ url('/') }}" class="flex items-center justify-center gap-2.5 mb-8">
-            <img src="/images/elikas-emblem-icon.png" alt="" class="w-9 h-9 object-contain">
+            <img src="/images/elikas-logo-mark.png" alt="" class="w-9 h-9 object-contain">
             <div class="leading-tight text-center">
-                <p class="font-extrabold text-base tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
+                <p class="font-extrabold text-base tracking-tight"><span class="text-[#094776]">E-LIKAS</span></p>
                 <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
             </div>
         </a>

@@ -35,9 +35,9 @@
     <header class="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
             <a href="/" class="flex items-center gap-2.5 shrink-0">
-                <img src="/images/elikas-emblem-icon.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
+                <img src="/images/elikas-logo-mark.png" alt="E-LIKAS" class="w-10 h-10 object-contain">
                 <div class="leading-tight">
-                    <p class="font-extrabold text-lg tracking-tight"><span class="text-red-600">E</span>-LIKAS</p>
+                    <p class="font-extrabold text-lg tracking-tight"><span class="text-[#094776]">E-LIKAS</span></p>
                     <p class="text-[9px] text-gray-500 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
                 </div>
             </a>
@@ -108,7 +108,7 @@
         <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 gap-10">
             <div>
                 <div class="flex items-center gap-2.5 mb-3">
-                    <img src="/images/elikas-emblem-icon.png" alt="" class="w-9 h-9 object-contain">
+                    <span class="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0"><img src="/images/elikas-logo-mark.png" alt="" class="w-[78%] h-[78%] object-contain"></span>
                     <div class="leading-tight">
                         <p class="font-extrabold">E-LIKAS</p>
                         <p class="text-[9px] text-blue-200/70 tracking-wide uppercase">Electronic Ligao Kaligtasan Sistema</p>
@@ -196,7 +196,7 @@
     <script src="/js/api.js"></script>
     <script>
         const severityStyles = {
-            mandatory: { badge: 'bg-red-50 text-red-700', label: 'Mandatory evacuation', icon: 'ti-alert-triangle-filled', iconColor: 'text-red-600' },
+            mandatory: { badge: 'bg-red-50 text-red-700', label: 'Mandatory evacuation', icon: 'ti-alert-triangle', iconColor: 'text-red-600' },
             advisory: { badge: 'bg-orange-50 text-orange-700', label: 'Advisory', icon: 'ti-info-circle', iconColor: 'text-orange-500' },
             info: { badge: 'bg-blue-50 text-blue-700', label: 'Info', icon: 'ti-info-circle', iconColor: 'text-blue-500' },
             all_clear: { badge: 'bg-green-50 text-green-700', label: 'All clear', icon: 'ti-circle-check', iconColor: 'text-green-600' },
