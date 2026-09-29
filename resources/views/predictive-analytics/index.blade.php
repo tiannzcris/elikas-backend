@@ -31,7 +31,7 @@
         </div>
         <div class="stat">
             <p class="stat-label">Signal level</p>
-            <p id="latest-signal" class="stat-value text-lg leading-7">&mdash;</p>
+            <p id="latest-signal" class="stat-value">&mdash;</p>
             <p id="latest-signal-note" class="stat-note">From forecasted wind speed</p>
         </div>
     </div>
@@ -39,40 +39,30 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 min-w-0 flex flex-col gap-6">
             <div id="status-card" class="card p-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
-                        <i class="ti ti-database text-blue-500" style="font-size: 15px;" aria-hidden="true"></i>
-                    </div>
-                    <p class="text-sm font-medium">Training data status</p>
-                </div>
+                <h2 class="card-title mb-2">Training data status</h2>
                 <div id="status-content" class="text-sm text-gray-600">Loading...</div>
             </div>
 
             <div class="card p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-7 h-7 rounded-md bg-orange-50 flex items-center justify-center shrink-0">
-                        <i class="ti ti-trending-up text-orange-500" style="font-size: 15px;" aria-hidden="true"></i>
-                    </div>
-                    <p class="text-sm font-medium">Generate a forecast</p>
-                </div>
+                <h2 class="card-title mb-3">Generate a forecast</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                     <div>
-                        <label class="label-sm">Forecasted rainfall (mm)</label>
+                        <label for="rainfall_mm" class="label-sm">Forecasted rainfall (mm)</label>
                         <input type="number" step="0.1" id="rainfall_mm" class="input">
                     </div>
                     <div>
-                        <label class="label-sm">Forecasted max wind speed (kph)</label>
+                        <label for="wind_speed_kph" class="label-sm">Forecasted max wind speed (kph)</label>
                         <input type="number" step="0.1" id="wind_speed_kph" class="input">
                     </div>
                     <div>
                         <label class="label-sm">Signal level</label>
-                        <div id="signal-level-display" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">
+                        <div id="signal-level-display" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700" aria-live="polite">
                             Enter wind speed
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="label-sm">Link to an event (optional)</label>
+                    <label for="evacuation_event_id" class="label-sm">Link to an event (optional)</label>
                     <select id="evacuation_event_id" class="input">
                         <option value="">None -- standalone what-if scenario</option>
                     </select>
@@ -83,12 +73,7 @@
             </div>
 
             <div id="accuracy-chart-card" class="hidden card p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
-                        <i class="ti ti-chart-line text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
-                    </div>
-                    <p class="text-sm font-medium">Historical forecast accuracy</p>
-                </div>
+                <h2 class="card-title mb-3">Historical forecast accuracy</h2>
                 <div style="position: relative; width: 100%; height: 260px;">
                     <canvas id="accuracyChart" role="img" aria-label="Line chart comparing actual vs predicted evacuees per historical event">Loading chart data</canvas>
                 </div>
@@ -100,12 +85,7 @@
                 SARIMA_FEATURE_ENABLED) back to true to bring this card back. --}}
             @if(config('services.sarima.feature_enabled'))
             <div class="card p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-7 h-7 rounded-md bg-teal-50 flex items-center justify-center shrink-0">
-                        <i class="ti ti-chart-histogram text-teal-600" style="font-size: 15px;" aria-hidden="true"></i>
-                    </div>
-                    <p class="text-sm font-medium">Rainfall / wind forecast (SARIMA)</p>
-                </div>
+                <h2 class="card-title mb-3">Rainfall / wind forecast (SARIMA)</h2>
                 <p class="text-xs text-gray-500 mb-3">
                     A separate, real time-series model trained on imported historical PAGASA weather
                     readings -- unlike the single rainfall/wind forecast above, this detects
@@ -122,14 +102,14 @@
                 <div id="sarima-form-wrap">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                         <div>
-                            <label class="label-sm">Metric</label>
+                            <label for="sarima-metric" class="label-sm">Metric</label>
                             <select id="sarima-metric" class="input">
                                 <option value="rainfall_mm">Rainfall (mm)</option>
                                 <option value="wind_speed_kph">Wind speed (kph)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="label-sm">Horizon (periods)</label>
+                            <label for="sarima-horizon" class="label-sm">Horizon (periods)</label>
                             <input type="number" id="sarima-horizon" value="14" min="1" max="60" class="input">
                         </div>
                         <div class="flex items-end">
@@ -140,12 +120,12 @@
                     </div>
                 </div>
 
-                <div id="sarima-sample-banner" class="hidden bg-amber-50 text-amber-700 text-xs rounded-lg p-3 mb-3 flex gap-2">
+                <div id="sarima-sample-banner" class="hidden callout callout-warning text-xs mb-3 flex gap-2">
                     <i class="ti ti-alert-triangle shrink-0" style="font-size: 14px;" aria-hidden="true"></i>
                     <span>This forecast is based on SAMPLE/TEST weather data, not real PAGASA records -- for pipeline testing only. Do not use for actual planning decisions.</span>
                 </div>
 
-                <div id="sarima-unavailable-banner" class="hidden bg-gray-50 text-gray-500 text-xs rounded-lg p-3 mb-3"></div>
+                <div id="sarima-unavailable-banner" class="hidden callout bg-gray-50 border-gray-200 text-gray-700 text-xs mb-3"></div>
 
                 <div id="sarima-chart-wrap" class="hidden">
                     <div style="position: relative; width: 100%; height: 240px;">
@@ -158,9 +138,9 @@
 
             <div>
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <p class="text-sm font-medium text-gray-700">Forecast history</p>
-                    <input id="history-search" type="text" placeholder="Search by event..."
-                        class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48">
+                    <h2 class="card-title">Forecast history</h2>
+                    <input id="history-search" type="text" placeholder="Search by event..." aria-label="Search forecast history"
+                        class="input input-sm sm:w-56">
                 </div>
                 <div id="predictions-list" class="flex flex-col gap-2"></div>
             </div>
@@ -173,12 +153,7 @@
             </div>
 
             <div class="card p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center shrink-0">
-                        <i class="ti ti-sparkles text-white" style="font-size: 13px;" aria-hidden="true"></i>
-                    </div>
-                    <h2 class="card-title">AI recommendations</h2>
-                </div>
+                <h2 class="card-title mb-3">AI recommendations</h2>
                 <div id="recommendations-list" class="flex flex-col gap-3"></div>
                 <p class="text-xs text-gray-500 mt-3">Rule-based guidance computed from the latest forecast's own numbers and current center capacity -- not a separate AI model.</p>
             </div>
@@ -200,9 +175,9 @@
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
 
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-2.5">
-                <i class="ti ti-info-circle text-blue-500 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
-                <p class="text-xs text-blue-800">This model forecasts total evacuee volume citywide from rainfall and wind speed. It does not currently produce per-barangay risk levels or hazard-type breakdowns -- that would need barangay-level population figures and a separate risk-scoring model, neither of which exist in this system yet.</p>
+            <div class="callout callout-info flex gap-2.5 p-4">
+                <i class="ti ti-info-circle text-blue-700 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
+                <p class="text-xs">This model forecasts total evacuee volume citywide from rainfall and wind speed. It does not currently produce per-barangay risk levels or hazard-type breakdowns -- that would need barangay-level population figures and a separate risk-scoring model, neither of which exist in this system yet.</p>
             </div>
         </div>
     </div>
@@ -255,21 +230,21 @@
 
         if (totalCapacity > 0 && predictedEvacuees > totalAvailable) {
             recs.push({
-                icon: 'ti-alert-triangle', color: '#EF4444', bg: '#FEE2E2',
+                icon: 'ti-alert-triangle', color: '#B91C1C', bg: '#FEF2F2',
                 title: 'Pre-position additional resources',
                 body: `Predicted evacuees (${predictedEvacuees}) exceed currently available center capacity (${totalAvailable}). Consider activating standby centers or coordinating relief goods ahead of arrival.`,
                 link: { href: '/evacuation-centers', label: 'Manage centers' },
             });
         } else if (totalCapacity > 0 && predictedEvacuees > totalAvailable * 0.7) {
             recs.push({
-                icon: 'ti-building', color: '#F59E0B', bg: '#FEF3C7',
+                icon: 'ti-building', color: '#B45309', bg: '#FFFBEB',
                 title: 'Monitor center capacity closely',
                 body: `Predicted evacuees (${predictedEvacuees}) would use most of the currently available capacity (${totalAvailable}). Watch occupancy as centers fill up.`,
                 link: { href: '/evacuation-centers', label: 'View centers' },
             });
         } else if (totalCapacity > 0) {
             recs.push({
-                icon: 'ti-circle-check', color: '#22C55E', bg: '#DCFCE7',
+                icon: 'ti-circle-check', color: '#15803D', bg: '#F0FDF4',
                 title: 'Capacity looks sufficient',
                 body: `Available center capacity (${totalAvailable}) currently covers the predicted evacuee volume (${predictedEvacuees}).`,
             });
@@ -278,14 +253,14 @@
         const rainfall = Number(prediction.input_payload?.rainfall_mm ?? 0);
         if (rainfall >= 100) {
             recs.push({
-                icon: 'ti-droplet', color: '#2563EB', bg: '#DBEAFE',
+                icon: 'ti-droplet', color: '#1D4ED8', bg: '#EFF6FF',
                 title: 'Prepare for possible flooding',
                 body: `Forecasted rainfall of ${rainfall}mm is high. Coordinate with barangays in mapped flood-prone zones.`,
                 link: { href: '/gis-map', label: 'View hazard map' },
             });
         } else if (rainfall >= 50) {
             recs.push({
-                icon: 'ti-cloud-rain', color: '#0891B2', bg: '#CFFAFE',
+                icon: 'ti-cloud-rain', color: '#0E7490', bg: '#ECFEFF',
                 title: 'Watch rainfall accumulation',
                 body: `Forecasted rainfall of ${rainfall}mm is moderate. Advise low-lying barangays to stay alert.`,
             });
@@ -294,7 +269,7 @@
         const wind = Number(prediction.input_payload?.wind_speed_kph ?? 0);
         if (wind >= 62) {
             recs.push({
-                icon: 'ti-wind', color: '#7C3AED', bg: '#EDE9FE',
+                icon: 'ti-wind', color: '#6D28D9', bg: '#F5F3FF',
                 title: 'Consider issuing an evacuation advisory',
                 body: `Forecasted wind speed (${wind}kph) corresponds to PAGASA ${computeSignalLevel(wind)}. Consider sending an alert to residents in at-risk barangays.`,
                 link: { href: '/alerts/create', label: 'Send an alert' },
@@ -303,7 +278,7 @@
 
         if (prediction.r2_score === null || prediction.r2_score < 0.4) {
             recs.push({
-                icon: 'ti-alert-circle', color: '#F59E0B', bg: '#FEF3C7',
+                icon: 'ti-alert-circle', color: '#B45309', bg: '#FFFBEB',
                 title: 'Treat this forecast as preliminary',
                 body: prediction.r2_score === null
                     ? 'Not enough historical events yet to establish model confidence -- cross-check with PAGASA\'s official bulletin before acting on this number alone.'
@@ -332,9 +307,9 @@
                         <i class="ti ${r.icon}" style="font-size:14px; color:${r.color}" aria-hidden="true"></i>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-medium text-gray-700">${r.title}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">${r.body}</p>
-                        ${r.link ? `<a href="${r.link.href}" class="link text-xs">${r.link.label} &rarr;</a>` : ''}
+                        <p class="text-sm font-medium text-gray-900">${r.title}</p>
+                        <p class="text-xs text-gray-600 mt-0.5">${r.body}</p>
+                        ${r.link ? `<a href="${r.link.href}" class="link text-xs">${r.link.label}</a>` : ''}
                     </div>
                 </div>`).join('');
     }
@@ -344,7 +319,7 @@
 
         if (! evaluation || evaluation.r2 === null || evaluation.r2 === undefined) {
             box.innerHTML = `
-                <p class="text-2xl font-bold text-gray-300 mb-1">&mdash;</p>
+                <p class="text-2xl font-semibold text-gray-500 mb-1">&mdash;</p>
                 <p class="text-xs text-gray-500">Not enough historical events with variation yet to compute R&sup2;. Forecasts still generate, just without a confidence score attached.</p>`;
             return;
         }
@@ -353,13 +328,17 @@
         // mean) -- clamped to 0% for display rather than shown as a
         // confusing negative percentage, with the raw score still visible.
         const pct = Math.max(0, Math.round(evaluation.r2 * 100));
-        const color = evaluation.r2 >= 0.7 ? '#22C55E' : evaluation.r2 >= 0.4 ? '#F59E0B' : '#EF4444';
+        // Value stays in ink; the status badge (icon + label) and the meter
+        // carry the rating -- see docs/design-system.md, chart palette.
+        const color = evaluation.r2 >= 0.7 ? '#15803D' : evaluation.r2 >= 0.4 ? '#EDA100' : '#DC2626';
+        const badge = evaluation.r2 >= 0.7 ? 'badge-success' : evaluation.r2 >= 0.4 ? 'badge-warning' : 'badge-danger';
+        const icon = evaluation.r2 >= 0.7 ? 'ti-circle-check' : evaluation.r2 >= 0.4 ? 'ti-alert-circle' : 'ti-alert-triangle';
         const label = evaluation.r2 >= 0.7 ? 'High reliability' : evaluation.r2 >= 0.4 ? 'Moderate reliability' : 'Low reliability';
 
         box.innerHTML = `
-            <p class="text-3xl font-bold mb-1" style="color:${color}">${pct}%</p>
-            <p class="text-xs font-medium mb-2" style="color:${color}">${label}</p>
-            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-3">
+            <p class="text-3xl font-semibold text-gray-900 mb-2">${pct}%</p>
+            <span class="badge ${badge} mb-3"><i class="ti ${icon}" style="font-size: 13px;" aria-hidden="true"></i>${label}</span>
+            <div class="meter mb-3">
                 <div class="meter-fill" style="width:${pct}%; background:${color}"></div>
             </div>
             <p class="text-xs text-gray-500">R&sup2; ${evaluation.r2.toFixed(3)} &middot; MAE ${evaluation.mae.toFixed(1)} persons</p>
@@ -375,7 +354,7 @@
 
         if (! s.can_predict) {
             box.innerHTML = `
-                <p class="text-amber-600">Only ${s.historical_event_count} completed disaster event(s) on record --
+                <p class="text-amber-800">Only ${s.historical_event_count} completed disaster event(s) on record --
                 at least ${s.minimum_to_predict} are needed before a forecast can be generated.
                 Close out disaster events as they conclude to build this up over time.</p>`;
             document.getElementById('generate-btn').disabled = true;
@@ -383,7 +362,7 @@
             return;
         }
 
-        let evalText = `<p class="text-amber-600 mt-1">Not enough events yet (need ${s.minimum_to_evaluate}) to report accuracy metrics -- forecasts will still generate, without a confidence score attached.</p>`;
+        let evalText = `<p class="text-amber-800 mt-1">Not enough events yet (need ${s.minimum_to_evaluate}) to report accuracy metrics -- forecasts will still generate, without a confidence score attached.</p>`;
         if (s.evaluation) {
             evalText = `
                 <p class="mt-1">Model evaluated via leave-one-out cross-validation across ${s.evaluation.sample_count} historical events:</p>
@@ -448,20 +427,20 @@
             : filtered.map((p) => `
                 <div class="card p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
+                        <p class="text-sm font-semibold text-gray-900">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
                         <p class="text-xs text-gray-500">${new Date(p.generated_at).toLocaleString()}</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-2">
-                        <div><p class="text-xs text-gray-500">Predicted evacuees</p><p class="font-medium">${p.predicted_evacuees}</p></div>
-                        <div><p class="text-xs text-gray-500">Predicted center occupancy</p><p class="font-medium">${p.predicted_center_occupancy}</p></div>
-                        <div><p class="text-xs text-gray-500">Estimated resource cost</p><p class="font-medium">&#8369;${Number(p.predicted_resources_needed).toLocaleString()}</p></div>
+                        <div><p class="text-xs font-medium text-gray-600">Predicted evacuees</p><p class="font-semibold text-gray-900">${p.predicted_evacuees}</p></div>
+                        <div><p class="text-xs font-medium text-gray-600">Predicted center occupancy</p><p class="font-semibold text-gray-900">${p.predicted_center_occupancy}</p></div>
+                        <div><p class="text-xs font-medium text-gray-600">Estimated resource cost</p><p class="font-semibold text-gray-900">&#8369;${Number(p.predicted_resources_needed).toLocaleString()}</p></div>
                     </div>
                     <p class="text-xs text-gray-500">
                         Input: ${p.input_payload.rainfall_mm}mm rainfall, ${p.input_payload.wind_speed_kph}kph wind &middot;
                         trained on ${p.input_payload.training_event_count} historical event(s)
                         ${p.mae_score !== null ? ` &middot; MAE ${Number(p.mae_score).toFixed(1)}` : ''}
                         ${p.r2_score !== null ? ` &middot; R&sup2; ${Number(p.r2_score).toFixed(3)}` : ''}
-                        ${p.input_payload.used_default_ratios ? ' &middot; <span class="text-amber-600">occupancy/cost used default ratios (no cost history yet)</span>' : ''}
+                        ${p.input_payload.used_default_ratios ? ' &middot; <span class="text-amber-800">occupancy/cost used default ratios (no cost history yet)</span>' : ''}
                     </p>
                 </div>
             `).join('');
