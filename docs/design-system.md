@@ -184,7 +184,7 @@ callouts.
 
 ### Buttons
 
-Base `.btn`: 38px tall, `rounded-lg`, 14px medium. Add `.btn-sm` for 28px
+Base `.btn`: 38px tall, `rounded-lg`, 14px medium. Add `.btn-sm` for 30px
 in-row actions (12px text).
 
 | Class | Look | When |
@@ -199,6 +199,10 @@ in-row actions (12px text).
 | `.btn-icon` | 32px square, gray icon | Modal close, per-row icon actions. Always has an `aria-label`. |
 
 Text links: `.link` (brand, underline on hover) and `.link-danger` (`red-700`).
+
+Back links (top of a detail page) are `.btn .btn-secondary px-3 py-1.5` with a
+`ti-arrow-left` icon, the EC Board pattern. When JS rewrites the label, it
+writes to an inner `<span>` so the icon survives.
 
 Buttons whose click handler reads `e.target.classList` (member rows, center
 cards, report Generate buttons) must contain **text only**, with no icon child,
@@ -249,6 +253,10 @@ turns `red-700`. At 0 it stays calm and ink-colored.
   `gray-300` rule above plus bold `gray-900`, like the printed DSWD board's
   total line. EC Board's age and sex table is the live example.
 - **Footer meta** ("Showing 12 of 40") uses `.table-meta`.
+- **Wrapping:** put the table inside an `overflow-x-auto` div so it scrolls on
+  its own on narrow screens. `.data-table` is `position: relative`, so an icon
+  column's `sr-only` header label stays inside that scroll area instead of
+  widening the page.
 
 ### Form inputs
 
