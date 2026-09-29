@@ -4,8 +4,12 @@
 @section('nav-users', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1" id="page-title">Add a user</h1>
-    <p class="text-sm text-gray-500 mb-6">Creates a login that works for both the web dashboard and the offline desktop companion.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 id="page-title" class="page-title">Add a user</h1>
+            <p class="page-subtitle">Creates a login that works for both the web dashboard and the offline desktop companion.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-2xl"></div>
 

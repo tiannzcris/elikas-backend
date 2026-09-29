@@ -4,56 +4,58 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <a href="/evacuation-centers" class="link text-sm">&larr; Back to evacuation centers</a>
+    <a href="/evacuation-centers" class="btn btn-secondary px-3 py-1.5">
+        <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i> Back to evacuation centers
+    </a>
 
     <div id="content-wrap" class="hidden mt-4 max-w-3xl">
         {{-- No EC Board link here -- reaching a center's board is now
             exclusively through the standalone EC Board sidebar section
             (barangay -> centers -> board, see ec-board/index.blade.php).
             This page stays scoped to the center's own management details. --}}
-        <div class="card p-4 mb-6">
+        <div class="card p-5 mb-6">
             <div class="mb-4">
                 <img id="center-photo" src="" alt="" class="hidden w-full h-64 object-cover rounded-lg">
                 <div id="center-photo-placeholder" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
                     <i class="ti ti-building" style="font-size: 48px;" aria-hidden="true"></i>
                 </div>
             </div>
-            <div class="flex items-start justify-between">
-                <div>
-                    <h1 class="text-xl font-semibold" id="center-name"></h1>
-                    <p class="text-sm text-gray-500" id="center-subtitle"></p>
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <h1 class="page-title" id="center-name"></h1>
+                    <p class="page-subtitle" id="center-subtitle"></p>
                 </div>
-                <span id="center-status" class="text-xs px-2 py-1 rounded-lg"></span>
+                <span id="center-status" class="badge badge-neutral shrink-0"></span>
             </div>
-            <div class="mt-4 text-sm">
-                <p class="text-xs text-gray-500 mb-1">Occupancy</p>
-                <p id="center-occupancy" class="font-medium"></p>
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <p class="text-xs font-medium text-gray-600 mb-1">Occupancy</p>
+                <p id="center-occupancy" class="text-base font-semibold text-gray-900"></p>
             </div>
             {{-- Two separate contact people, clearly labeled -- matches the
                 real EC Information Board template's own structure (a
                 primary Camp Manager plus a separate Assistant Camp
                 Manager), not just one name split across two inputs. --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm">
-                <div>
-                    <p class="text-xs font-semibold text-gray-600 mb-2">Camp manager</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
+                <div role="group" aria-labelledby="cm-group-label">
+                    <p id="cm-group-label" class="card-title mb-2">Camp manager</p>
                     <div class="flex flex-col gap-2">
-                        <input type="text" id="cm-name-input" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                        <input type="text" id="cm-contact-input" placeholder="Contact number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                        <input type="text" id="cm-name-input" placeholder="Name" aria-label="Camp manager name" class="input">
+                        <input type="text" id="cm-contact-input" placeholder="Contact number" aria-label="Camp manager contact number" class="input">
                     </div>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-600 mb-2">Assistant camp manager</p>
+                <div role="group" aria-labelledby="acm-group-label">
+                    <p id="acm-group-label" class="card-title mb-2">Assistant camp manager</p>
                     <div class="flex flex-col gap-2">
-                        <input type="text" id="acm-name-input" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                        <input type="text" id="acm-contact-input" placeholder="Contact number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                        <input type="text" id="acm-name-input" placeholder="Name" aria-label="Assistant camp manager name" class="input">
+                        <input type="text" id="acm-contact-input" placeholder="Contact number" aria-label="Assistant camp manager contact number" class="input">
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 mt-3">
-                <button type="button" id="cm-save-btn" class="bg-brand hover:bg-brand-dark text-white text-xs font-medium rounded-lg px-3 py-1.5">
+            <div class="flex items-center gap-3 mt-4">
+                <button type="button" id="cm-save-btn" class="btn btn-secondary">
                     Save camp manager info
                 </button>
-                <span id="cm-saved-msg" class="hidden text-xs text-green-600">Saved!</span>
+                <span id="cm-saved-msg" class="hidden text-sm font-medium text-green-700">&check; Saved</span>
             </div>
         </div>
 
@@ -61,7 +63,7 @@
 
         <form id="facilities-form">
             <div class="card p-4">
-                <p class="text-sm font-medium text-gray-700 mb-3">Facilities checklist</p>
+                <h2 class="card-title mb-1">Facilities checklist</h2>
                 <div id="facilities-list" class="flex flex-col divide-y divide-gray-100"></div>
             </div>
             <button type="submit" id="submit-btn"
@@ -91,9 +93,10 @@
     ];
 
     const statusColors = {
-        active: 'bg-green-50 text-green-700', on_standby: 'bg-gray-100 text-gray-600',
-        full: 'bg-amber-50 text-amber-700', closed: 'bg-red-50 text-red-700',
+        active: 'badge-success', on_standby: 'badge-neutral',
+        full: 'badge-warning', closed: 'badge-danger',
     };
+    const STATUS_LABELS = { active: 'Active', on_standby: 'On standby', full: 'Full', closed: 'Closed' };
 
     let existingFacilities = {};
 
@@ -102,14 +105,14 @@
             const existing = existingFacilities[type] || { quantity: 0, is_available: true, concerns_and_needs: '' };
             return `
             <div class="py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3" data-type="${type}">
-                <span class="text-sm sm:flex-1">${label}</span>
+                <span class="text-sm text-gray-900 sm:flex-1">${label}</span>
                 <div class="flex items-center gap-3">
-                    <input type="number" min="0" value="${existing.quantity}" aria-label="${label} quantity" class="f-quantity w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                    <label class="flex items-center gap-1.5 text-xs text-gray-500 w-20">
+                    <input type="number" min="0" value="${existing.quantity}" aria-label="${label} quantity" class="f-quantity input input-sm w-20 tabular-nums">
+                    <label class="flex items-center gap-1.5 text-sm text-gray-700 w-24">
                         <input type="checkbox" class="f-available" ${existing.is_available ? 'checked' : ''}> Available
                     </label>
                 </div>
-                <input type="text" placeholder="Notes" value="${existing.concerns_and_needs ?? ''}" class="f-notes w-full sm:flex-1 border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                <input type="text" placeholder="Notes" aria-label="${label} notes" value="${existing.concerns_and_needs ?? ''}" class="f-notes input input-sm sm:flex-1">
             </div>`;
         }).join('');
     }
@@ -121,8 +124,8 @@
 
             document.getElementById('center-name').textContent = c.name;
             document.getElementById('center-subtitle').textContent = `${c.barangay?.name ?? '—'} · ${c.address}`;
-            document.getElementById('center-status').textContent = c.status.replace('_', ' ');
-            document.getElementById('center-status').className = `text-xs px-2 py-1 rounded-lg ${statusColors[c.status] ?? ''}`;
+            document.getElementById('center-status').textContent = STATUS_LABELS[c.status] ?? c.status.replace('_', ' ');
+            document.getElementById('center-status').className = `badge shrink-0 ${statusColors[c.status] ?? 'badge-neutral'}`;
             document.getElementById('center-occupancy').textContent =
                 c.capacity_persons ? `${c.current_occupancy} / ${c.capacity_persons} persons` : 'No capacity set';
             document.getElementById('cm-name-input').value = c.camp_manager_name || '';

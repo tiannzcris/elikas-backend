@@ -4,8 +4,12 @@
 @section('nav-families', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1">Register a family</h1>
-    <p class="text-sm text-gray-500 mb-6">Register every member of an arriving household in one step.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title">Register a family</h1>
+            <p class="page-subtitle">Register every member of an arriving household in one step.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 

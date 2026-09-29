@@ -54,7 +54,7 @@
                 <div class="relative w-full sm:w-auto">
                     <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                     <input id="search-input" type="text" placeholder="Search by name or type..."
-                        class="input pl-9 sm:w-56">
+                        class="input pl-9 sm:w-64">
                 </div>
             </div>
 

@@ -4,8 +4,12 @@
 @section('nav-alerts', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1">Send an alert</h1>
-    <p class="text-sm text-gray-500 mb-6">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title">Send an alert</h1>
+            <p class="page-subtitle">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-2xl"></div>
 

@@ -4,8 +4,12 @@
 @section('nav-analytics', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1">Predictive analytics</h1>
-    <p class="text-sm text-gray-500 mb-6">Forecasts expected evacuee volume from rainfall and wind speed, based on this system's own historical events.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title">Predictive analytics</h1>
+            <p class="page-subtitle">Forecasts expected evacuee volume from rainfall and wind speed, based on this system's own historical events.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 

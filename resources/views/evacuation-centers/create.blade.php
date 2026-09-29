@@ -4,8 +4,12 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1" id="page-title">Add evacuation center</h1>
-    <p class="text-sm text-gray-500 mb-6">Click the map to set the exact location.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 id="page-title" class="page-title">Add evacuation center</h1>
+            <p class="page-subtitle">Click the map to set the exact location.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-3xl"></div>
 
@@ -74,34 +78,34 @@
         </div>
 
         <div class="card p-4">
-            <label class="label mb-2">Photo (optional)</label>
+            <label for="photo" class="label mb-2">Photo (optional)</label>
             <div class="flex items-center gap-4">
                 <div id="photo-preview-wrap" class="hidden shrink-0">
                     <img id="photo-preview" src="" alt="Center photo preview" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
                 </div>
                 <div class="flex-1">
-                    <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-light file:text-brand file:text-sm file:font-medium hover:file:bg-blue-100">
+                    <input type="file" id="photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-solid file:border-gray-300 file:bg-white file:text-gray-700 file:text-sm file:font-medium hover:file:bg-gray-50">
                     <p class="text-xs text-gray-500 mt-1">JPG, PNG, etc. Max 5MB.</p>
                 </div>
             </div>
         </div>
 
         <div class="card p-4">
-            <p class="text-sm text-gray-600 mb-2">
-                Location (optional) <span id="coords-display" class="text-gray-500">(click the map to set, or leave unset for now)</span>
+            <p class="text-sm font-medium text-gray-700 mb-2">
+                Location (optional) <span id="coords-display" class="font-normal text-gray-500">(click the map to set, or leave unset for now)</span>
             </p>
             <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
                 <div class="flex-1">
-                    <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
+                    <label for="coords-paste-input" class="label-sm">Or paste coordinates (lat, long)</label>
                     <input type="text" id="coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
                         class="input">
                 </div>
                 <button type="button" id="coords-paste-btn"
-                    class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-gray-50">
+                    class="btn btn-secondary shrink-0">
                     Set
                 </button>
             </div>
-            <p id="coords-paste-error" class="hidden text-xs text-red-600 mb-2"></p>
+            <p id="coords-paste-error" class="hidden text-xs text-red-700 mb-2"></p>
             <div id="picker-map" style="height: 350px; border-radius: 0.5rem;"></div>
         </div>
 
@@ -110,7 +114,7 @@
             they can maintain it going forward (they can view but not edit
             a center they didn't technically create). --}}
         <div id="assign-owner-card" class="hidden card p-4">
-            <p class="text-sm font-medium text-gray-700 mb-1">Assign to barangay official</p>
+            <h2 class="card-title mb-1">Assign to barangay official</h2>
             <p class="text-xs text-gray-500 mb-3">
                 Hands this center off to a specific barangay official for ongoing maintenance.
                 Currently assigned to: <span id="current-owner-label" class="font-medium text-gray-700">&mdash;</span>
@@ -125,7 +129,7 @@
                 </button>
             </div>
             <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
-            <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
+            <p id="assign-owner-success-note" class="text-xs text-green-700 mt-2 hidden"></p>
         </div>
 
         <button type="submit" id="submit-btn"

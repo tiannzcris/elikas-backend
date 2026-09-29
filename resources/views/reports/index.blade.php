@@ -4,8 +4,12 @@
 @section('nav-reports', 'active')
 
 @section('content')
-    <h1 id="reports-heading" class="text-xl font-semibold mb-1">DROMIC reports</h1>
-    <p id="reports-subtitle" class="text-sm text-gray-500 mb-6">Generate official-format reports directly from registered data.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 id="reports-heading" class="page-title">DROMIC reports</h1>
+            <p id="reports-subtitle" class="page-subtitle">Generate official-format reports directly from registered data.</p>
+        </div>
+    </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
@@ -113,7 +117,7 @@
                     <div class="relative flex-1 sm:flex-none">
                         <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by event or report type..."
-                            class="input pl-9 sm:w-56">
+                            class="input pl-9 sm:w-64">
                     </div>
                     <select id="type-filter" class="input">
                         <option value="">All report types</option>

@@ -6,8 +6,8 @@
 @section('content')
     <div class="page-header">
         <div class="min-w-0">
-            <h1 class="text-xl font-semibold mb-1">Evacuation centers</h1>
-            <p class="text-sm text-gray-500">Capacity and live occupancy across Ligao City.</p>
+            <h1 class="page-title">Evacuation centers</h1>
+            <p class="page-subtitle">Capacity and live occupancy across Ligao City.</p>
         </div>
         {{-- Opens the modal below instead of navigating to /evacuation-centers/create --
             that route/page still exists untouched as a fallback, following
@@ -50,10 +50,10 @@
                     <div class="relative flex-1 sm:flex-none">
                         <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by name or barangay..."
-                            class="input pl-9 sm:w-56">
+                            class="input pl-9 sm:w-64">
                     </div>
-                    <button id="export-btn" class="flex items-center gap-1.5 text-brand border border-brand/30 rounded-lg px-3 py-2 text-sm hover:bg-brand-light shrink-0">
-                        <i class="ti ti-download" style="font-size: 15px;" aria-hidden="true"></i> Export
+                    <button id="export-btn" type="button" class="btn btn-secondary shrink-0">
+                        <i class="ti ti-download" style="font-size: 16px;" aria-hidden="true"></i> Export
                     </button>
                 </div>
             </div>
@@ -83,22 +83,22 @@
             </div>
 
             <div class="card p-4">
-                <h2 class="card-title mb-3">Facility coverage</h2>
+                <h2 class="card-title mb-1">Facility coverage</h2>
                 <p class="text-xs text-gray-500 mb-3">Share of centers reporting each facility as available.</p>
                 <div id="facility-coverage" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <a href="/gis-map" class="card p-4 flex items-center justify-between hover:border-brand group">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                        <i class="ti ti-map text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+            <a href="/gis-map" class="card p-4 flex items-center justify-between gap-3 hover:border-brand transition-colors group">
+                <div class="flex items-center gap-3">
+                    <div class="icon-chip">
+                        <i class="ti ti-map" style="font-size: 18px;" aria-hidden="true"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-700">View on GIS map</p>
+                        <p class="text-sm font-semibold text-gray-900">View on GIS map</p>
                         <p class="text-xs text-gray-500">See centers and hazard zones geographically</p>
                     </div>
                 </div>
-                <i class="ti ti-chevron-right text-gray-300 group-hover:text-brand" style="font-size: 18px;" aria-hidden="true"></i>
+                <i class="ti ti-chevron-right text-gray-400 group-hover:text-brand" style="font-size: 18px;" aria-hidden="true"></i>
             </a>
         </div>
     </div>
@@ -181,35 +181,35 @@
                     </div>
                 </div>
 
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <label class="label mb-2">Photo (optional)</label>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <label for="center-photo" class="label mb-2">Photo (optional)</label>
                     <div class="flex items-center gap-4">
                         <div id="center-photo-preview-wrap" class="hidden shrink-0">
                             <img id="center-photo-preview" src="" alt="Center photo preview" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
                         </div>
                         <div class="flex-1">
-                            <input type="file" id="center-photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-brand-light file:text-brand file:text-sm file:font-medium hover:file:bg-blue-100">
+                            <input type="file" id="center-photo" accept="image/*" class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-solid file:border-gray-300 file:bg-white file:text-gray-700 file:text-sm file:font-medium hover:file:bg-gray-50">
                             <p class="text-xs text-gray-500 mt-1">JPG, PNG, etc. Max 5MB.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm text-gray-600 mb-2">
-                        Location (optional) <span id="center-coords-display" class="text-gray-500">(click the map to set, or leave unset for now)</span>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">
+                        Location (optional) <span id="center-coords-display" class="font-normal text-gray-500">(click the map to set, or leave unset for now)</span>
                     </p>
                     <div class="flex flex-col sm:flex-row gap-2 sm:items-end mb-1">
                         <div class="flex-1">
-                            <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
+                            <label for="center-coords-paste-input" class="label-sm">Or paste coordinates (lat, long)</label>
                             <input type="text" id="center-coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
                                 class="input">
                         </div>
                         <button type="button" id="center-coords-paste-btn"
-                            class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-white">
+                            class="btn btn-secondary shrink-0">
                             Set
                         </button>
                     </div>
-                    <p id="center-coords-paste-error" class="hidden text-xs text-red-600 mb-2"></p>
+                    <p id="center-coords-paste-error" class="hidden text-xs text-red-700 mb-2"></p>
                     <div id="center-picker-map" style="height: 300px; border-radius: 0.5rem;"></div>
                 </div>
 
@@ -219,7 +219,7 @@
                     forward (they can view but not edit a center they
                     didn't technically create). --}}
                 <div id="assign-owner-card" class="hidden card p-4">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Assign to barangay official</p>
+                    <h3 class="card-title mb-1">Assign to barangay official</h3>
                     <p class="text-xs text-gray-500 mb-3">
                         Hands this center off to a specific barangay official for ongoing maintenance.
                         Currently assigned to: <span id="current-owner-label" class="font-medium text-gray-700">&mdash;</span>
@@ -234,7 +234,7 @@
                         </button>
                     </div>
                     <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
-                    <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
+                    <p id="assign-owner-success-note" class="text-xs text-green-700 mt-2 hidden"></p>
                 </div>
 
                 <div class="modal-footer">
@@ -276,11 +276,12 @@
     }
 
     const statusColors = {
-        active: 'bg-green-50 text-green-700',
-        on_standby: 'bg-gray-100 text-gray-600',
-        full: 'bg-amber-50 text-amber-700',
-        closed: 'bg-red-50 text-red-700',
+        active: 'badge-success',
+        on_standby: 'badge-neutral',
+        full: 'badge-warning',
+        closed: 'badge-danger',
     };
+    const STATUS_LABELS = { active: 'Active', on_standby: 'On standby', full: 'Full', closed: 'Closed' };
 
     const TYPE_LABELS = {
         school: 'School', covered_court: 'Covered court', church: 'Church',
@@ -350,47 +351,49 @@
         });
 
         document.getElementById('cards').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-500 text-sm sm:col-span-2 text-center py-16">No centers match this filter.</p>'
+            ? '<p class="card text-gray-500 text-sm sm:col-span-2 text-center py-16">No centers match this filter.</p>'
             : filtered.map((c) => {
                 const pct = c.occupancy_percent ?? 0;
-                const barColor = pct >= 100 ? 'bg-red-500' : pct >= 75 ? 'bg-amber-500' : 'bg-green-500';
+                // Same thresholds as the Occupancy overview legend and the
+                // dashboard's at-risk rule: amber from 75%, red from 90%.
+                const barColor = pct >= 90 ? 'bg-red-600' : pct >= 75 ? 'bg-[#EDA100]' : 'bg-green-700';
                 const facilities = c.facilities ?? [];
                 const facilitiesAvailable = facilities.filter((f) => f.is_available).length;
 
                 return `
-                <div class="card p-4 hover:border-brand">
+                <div class="card p-4 hover:border-brand transition-colors">
                     <a href="/evacuation-centers/${c.id}" class="block">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-start gap-2.5">
-                                <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                                    <i class="ti ti-building text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <div class="icon-chip">
+                                    <i class="ti ti-building" style="font-size: 18px;" aria-hidden="true"></i>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-sm">${c.name}</p>
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-sm text-gray-900">${c.name}</p>
                                     <p class="text-xs text-gray-500">${c.barangay?.name ?? '—'} · ${TYPE_LABELS[c.type] ?? c.type}</p>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end gap-1 shrink-0">
-                                <span class="text-xs px-2 py-1 rounded-lg ${statusColors[c.status] ?? ''}">${c.status.replace('_', ' ')}</span>
-                                ${(c.latitude === null || c.longitude === null) ? '<span class="text-xs px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700">No location set</span>' : ''}
+                                <span class="badge ${statusColors[c.status] ?? 'badge-neutral'}">${STATUS_LABELS[c.status] ?? c.status.replace('_', ' ')}</span>
+                                ${(c.latitude === null || c.longitude === null) ? '<span class="badge badge-warning">No location set</span>' : ''}
                             </div>
                         </div>
                         ${c.capacity_persons ? `
-                            <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Occupancy</span><span>${c.current_occupancy} / ${c.capacity_persons}</span>
+                            <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                <span>Occupancy</span><span class="tabular-nums">${c.current_occupancy} / ${c.capacity_persons}</span>
                             </div>
-                            <div class="h-1.5 bg-gray-100 rounded-full mb-3">
-                                <div class="h-1.5 ${barColor} rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
+                            <div class="meter mb-3">
+                                <div class="meter-fill ${barColor}" style="width: ${Math.min(pct, 100)}%"></div>
                             </div>
                         ` : '<p class="text-xs text-gray-500 mb-3">No capacity set</p>'}
-                        <div class="flex items-center gap-1.5 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-600 pt-3 border-t border-gray-100">
                             <i class="ti ti-clipboard-check" style="font-size: 13px;" aria-hidden="true"></i>
                             ${facilities.length ? `${facilitiesAvailable}/${facilities.length} facilities available` : 'No facility checklist recorded'}
                         </div>
                     </a>
                     ${canEditCenter(c) ? `
-                        <div class="flex justify-end mt-2 pt-2 border-t border-gray-100">
-                            <button type="button" class="edit-center-btn text-xs text-brand hover:underline" data-id="${c.id}">Edit</button>
+                        <div class="flex justify-end mt-3 pt-3 border-t border-gray-100">
+                            <button type="button" class="edit-center-btn btn btn-secondary btn-sm" data-id="${c.id}">Edit</button>
                         </div>
                     ` : ''}
                 </div>`;
@@ -403,9 +406,9 @@
         allCenters.forEach((c) => buckets[occupancyBucket(c)]++);
 
         const bucketMeta = [
-            ['available', 'Available (<75%)', '#22C55E'],
-            ['near_full', 'Near full (75-89%)', '#F59E0B'],
-            ['at_risk', 'At risk (≥90%)', '#EF4444'],
+            ['available', 'Available (<75%)', '#15803D'],
+            ['near_full', 'Near full (75-89%)', '#EDA100'],
+            ['at_risk', 'At risk (≥90%)', '#DC2626'],
             ['no_data', 'No capacity set', '#9CA3AF'],
         ];
 
@@ -510,7 +513,7 @@
 
             if (centers.length === 0) {
                 document.getElementById('cards').innerHTML =
-                    '<p class="text-gray-500 text-sm sm:col-span-2 text-center py-16">No evacuation centers yet.</p>';
+                    '<p class="card text-gray-500 text-sm sm:col-span-2 text-center py-16">No evacuation centers yet.</p>';
                 document.getElementById('stats-row').classList.add('hidden');
                 return;
             }
