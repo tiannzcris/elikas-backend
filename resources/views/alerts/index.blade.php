@@ -6,8 +6,8 @@
 @section('content')
     <div class="page-header">
         <div class="min-w-0">
-            <h1 class="text-xl font-semibold mb-1">Alerts</h1>
-            <p class="text-sm text-gray-500">Advisories sent to the dashboard, barangay officials, and evacuees.</p>
+            <h1 class="page-title">Alerts</h1>
+            <p class="page-subtitle">Advisories sent to the dashboard, barangay officials, and evacuees.</p>
         </div>
         {{-- Opens the modal below instead of navigating to /alerts/create --
             that route/page still exists untouched (the topbar's global
@@ -45,7 +45,7 @@
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div id="severity-tabs" class="flex items-center gap-2 flex-wrap"></div>
-                <select id="type-filter" class="input">
+                <select id="type-filter" aria-label="Alert type" class="input w-auto">
                     <option value="">All types</option>
                     <option value="typhoon">Typhoon</option>
                     <option value="flood">Flood</option>
@@ -55,11 +55,11 @@
                 </select>
             </div>
 
-            <div id="empty-state" class="hidden text-center py-16 text-gray-500 text-sm card">
+            <div id="empty-state" class="hidden card text-center py-16 text-gray-500 text-sm">
                 No alerts sent yet.
             </div>
 
-            <div id="no-match-state" class="hidden text-center py-16 text-gray-500 text-sm card">
+            <div id="no-match-state" class="hidden card text-center py-16 text-gray-500 text-sm">
                 No alerts match this filter.
             </div>
 
@@ -109,12 +109,12 @@
             <div id="alert-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="alert-form" class="flex flex-col gap-4 p-5">
-                <div class="bg-brand-light border border-blue-100 rounded-xl p-3 flex items-center justify-between gap-3">
-                    <p class="text-xs text-gray-600">
+                <div class="bg-brand-light border border-brand-200 rounded-lg p-3 flex items-center justify-between gap-3">
+                    <p class="text-sm text-gray-700">
                         <i class="ti ti-file-text" style="font-size: 14px;" aria-hidden="true"></i>
                         Template available for <strong id="template-type-label">Typhoon</strong> -- fills Title/Message below, still fully editable.
                     </p>
-                    <button type="button" id="use-template-btn" class="text-xs font-semibold text-brand hover:text-brand-dark bg-white border border-brand/30 rounded-lg px-3 py-1.5 whitespace-nowrap shrink-0">
+                    <button type="button" id="use-template-btn" class="btn btn-secondary btn-sm shrink-0">
                         Use template
                     </button>
                 </div>
@@ -140,7 +140,7 @@
                         selected Urgency: <strong id="bracket-warning-text"></strong>
                     </p>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                     <div>
                         <label class="label">Urgency</label>
                         <select id="alert-severity" required class="input">
@@ -168,37 +168,37 @@
                     </div>
                 </div>
 
-                <p id="alert-edit-note" class="hidden text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                <p id="alert-edit-note" class="hidden text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                     <i class="ti ti-info-circle" style="font-size: 13px;" aria-hidden="true"></i>
                     SMS was already sent when this alert was originally created. Editing only updates its
                     content on the dashboard and history -- it does not resend anything to anyone.
                 </p>
-                <div id="sms-delivery-section" class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
+                <div id="sms-delivery-section" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="card-title mb-3">SMS delivery (optional)</h3>
 
                     <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
                         <label class="label">Send to a specific evacuee only</label>
                         <div class="relative">
                             <input type="text" id="evacuee-search-input" placeholder="Search by name..." autocomplete="off"
                                 class="input">
-                            <div id="evacuee-search-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
+                            <div id="evacuee-search-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-gray-100"></div>
                         </div>
                         <input type="hidden" id="alert-evacuee-id" value="">
-                        <div id="evacuee-selected-banner" class="hidden mt-2 flex items-center justify-between gap-2 bg-brand-light text-brand text-sm rounded-lg px-3 py-2">
+                        <div id="evacuee-selected-banner" class="hidden mt-2 flex items-center justify-between gap-2 bg-brand-50 border border-brand-200 text-brand-800 text-sm rounded-lg px-3 py-2">
                             <span class="flex items-center gap-1.5">
                                 <i class="ti ti-user-check" style="font-size: 15px;" aria-hidden="true"></i>
                                 This alert will be sent to <strong id="evacuee-selected-name"></strong> ONLY -- not barangay-wide.
                             </span>
-                            <button type="button" id="evacuee-selected-clear" class="text-brand hover:text-brand-dark shrink-0">
+                            <button type="button" id="evacuee-selected-clear" class="btn-icon w-7 h-7 text-brand-700 hover:text-brand-800 hover:bg-brand-100" aria-label="Clear selected evacuee">
                                 <i class="ti ti-x" style="font-size: 15px;" aria-hidden="true"></i>
                             </button>
                         </div>
                     </div>
 
-                    <label id="notify-officials-label" class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <label id="notify-officials-label" class="flex items-center gap-2 text-sm text-gray-700 mb-2">
                         <input type="checkbox" id="alert-notify-officials"> Notify barangay officials by SMS
                     </label>
-                    <label id="notify-evacuees-label" class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    <label id="notify-evacuees-label" class="flex items-center gap-2 text-sm text-gray-700 mb-3">
                         <input type="checkbox" id="alert-notify-evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
                     </label>
                     <div id="barangay-limit-field">
@@ -235,11 +235,13 @@
         document.getElementById('send-alert-btn').classList.remove('hidden');
     }
 
+    // Severity tokens -- see docs/design-system.md (semantic colors). chip is
+    // the icon tile, so an "All clear" alert no longer shows a red icon.
     const severityStyles = {
-        mandatory: { badge: 'bg-red-50 text-red-700', border: '#EF4444', label: 'Mandatory', dot: '#EF4444' },
-        advisory: { badge: 'bg-orange-50 text-orange-700', border: '#F97316', label: 'Advisory', dot: '#F97316' },
-        info: { badge: 'bg-blue-50 text-blue-700', border: '#3B82F6', label: 'Info', dot: '#3B82F6' },
-        all_clear: { badge: 'bg-green-50 text-green-700', border: '#22C55E', label: 'All clear', dot: '#22C55E' },
+        mandatory: { badge: 'badge-danger', chip: 'bg-red-50 text-red-700', border: '#DC2626', label: 'Mandatory', dot: '#DC2626' },
+        advisory: { badge: 'badge-advisory', chip: 'bg-orange-50 text-orange-700', border: '#EA580C', label: 'Advisory', dot: '#EA580C' },
+        info: { badge: 'badge-info', chip: 'bg-blue-50 text-blue-700', border: '#2563EB', label: 'Info', dot: '#2563EB' },
+        all_clear: { badge: 'badge-success', chip: 'bg-green-50 text-green-700', border: '#15803D', label: 'All clear', dot: '#15803D' },
     };
 
     const typeIcons = {
@@ -295,28 +297,28 @@
                 : null;
 
             return `
-            <div class="bg-white rounded-xl p-4" style="border-left: 4px solid ${sev.border};">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-2.5">
-                        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                            <i class="ti ${typeIcons[a.alert_type] ?? 'ti-speakerphone'} text-red-500" style="font-size: 18px;" aria-hidden="true"></i>
+            <div class="card p-4 border-l-4" style="border-left-color: ${sev.border};">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-lg ${sev.chip} flex items-center justify-center shrink-0">
+                            <i class="ti ${typeIcons[a.alert_type] ?? 'ti-speakerphone'}" style="font-size: 18px;" aria-hidden="true"></i>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                <span class="text-xs px-2 py-0.5 rounded-lg font-semibold ${sev.badge}">${sev.label.toUpperCase()}</span>
+                                <span class="badge ${sev.badge}">${sev.label}</span>
                                 <span class="text-xs text-gray-500">${typeLabels[a.alert_type] ?? a.alert_type} &middot; ${new Date(a.created_at).toLocaleString()}</span>
-                                ${a.evacuation_event ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600">${a.evacuation_event.name}</span>` : ''}
+                                ${a.evacuation_event ? `<span class="badge badge-neutral">${a.evacuation_event.name}</span>` : ''}
                             </div>
-                            <p class="font-medium text-sm">${a.title}</p>
-                            <p class="text-sm text-gray-600 mt-1">${a.message}</p>
+                            <p class="font-semibold text-sm text-gray-900">${a.title}</p>
+                            <p class="text-sm text-gray-700 mt-1">${a.message}</p>
                         </div>
                     </div>
                     ${canManage ? `
                         <div class="flex items-center gap-1 shrink-0">
-                            <button type="button" class="alert-edit-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-brand hover:bg-gray-50 rounded-lg" data-id="${a.id}" aria-label="Edit alert">
+                            <button type="button" class="alert-edit-btn btn-icon" data-id="${a.id}" aria-label="Edit alert">
                                 <i class="ti ti-pencil" style="font-size: 15px;" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="alert-delete-btn w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" data-id="${a.id}" data-title="${a.title.replace(/"/g, '&quot;')}" aria-label="Delete alert">
+                            <button type="button" class="alert-delete-btn btn-icon hover:text-red-700 hover:bg-red-50" data-id="${a.id}" data-title="${a.title.replace(/"/g, '&quot;')}" aria-label="Delete alert">
                                 <i class="ti ti-trash" style="font-size: 15px;" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -326,14 +328,14 @@
                     <span>Sent by ${a.sender?.name ?? 'Unknown'}</span>
                     ${a.recipient_summary ? `
                         <span>&middot; ${a.recipient_summary.total} SMS recipient(s)</span>
-                        <span class="text-green-600">${a.recipient_summary.sent} delivered</span>
-                        ${a.recipient_summary.failed > 0 ? `<span class="text-red-500">${a.recipient_summary.failed} failed</span>` : ''}
+                        <span class="font-medium text-green-700">${a.recipient_summary.sent} delivered</span>
+                        ${a.recipient_summary.failed > 0 ? `<span class="font-medium text-red-700">${a.recipient_summary.failed} failed</span>` : ''}
                         ${a.recipient_summary.pending > 0 ? `<span class="text-gray-500">${a.recipient_summary.pending} pending</span>` : ''}
                     ` : ''}
                 </div>
                 ${deliveryPct !== null ? `
-                    <div class="h-1.5 bg-gray-100 rounded-full mt-2">
-                        <div class="h-1.5 bg-green-500 rounded-full" style="width: ${deliveryPct}%"></div>
+                    <div class="meter mt-2">
+                        <div class="meter-fill bg-green-700" style="width: ${deliveryPct}%"></div>
                     </div>
                 ` : ''}
             </div>`;
@@ -381,8 +383,8 @@
         }, { sent: 0, failed: 0, pending: 0 });
 
         const deliveryMeta = [
-            ['sent', 'Delivered', '#22C55E'],
-            ['failed', 'Failed', '#EF4444'],
+            ['sent', 'Delivered', '#15803D'],
+            ['failed', 'Failed', '#DC2626'],
             ['pending', 'Pending', '#9CA3AF'],
         ];
         const deliveryTotal = totals.sent + totals.failed + totals.pending || 1;
@@ -565,7 +567,7 @@
                     ? '<p class="text-xs text-gray-500 px-3 py-2">No matching evacuees.</p>'
                     : evacuees.map((ev) => `
                         <button type="button" class="evacuee-result-item block w-full text-left px-3 py-2 text-sm hover:bg-gray-50" data-id="${ev.id}">
-                            <span class="font-medium text-gray-700">${ev.full_name}</span>
+                            <span class="font-medium text-gray-900">${ev.full_name}</span>
                             <span class="text-xs text-gray-500 block">${ev.contact_number ?? 'No contact number on file'}</span>
                         </button>`).join('');
 

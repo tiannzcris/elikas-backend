@@ -28,7 +28,7 @@
                     class="input"></textarea>
                 <p class="text-xs text-gray-500 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                 <div>
                     <label class="label">Urgency</label>
                     <select id="severity" required class="input">
@@ -58,11 +58,11 @@
         </div>
 
         <div class="card p-4">
-            <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
-            <label class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+            <h2 class="card-title mb-3">SMS delivery (optional)</h2>
+            <label class="flex items-center gap-2 text-sm text-gray-700 mb-2">
                 <input type="checkbox" id="notify_barangay_officials"> Notify barangay officials by SMS
             </label>
-            <label class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+            <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
                 <input type="checkbox" id="notify_evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
             </label>
             <div>
