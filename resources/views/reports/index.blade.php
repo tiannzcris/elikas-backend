@@ -15,69 +15,75 @@
 
     <div id="generate-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div id="region-v-card" class="card p-4">
-            <div class="flex items-center gap-2 mb-1">
-                <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-file-report text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="icon-chip">
+                    <i class="ti ti-file-report" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
-                <p class="text-sm font-medium">DROMIC Region V report</p>
+                <div class="min-w-0">
+                    <h2 class="card-title">DROMIC Region V report</h2>
+                    <p class="text-xs text-gray-500">Full consolidated report for a disaster event, scoped to Ligao City.</p>
+                </div>
             </div>
-            <p class="text-xs text-gray-500 mb-3">Full consolidated report for a disaster event, scoped to Ligao City.</p>
-            <select id="region-v-event" class="input mb-3"></select>
-            <button id="generate-region-v" class="btn btn-primary w-full">
+            <select id="region-v-event" aria-label="Disaster event" class="input mb-3"></select>
+            <button type="button" id="generate-region-v" class="btn btn-primary w-full">
                 Generate
             </button>
         </div>
 
         <div class="card p-4">
-            <div class="flex items-center gap-2 mb-1">
-                <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-clipboard-list text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="icon-chip">
+                    <i class="ti ti-clipboard-list" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
-                <p class="text-sm font-medium">EC Information Board</p>
+                <div class="min-w-0">
+                    <h2 class="card-title">EC Information Board</h2>
+                    <p class="text-xs text-gray-500">Single-page board for one evacuation center.</p>
+                </div>
             </div>
-            <p class="text-xs text-gray-500 mb-3">Single-page board for one evacuation center.</p>
-            <select id="ec-board-event" class="input mb-2"></select>
-            <select id="ec-board-center" class="input mb-3"></select>
-            <button id="generate-ec-board" class="btn btn-primary w-full">
+            <select id="ec-board-event" aria-label="Disaster event" class="input mb-2"></select>
+            <select id="ec-board-center" aria-label="Evacuation center" class="input mb-3"></select>
+            <button type="button" id="generate-ec-board" class="btn btn-primary w-full">
                 Generate
             </button>
         </div>
     </div>
 
-    <div id="report-ready-banner" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-            <i class="ti ti-circle-check text-green-600" style="font-size: 20px;" aria-hidden="true"></i>
+    <div id="report-ready-banner" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex flex-wrap items-center justify-between gap-3" role="status">
+        <div class="flex items-center gap-2.5">
+            <i class="ti ti-circle-check text-green-700" style="font-size: 20px;" aria-hidden="true"></i>
             <div>
-                <p class="text-sm font-medium text-green-800">Report ready</p>
-                <p id="report-ready-detail" class="text-xs text-green-700"></p>
+                <p class="text-sm font-semibold text-green-900">Report ready</p>
+                <p id="report-ready-detail" class="text-xs text-green-800"></p>
             </div>
         </div>
-        <a id="report-ready-download" href="#" class="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg px-4 py-2">
-            <i class="ti ti-download" style="font-size: 15px;" aria-hidden="true"></i> Download .xlsx
+        <a id="report-ready-download" href="#" class="btn btn-primary">
+            <i class="ti ti-download" style="font-size: 16px;" aria-hidden="true"></i> Download .xlsx
         </a>
     </div>
 
-    <div id="preview-card" class="hidden card p-4 mb-6 overflow-x-auto">
-        <p class="text-sm font-medium mb-3">Preview &mdash; barangay breakdown</p>
-        <table class="w-full text-sm">
-            <thead class="text-gray-500 text-xs uppercase">
+    <div id="preview-card" class="hidden card mb-6 overflow-hidden">
+        <h2 class="card-title px-4 pt-4 pb-3">Preview &mdash; barangay breakdown</h2>
+        <div class="overflow-x-auto">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="text-left px-2 py-2">Barangay</th>
-                    <th class="text-right px-2 py-2">Affected fam.</th>
-                    <th class="text-right px-2 py-2">Persons</th>
-                    <th class="text-left px-2 py-2">Evacuation center</th>
-                    <th class="text-right px-2 py-2">4Ps</th>
-                    <th class="text-right px-2 py-2">PWD</th>
+                    <th>Barangay</th>
+                    <th class="num">Affected fam.</th>
+                    <th class="num">Persons</th>
+                    <th>Evacuation center</th>
+                    <th class="num">4Ps</th>
+                    <th class="num">PWD</th>
                     {{-- Persons counted in "Persons" but missing sex and/or
                         age bracket, so absent from the actual report's
                         age/sex columns -- see DromicRegionVReportService's
                         class docblock. Only meant to catch the eye when
                         nonzero; the cell renders blank otherwise. --}}
-                    <th class="text-right px-2 py-2">Unclassified</th>
+                    <th class="num">Unclassified</th>
                 </tr>
             </thead>
             <tbody id="preview-tbody"></tbody>
         </table>
+        </div>
     </div>
 
     <div id="stats-row" class="hidden stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
@@ -112,14 +118,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <p class="text-sm font-medium text-gray-700">Previously generated reports</p>
+                <h2 class="card-title">Previously generated reports</h2>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <div class="relative flex-1 sm:flex-none">
                         <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by event or report type..."
                             class="input pl-9 sm:w-64">
                     </div>
-                    <select id="type-filter" class="input">
+                    <select id="type-filter" aria-label="Report type" class="input w-auto">
                         <option value="">All report types</option>
                         <option value="dromic_region_v">DROMIC Region V</option>
                         <option value="ec_information_board">EC Information Board</option>
@@ -154,9 +160,9 @@
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
 
-            <div id="dromic-info-card" class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-2.5">
-                <i class="ti ti-info-circle text-blue-500 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
-                <p class="text-xs text-blue-800">DROMIC reports are submitted to OCD Region V within 24 hours after data validation.</p>
+            <div id="dromic-info-card" class="callout callout-info flex gap-2.5 p-4">
+                <i class="ti ti-info-circle text-blue-700 shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
+                <p class="text-xs">DROMIC reports are submitted to OCD Region V within 24 hours after data validation.</p>
             </div>
         </div>
     </div>
@@ -173,8 +179,9 @@
         custom: 'Custom report',
     };
     const reportTypeColors = {
-        dromic_region_v: '#3B82F6', ec_information_board: '#22C55E',
-        dromic_strandee: '#F59E0B', dromic_cccm_idp: '#A855F7', custom: '#6B7280',
+        // Categorical palette, fixed order (docs/design-system.md, chart palette).
+        dromic_region_v: '#2563EB', ec_information_board: '#EB6834',
+        dromic_strandee: '#1BAF7A', dromic_cccm_idp: '#EDA100', custom: '#4A3AA7',
     };
     const reportTypeIcons = {
         dromic_region_v: 'ti-file-report', ec_information_board: 'ti-clipboard-list',
@@ -198,23 +205,23 @@
         });
 
         document.getElementById('reports-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-500 text-sm text-center py-8 card">No reports match this filter.</p>'
+            ? '<p class="card text-gray-500 text-sm text-center py-8">No reports match this filter.</p>'
             : filtered.map((r) => `
-                <div class="card p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                            <i class="ti ${reportTypeIcons[r.report_type] ?? 'ti-file'} text-purple-500" style="font-size: 16px;" aria-hidden="true"></i>
+                <div class="card px-4 py-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="icon-chip">
+                            <i class="ti ${reportTypeIcons[r.report_type] ?? 'ti-file'}" style="font-size: 17px;" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium">${reportTypeLabels[r.report_type] ?? r.report_type}</p>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-900">${reportTypeLabels[r.report_type] ?? r.report_type}</p>
                             <p class="text-xs text-gray-500">
                                 ${r.evacuation_event?.name ?? ''} &middot; by ${r.generated_by ?? 'Unknown'} &middot;
                                 ${new Date(r.generated_at).toLocaleString()}
                             </p>
                         </div>
                     </div>
-                    <a href="${r.download_url}" class="link text-sm"
-                       onclick="downloadWithAuth(event, '${r.download_url}')">Download</a>
+                    <a href="${r.download_url}" class="btn btn-secondary btn-sm shrink-0"
+                       onclick="downloadWithAuth(event, '${r.download_url}')"><i class="ti ti-download" style="font-size: 14px;" aria-hidden="true"></i> Download</a>
                 </div>
             `).join('');
     }
@@ -463,16 +470,16 @@
             const rows = previewResult.data;
             document.getElementById('preview-card').classList.remove('hidden');
             document.getElementById('preview-tbody').innerHTML = rows.length === 0
-                ? '<tr><td colspan="6" class="text-center text-gray-500 py-4">No registered families for this event yet.</td></tr>'
+                ? '<tr><td colspan="7" class="text-center text-gray-500 py-6">No registered families for this event yet.</td></tr>'
                 : rows.map((r) => `
-                    <tr class="border-t border-gray-100">
-                        <td class="px-2 py-2">${r.barangay}</td>
-                        <td class="px-2 py-2 text-right">${r.affected_families}</td>
-                        <td class="px-2 py-2 text-right">${r.persons}</td>
-                        <td class="px-2 py-2">${r.evacuation_center ?? '&mdash;'}</td>
-                        <td class="px-2 py-2 text-right">${r.fourps_count}</td>
-                        <td class="px-2 py-2 text-right">${r.pwd_count}</td>
-                        <td class="px-2 py-2 text-right ${r.unclassified_persons > 0 ? 'text-amber-700 font-medium' : 'text-gray-300'}">${r.unclassified_persons > 0 ? r.unclassified_persons : '&mdash;'}</td>
+                    <tr>
+                        <td class="font-medium text-gray-900">${r.barangay}</td>
+                        <td class="num">${r.affected_families}</td>
+                        <td class="num">${r.persons}</td>
+                        <td>${r.evacuation_center ?? '&mdash;'}</td>
+                        <td class="num">${r.fourps_count}</td>
+                        <td class="num">${r.pwd_count}</td>
+                        <td class="num ${r.unclassified_persons > 0 ? 'text-amber-800 font-semibold' : 'text-gray-500'}">${r.unclassified_persons > 0 ? r.unclassified_persons : '&mdash;'}</td>
                     </tr>
                 `).join('');
 
