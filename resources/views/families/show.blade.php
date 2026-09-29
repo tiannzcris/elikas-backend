@@ -4,7 +4,7 @@
 @section('nav-families', 'active')
 
 @section('content')
-    <a id="back-link" href="/families" class="text-sm text-gray-500 hover:text-brand">&larr; Back to families</a>
+    <a id="back-link" href="/families" class="link text-sm">&larr; Back to families</a>
 
     <div id="content-wrap" class="hidden mt-4">
         <h1 class="text-xl font-semibold mb-1" id="family-title">Family</h1>
@@ -20,7 +20,7 @@
 
         <div class="flex items-center justify-between gap-3 mt-2">
             <p class="text-sm text-gray-600" id="family-center">Evacuation center: &mdash;</p>
-            <button type="button" id="change-center-btn" class="text-xs text-brand hover:underline shrink-0">Change evacuation center</button>
+            <button type="button" id="change-center-btn" class="link text-xs shrink-0">Change evacuation center</button>
         </div>
         {{-- Household-level status behind the EC Board's child-/single-
             headed rows (see Family::isChildHeaded()/isSingleHeaded()/
@@ -28,7 +28,7 @@
             before these questions existed or answered "not yet known". --}}
         <div class="flex items-center justify-between gap-3 mt-1">
             <p class="text-sm text-gray-600" id="family-household">Household: &mdash;</p>
-            <button type="button" id="edit-household-btn" class="text-xs text-brand hover:underline shrink-0">Edit household</button>
+            <button type="button" id="edit-household-btn" class="link text-xs shrink-0">Edit household</button>
         </div>
         {{-- Visible reminder for a household whose head is someone who
             hasn't been linked as a member yet -- its head figures are the
@@ -40,40 +40,40 @@
         </p>
         <div class="mb-6"></div>
 
-        <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100" id="members-list"></div>
+        <div class="card divide-y divide-gray-100" id="members-list"></div>
     </div>
 
-    <div id="edit-member-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="edit-member-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-2xl">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800" id="member-modal-title">Edit member</p>
+                    <h2 id="member-modal-title" class="modal-title">Edit member</h2>
                     <p class="text-xs text-gray-500" id="member-modal-subtitle">Corrects this person's own details -- doesn't change their household or check-in status.</p>
                 </div>
-                <button type="button" id="member-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="member-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="member-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="member-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="member-form" class="flex flex-col gap-4 p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="text" placeholder="First name" id="m-first_name" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                    <input type="text" placeholder="Middle name" id="m-middle_name" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <input type="text" placeholder="Last name" id="m-last_name" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                    <input type="text" placeholder="First name" id="m-first_name" class="input" required>
+                    <input type="text" placeholder="Middle name" id="m-middle_name" class="input">
+                    <input type="text" placeholder="Last name" id="m-last_name" class="input" required>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <select id="m-sex" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                    <select id="m-sex" class="input" required>
                         <option value="">Sex</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                     <div>
                         <label class="text-xs text-gray-500 block mb-1">Date of birth</label>
-                        <input type="date" id="m-date_of_birth" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                        <input type="date" id="m-date_of_birth" class="input" required>
                     </div>
-                    <select id="m-civil_status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <select id="m-civil_status" class="input">
                         <option value="">Civil status (optional)</option>
                         <option value="single">Single</option>
                         <option value="married">Married</option>
@@ -83,11 +83,11 @@
                     </select>
                 </div>
                 <div>
-                    <input type="text" placeholder="09XXXXXXXXX" id="m-contact_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <input type="text" placeholder="09XXXXXXXXX" id="m-contact_number" class="input">
                 </div>
                 <div class="flex flex-wrap gap-4 text-xs text-gray-600 items-center bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_pwd"> PWD</label>
-                    <input type="text" placeholder="PWD type (e.g. visual, mobility)" id="m-pwd_type" class="hidden border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                    <input type="text" placeholder="PWD type (e.g. visual, mobility)" id="m-pwd_type" class="hidden input input-sm w-auto text-xs">
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_pregnant"> Pregnant</label>
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_lactating"> Lactating</label>
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_solo_parent"> Solo parent</label>
@@ -95,11 +95,11 @@
                     <label class="flex items-center gap-1.5"><input type="checkbox" id="m-is_4ps_beneficiary"> 4Ps beneficiary</label>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="member-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="member-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="member-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="member-submit-btn" class="btn btn-primary">
                         Save changes
                     </button>
                 </div>
@@ -111,31 +111,31 @@
         closes their open evacuation record, so they drop out of every
         live "Now" figure; cumulative counts never go down. The per-person
         counterpart of the EC Board's Quick Departure, same two reasons. --}}
-    <div id="checkout-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="checkout-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-md">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800" id="checkout-modal-title">Check out</p>
+                    <h2 id="checkout-modal-title" class="modal-title">Check out</h2>
                     <p class="text-xs text-gray-500" id="checkout-modal-subtitle"></p>
                 </div>
-                <button type="button" id="checkout-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="checkout-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="checkout-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="checkout-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="checkout-form" class="flex flex-col gap-4 p-5">
                 <div>
-                    <label for="checkout-status" class="text-sm text-gray-600 block mb-1">Reason</label>
-                    <select id="checkout-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label for="checkout-status" class="label">Reason</label>
+                    <select id="checkout-status" class="input">
                         <option value="returned_home">Returned home</option>
                         <option value="transferred">Transferred elsewhere</option>
                     </select>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="checkout-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="checkout-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
                     <button type="submit" id="checkout-submit-btn" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg px-4 py-2.5">
@@ -146,38 +146,38 @@
         </div>
     </div>
 
-    <div id="household-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="household-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-md">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800">Edit household</p>
+                    <h2 class="modal-title">Edit household</h2>
                     <p class="text-xs text-gray-500">Used for the child- and single-headed family counts on the EC Board and reports. Leave anything you don't know as "Not yet known".</p>
                 </div>
-                <button type="button" id="household-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="household-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="household-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="household-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="household-form" class="flex flex-col gap-4 p-5">
                 <div>
-                    <label for="hh-head" class="text-sm text-gray-600 block mb-1">Household head</label>
-                    <select id="hh-head" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                    <label for="hh-head" class="label">Household head</label>
+                    <select id="hh-head" class="input"></select>
                     <p id="hh-head-note" class="text-xs text-gray-500 mt-1"></p>
                 </div>
                 <div id="hh-unlisted-fields" class="hidden grid grid-cols-2 gap-3">
                     <div>
-                        <label for="hh-head-sex" class="text-sm text-gray-600 block mb-1">Head's sex</label>
-                        <select id="hh-head-sex" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label for="hh-head-sex" class="label">Head's sex</label>
+                        <select id="hh-head-sex" class="input">
                             <option value="">Not yet known</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                         </select>
                     </div>
                     <div>
-                        <label for="hh-head-is-minor" class="text-sm text-gray-600 block mb-1">Head is a minor?</label>
-                        <select id="hh-head-is-minor" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label for="hh-head-is-minor" class="label">Head is a minor?</label>
+                        <select id="hh-head-is-minor" class="input">
                             <option value="">Not yet known</option>
                             <option value="1">Yes (under 18)</option>
                             <option value="0">No</option>
@@ -185,19 +185,19 @@
                     </div>
                 </div>
                 <div>
-                    <label for="hh-single-headed" class="text-sm text-gray-600 block mb-1">Only one household head? (single-headed)</label>
-                    <select id="hh-single-headed" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label for="hh-single-headed" class="label">Only one household head? (single-headed)</label>
+                    <select id="hh-single-headed" class="input">
                         <option value="">Not yet known</option>
                         <option value="1">Yes</option>
                         <option value="0">No</option>
                     </select>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="household-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="household-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="household-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="household-submit-btn" class="btn btn-primary">
                         Save changes
                     </button>
                 </div>
@@ -205,33 +205,33 @@
         </div>
     </div>
 
-    <div id="change-center-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="change-center-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-md">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800">Change evacuation center</p>
+                    <h2 class="modal-title">Change evacuation center</h2>
                     <p class="text-xs text-gray-500">Reassigns every currently checked-in member of this family to a new center.</p>
                 </div>
-                <button type="button" id="center-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="center-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="center-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="center-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="center-form" class="flex flex-col gap-4 p-5">
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Evacuation center</label>
-                    <select id="center-select" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label class="label">Evacuation center</label>
+                    <select id="center-select" required class="input">
                         <option value="">Select center</option>
                     </select>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="center-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="center-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="center-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="center-submit-btn" class="btn btn-primary">
                         Save changes
                     </button>
                 </div>

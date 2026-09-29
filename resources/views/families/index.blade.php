@@ -4,7 +4,7 @@
 @section('nav-families', 'active')
 
 @section('content')
-    <div class="flex items-start justify-between mb-6 gap-4">
+    <div class="page-header">
         <div>
             <h1 class="text-xl font-semibold mb-1">Evacuees</h1>
             <p class="text-sm text-gray-500">List of registered evacuee families and their members.</p>
@@ -19,7 +19,7 @@
             needed again later. --}}
         <div class="hidden shrink-0 text-right">
             <button type="button" id="register-family-btn"
-                class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                class="btn btn-primary">
                 + Register a family
             </button>
             <p class="text-xs text-gray-500 mt-1 max-w-[220px]">For families outside a center, or to enter full details directly</p>
@@ -32,64 +32,39 @@
         lookups never get slower because of the drill-down reorganization. --}}
     <div class="relative mb-6">
         <div class="relative">
-            <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 16px;" aria-hidden="true"></i>
+            <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 16px;" aria-hidden="true"></i>
             <input id="global-search-input" type="text" autocomplete="off"
                 placeholder="Search any evacuee by name -- jumps straight to their family, regardless of barangay or center..."
-                class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5 text-sm bg-white">
+                class="input pl-9 py-2.5">
         </div>
-        <div id="global-search-results" class="hidden absolute z-40 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto"></div>
+        <div id="global-search-results" class="hidden absolute z-40 mt-1 w-full card shadow-lg max-h-80 overflow-y-auto"></div>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Families</p>
-                <p id="stat-families" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Currently registered, active event(s)</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-home text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div class="stat-strip grid-cols-2 lg:grid-cols-5 mb-6">
+        <div class="stat">
+            <p class="stat-label">Families</p>
+            <p id="stat-families" class="stat-value">&mdash;</p>
+            <p class="stat-note">Currently registered, active event(s)</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total persons</p>
-                <p id="stat-persons" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Currently displaced, active event(s)</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Total persons</p>
+            <p id="stat-persons" class="stat-value">&mdash;</p>
+            <p class="stat-note">Currently displaced, active event(s)</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Children (0-17)</p>
-                <p id="stat-children" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-children-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-baby-carriage text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Children (0-17)</p>
+            <p id="stat-children" class="stat-value">&mdash;</p>
+            <p id="stat-children-pct" class="stat-note">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #8B5CF6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Seniors (60+)</p>
-                <p id="stat-seniors" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-seniors-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background: #F3EEFF;">
-                <i class="ti ti-walk text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Seniors (60+)</p>
+            <p id="stat-seniors" class="stat-value">&mdash;</p>
+            <p id="stat-seniors-pct" class="stat-note">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">PWD members</p>
-                <p id="stat-pwd" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-pwd-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-wheelchair text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">PWD members</p>
+            <p id="stat-pwd" class="stat-value">&mdash;</p>
+            <p id="stat-pwd-pct" class="stat-note">&mdash;</p>
         </div>
     </div>
 
@@ -102,14 +77,14 @@
 
             {{-- Level 1 (default/landing view): one row per barangay. --}}
             <div id="barangay-summary-view">
-                <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
+                <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 card">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                     <p class="text-sm font-medium text-gray-600 mb-1">No families registered yet</p>
                     <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                     {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
                     <button type="button" id="register-family-empty-btn" class="hidden text-sm text-brand hover:underline">+ Register the first family</button>
                 </div>
-                <div id="barangay-table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div id="barangay-table-wrap" class="hidden card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -131,7 +106,7 @@
             <div id="center-summary-view" class="hidden">
                 {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
                 <button type="button" id="register-in-barangay-btn" class="hidden text-sm text-brand hover:underline mb-3"></button>
-                <div id="center-table-wrap" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div id="center-table-wrap" class="card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -155,7 +130,7 @@
                 <div class="flex flex-wrap items-center justify-end gap-3 mb-4">
                     {{-- Hidden per CSWDO -- see the header button's own comment above. --}}
                     <button type="button" id="register-at-center-btn" class="hidden text-sm text-brand hover:underline"></button>
-                    <select id="sectoral-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <select id="sectoral-filter" class="input">
                         <option value="">All sectoral groups</option>
                         <option value="is_4ps_beneficiary">4Ps beneficiary</option>
                         <option value="is_pwd">PWD</option>
@@ -170,13 +145,13 @@
                     </button>
                 </div>
 
-                <div id="empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
+                <div id="empty-state" class="hidden flex-col items-center text-center py-20 card">
                     <i class="ti ti-users text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
                     <p class="text-sm font-medium text-gray-600 mb-1">No families here yet</p>
                     <p class="text-sm text-gray-500 mb-4">Registrations will appear here as barangay officials add them.</p>
                 </div>
 
-                <div id="table-wrap" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div id="table-wrap" class="hidden card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -201,8 +176,8 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Sex distribution</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Sex distribution</h2>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                         <canvas id="sexChart" role="img" aria-label="Doughnut chart of male vs female evacuees"></canvas>
@@ -211,8 +186,8 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Age distribution</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Age distribution</h2>
                 <div id="age-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
@@ -221,44 +196,44 @@
                 when there's only one in scope is meaningless), and hidden
                 entirely (drilled into one center -- nothing left to rank).
                 See renderRankingCard(). --}}
-            <div id="ranking-card" class="bg-white border border-gray-200 rounded-xl p-4">
-                <p id="ranking-card-title" class="text-sm font-semibold text-gray-700 mb-3">Top barangays by evacuees</p>
+            <div id="ranking-card" class="card p-4">
+                <h2 id="ranking-card-title" class="card-title mb-3">Top barangays by evacuees</h2>
                 <div id="ranking-card-body" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Sectoral summary</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Sectoral summary</h2>
                 <div id="sectoral-summary" class="grid grid-cols-2 gap-3"></div>
             </div>
         </div>
     </div>
 
-    <div id="family-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="family-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-3xl">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800">Register a family</p>
+                    <h2 class="modal-title">Register a family</h2>
                     <p class="text-xs text-gray-500">For families staying outside an evacuation center (with relatives, etc.), or to register full details directly. For someone physically at a center right now, that center's EC Board "Add Evacuee" is faster.</p>
                 </div>
-                <button type="button" id="family-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="family-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="family-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="family-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="register-form" class="flex flex-col gap-6 p-5">
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Barangay</label>
-                        <select id="f-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                        <label class="label">Barangay</label>
+                        <select id="f-barangay_id" required class="input"></select>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
-                        <select id="f-evacuation_event_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                        <label class="label">Disaster event</label>
+                        <select id="f-evacuation_event_id" required class="input"></select>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Displacement type</label>
+                        <label class="label">Displacement type</label>
                         {{-- Outside-center listed (and defaulted to) first:
                             this form's primary real use case now that
                             inside-center registration normally happens
@@ -267,14 +242,14 @@
                             when this still switches to inside_center
                             automatically (opened from a center's own
                             drill-down context). --}}
-                        <select id="f-displacement_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <select id="f-displacement_type" required class="input">
                             <option value="outside_center">Outside (evacuated to relatives/other location)</option>
                             <option value="inside_center">Inside an evacuation center</option>
                         </select>
                     </div>
                     <div id="f-center-field">
-                        <label class="text-sm text-gray-600 block mb-1">Evacuation center</label>
-                        <select id="f-evacuation_center_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                        <label class="label">Evacuation center</label>
+                        <select id="f-evacuation_center_id" class="input"></select>
                     </div>
                     <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
                         <input type="checkbox" id="f-is_4ps_beneficiary"> Family is a 4Ps beneficiary
@@ -290,16 +265,16 @@
                 <div id="f-full-mode-section">
                     <div class="flex items-center justify-between mb-3">
                         <h2 class="text-sm font-medium text-gray-700">Family members</h2>
-                        <button type="button" id="f-add-member-btn" class="text-sm text-brand hover:underline">+ Add another member</button>
+                        <button type="button" id="f-add-member-btn" class="link text-sm">+ Add another member</button>
                     </div>
                     <div id="f-members-container" class="flex flex-col gap-4"></div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="family-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="family-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="f-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="f-submit-btn" class="btn btn-primary">
                         Register family
                     </button>
                 </div>
@@ -389,14 +364,14 @@
                 <td class="px-4 py-3">${f.barangay?.name ?? '&mdash;'}</td>
                 <td class="px-4 py-3">
                     <span class="inline-flex items-center gap-1.5">
-                        <i class="ti ti-users text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
+                        <i class="ti ti-users text-gray-500" style="font-size: 14px;" aria-hidden="true"></i>
                         ${f.member_count ?? '&mdash;'}
                     </span>
                 </td>
                 <td class="px-4 py-3 text-gray-600">${f.evacuation_center?.name ?? '&mdash;'}</td>
                 <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${tags.join('') || '<span class="text-gray-300 text-xs">&mdash;</span>'}</div></td>
                 <td class="px-4 py-3 text-gray-500">${new Date(f.created_at).toLocaleDateString()}</td>
-                <td class="px-4 py-3"><a href="/families/${f.id}?${familyDetailReturnParams()}" class="text-brand hover:underline">View</a></td>
+                <td class="px-4 py-3"><a href="/families/${f.id}?${familyDetailReturnParams()}" class="link">View</a></td>
             </tr>`;
         }).join('');
     }
@@ -414,12 +389,12 @@
         const female = members.filter((m) => m.sex === 'female').length;
         document.getElementById('sex-legend').innerHTML = `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#3B82F6"></span>Male</span>
-                <span class="font-medium text-gray-800">${male} <span class="text-gray-500 font-normal">(${Math.round(male / total * 100)}%)</span></span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#3B82F6"></span>Male</span>
+                <span class="font-medium text-gray-900 tabular-nums">${male} <span class="text-gray-500 font-normal">(${Math.round(male / total * 100)}%)</span></span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#EC4899"></span>Female</span>
-                <span class="font-medium text-gray-800">${female} <span class="text-gray-500 font-normal">(${Math.round(female / total * 100)}%)</span></span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#EC4899"></span>Female</span>
+                <span class="font-medium text-gray-900 tabular-nums">${female} <span class="text-gray-500 font-normal">(${Math.round(female / total * 100)}%)</span></span>
             </div>`;
 
         if (sexChartInstance) sexChartInstance.destroy();
@@ -427,7 +402,7 @@
             type: 'doughnut',
             data: {
                 labels: ['Male', 'Female'],
-                datasets: [{ data: [male, female], backgroundColor: ['#3B82F6', '#EC4899'], borderWidth: 0 }],
+                datasets: [{ data: [male, female], backgroundColor: ['#3B82F6', '#EC4899'], borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -439,10 +414,10 @@
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-gray-600">${label}</span>
-                    <span class="font-medium text-gray-800">${ageCounts[i]}</span>
+                    <span class="font-medium text-gray-900 tabular-nums">${ageCounts[i]}</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-1.5">
-                    <div class="bg-blue-500 h-1.5 rounded-full" style="width:${ageCounts[i] / maxAge * 100}%"></div>
+                <div class="meter">
+                    <div class="meter-fill bg-brand" style="width:${ageCounts[i] / maxAge * 100}%"></div>
                 </div>
             </div>`).join('');
 
@@ -524,10 +499,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${name}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-green-500 h-1.5 rounded-full" style="width:${count / max * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / max * 100}%"></div>
                     </div>
                 </div>`).join('')
             : '<p class="text-gray-500">No data yet.</p>';
@@ -1056,30 +1031,30 @@
 
     function fMemberRowHtml(index) {
         return `
-        <div class="member-row bg-white border border-gray-200 rounded-xl p-4" data-index="${index}">
+        <div class="member-row card p-4" data-index="${index}">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">Member ${index + 1}</p>
-                ${index > 0 ? `<button type="button" class="remove-member text-xs text-red-500 hover:underline">Remove</button>` : ''}
+                <p class="text-sm font-semibold text-gray-900">Member ${index + 1}</p>
+                ${index > 0 ? `<button type="button" class="remove-member btn btn-sm btn-danger-secondary">Remove</button>` : ''}
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input type="text" placeholder="First name" class="m-first_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <input type="text" placeholder="Middle name" class="m-middle_name border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <input type="text" placeholder="Last name" class="m-last_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <select class="m-sex border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="text" placeholder="First name" class="m-first_name input" required>
+                <input type="text" placeholder="Middle name" class="m-middle_name input">
+                <input type="text" placeholder="Last name" class="m-last_name input" required>
+                <select class="m-sex input" required>
                     <option value="">Sex</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                 </select>
-                <input type="date" class="m-date_of_birth border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="date" class="m-date_of_birth input" required>
                 <div>
-                    <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                    <button type="button" class="same-as-head-btn text-xs text-brand hover:underline mt-1">Same as head of family</button>
+                    <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number input" required>
+                    <button type="button" class="same-as-head-btn link text-xs mt-1">Same as head of family</button>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-600 items-center">
+            <div class="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-sm text-gray-700 items-center">
                 <label class="flex items-center gap-1.5"><input type="radio" name="f-head-${index}" class="m-is_head_of_family"> Head of family</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pwd"> PWD</label>
-                <input type="text" placeholder="PWD type (e.g. visual, mobility)" class="m-pwd_type hidden border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                <input type="text" placeholder="PWD type (e.g. visual, mobility)" class="m-pwd_type hidden input input-sm w-auto text-xs">
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pregnant"> Pregnant</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_lactating"> Lactating</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>

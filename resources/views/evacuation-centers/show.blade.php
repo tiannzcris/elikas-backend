@@ -4,14 +4,14 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <a href="/evacuation-centers" class="text-sm text-gray-500 hover:text-brand">&larr; Back to evacuation centers</a>
+    <a href="/evacuation-centers" class="link text-sm">&larr; Back to evacuation centers</a>
 
     <div id="content-wrap" class="hidden mt-4 max-w-3xl">
         {{-- No EC Board link here -- reaching a center's board is now
             exclusively through the standalone EC Board sidebar section
             (barangay -> centers -> board, see ec-board/index.blade.php).
             This page stays scoped to the center's own management details. --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+        <div class="card p-4 mb-6">
             <div class="mb-4">
                 <img id="center-photo" src="" alt="" class="hidden w-full h-64 object-cover rounded-lg">
                 <div id="center-photo-placeholder" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
@@ -57,15 +57,15 @@
             </div>
         </div>
 
-        <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+        <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
         <form id="facilities-form">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <p class="text-sm font-medium text-gray-700 mb-3">Facilities checklist</p>
                 <div id="facilities-list" class="flex flex-col divide-y divide-gray-100"></div>
             </div>
             <button type="submit" id="submit-btn"
-                class="hidden mt-4 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                class="hidden mt-4 btn btn-primary">
                 Save facilities checklist
             </button>
         </form>

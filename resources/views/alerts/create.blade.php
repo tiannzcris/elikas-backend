@@ -7,27 +7,27 @@
     <h1 class="text-xl font-semibold mb-1">Send an alert</h1>
     <p class="text-sm text-gray-500 mb-6">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-2xl"></div>
 
     <form id="alert-form" class="flex flex-col gap-4 max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-4">
+        <div class="card p-4 flex flex-col gap-4">
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Title</label>
+                <label class="label">Title</label>
                 <input type="text" id="title" required maxlength="200"
                     placeholder="e.g. Typhoon Warning: Signal #2"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Message</label>
+                <label class="label">Message</label>
                 <textarea id="message" required maxlength="1000" rows="4"
                     placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                    class="input"></textarea>
                 <p class="text-xs text-gray-500 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Urgency</label>
-                    <select id="severity" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label class="label">Urgency</label>
+                    <select id="severity" required class="input">
                         <option value="mandatory">Mandatory evacuation</option>
                         <option value="advisory" selected>Advisory</option>
                         <option value="info">Info</option>
@@ -35,8 +35,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Alert type</label>
-                    <select id="alert_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label class="label">Alert type</label>
+                    <select id="alert_type" required class="input">
                         <option value="typhoon">Typhoon</option>
                         <option value="flood">Flood</option>
                         <option value="volcanic">Volcanic</option>
@@ -45,15 +45,15 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Related disaster event (optional)</label>
-                    <select id="evacuation_event_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label class="label">Related disaster event (optional)</label>
+                    <select id="evacuation_event_id" class="input">
                         <option value="">None</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <div class="card p-4">
             <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
             <label class="flex items-center gap-2 text-sm text-gray-600 mb-2">
                 <input type="checkbox" id="notify_barangay_officials"> Notify barangay officials by SMS
@@ -62,8 +62,8 @@
                 <input type="checkbox" id="notify_evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
             </label>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Limit SMS to one barangay (optional)</label>
-                <select id="barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Limit SMS to one barangay (optional)</label>
+                <select id="barangay_id" class="input">
                     <option value="">All barangays</option>
                 </select>
             </div>
@@ -74,7 +74,7 @@
         </div>
 
         <button type="submit" id="submit-btn"
-            class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
+            class="btn btn-primary w-fit">
             Send alert
         </button>
     </form>

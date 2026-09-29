@@ -7,54 +7,34 @@
     <h1 class="text-xl font-semibold mb-1">Predictive analytics</h1>
     <p class="text-sm text-gray-500 mb-6">Forecasts expected evacuee volume from rainfall and wind speed, based on this system's own historical events.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
-    <div id="latest-stats-row" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted evacuees</p>
-                <p id="latest-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Latest forecast</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="latest-stats-row" class="hidden stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
+        <div class="stat">
+            <p class="stat-label">Predicted evacuees</p>
+            <p id="latest-evacuees" class="stat-value">&mdash;</p>
+            <p class="stat-note">Latest forecast</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted occupancy</p>
-                <p id="latest-occupancy" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Across centers</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-building text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Predicted occupancy</p>
+            <p id="latest-occupancy" class="stat-value">&mdash;</p>
+            <p class="stat-note">Across centers</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Estimated resource cost</p>
-                <p id="latest-cost" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="latest-cost-note" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-currency-peso text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Estimated resource cost</p>
+            <p id="latest-cost" class="stat-value">&mdash;</p>
+            <p id="latest-cost-note" class="stat-note">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Signal level</p>
-                <p id="latest-signal" class="text-lg font-bold text-gray-800">&mdash;</p>
-                <p id="latest-signal-note" class="text-xs text-gray-500 italic mt-1">From forecasted wind speed</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-wind text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Signal level</p>
+            <p id="latest-signal" class="stat-value text-lg leading-7">&mdash;</p>
+            <p id="latest-signal-note" class="stat-note">From forecasted wind speed</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 min-w-0 flex flex-col gap-6">
-            <div id="status-card" class="bg-white border border-gray-200 rounded-xl p-4">
+            <div id="status-card" class="card p-4">
                 <div class="flex items-center gap-2 mb-2">
                     <div class="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
                         <i class="ti ti-database text-blue-500" style="font-size: 15px;" aria-hidden="true"></i>
@@ -64,7 +44,7 @@
                 <div id="status-content" class="text-sm text-gray-600">Loading...</div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-7 h-7 rounded-md bg-orange-50 flex items-center justify-center shrink-0">
                         <i class="ti ti-trending-up text-orange-500" style="font-size: 15px;" aria-hidden="true"></i>
@@ -73,32 +53,32 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                     <div>
-                        <label class="text-xs text-gray-600 block mb-1">Forecasted rainfall (mm)</label>
-                        <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label-sm">Forecasted rainfall (mm)</label>
+                        <input type="number" step="0.1" id="rainfall_mm" class="input">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-600 block mb-1">Forecasted max wind speed (kph)</label>
-                        <input type="number" step="0.1" id="wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label-sm">Forecasted max wind speed (kph)</label>
+                        <input type="number" step="0.1" id="wind_speed_kph" class="input">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-600 block mb-1">Signal level</label>
+                        <label class="label-sm">Signal level</label>
                         <div id="signal-level-display" class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">
                             Enter wind speed
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="text-xs text-gray-600 block mb-1">Link to an event (optional)</label>
-                    <select id="evacuation_event_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <label class="label-sm">Link to an event (optional)</label>
+                    <select id="evacuation_event_id" class="input">
                         <option value="">None -- standalone what-if scenario</option>
                     </select>
                 </div>
-                <button id="generate-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                <button id="generate-btn" class="btn btn-primary">
                     Generate forecast
                 </button>
             </div>
 
-            <div id="accuracy-chart-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
+            <div id="accuracy-chart-card" class="hidden card p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
                         <i class="ti ti-chart-line text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
@@ -115,7 +95,7 @@
                 was deleted -- flip services.sarima.feature_enabled (env
                 SARIMA_FEATURE_ENABLED) back to true to bring this card back. --}}
             @if(config('services.sarima.feature_enabled'))
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-7 h-7 rounded-md bg-teal-50 flex items-center justify-center shrink-0">
                         <i class="ti ti-chart-histogram text-teal-600" style="font-size: 15px;" aria-hidden="true"></i>
@@ -138,18 +118,18 @@
                 <div id="sarima-form-wrap">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                         <div>
-                            <label class="text-xs text-gray-600 block mb-1">Metric</label>
-                            <select id="sarima-metric" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <label class="label-sm">Metric</label>
+                            <select id="sarima-metric" class="input">
                                 <option value="rainfall_mm">Rainfall (mm)</option>
                                 <option value="wind_speed_kph">Wind speed (kph)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs text-gray-600 block mb-1">Horizon (periods)</label>
-                            <input type="number" id="sarima-horizon" value="14" min="1" max="60" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <label class="label-sm">Horizon (periods)</label>
+                            <input type="number" id="sarima-horizon" value="14" min="1" max="60" class="input">
                         </div>
                         <div class="flex items-end">
-                            <button id="sarima-generate-btn" class="w-full bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2">
+                            <button id="sarima-generate-btn" class="btn btn-primary w-full">
                                 Generate forecast
                             </button>
                         </div>
@@ -183,36 +163,36 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Model confidence</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Model confidence</h2>
                 <div id="confidence-content"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <div class="flex items-center gap-2 mb-3">
                     <div class="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center shrink-0">
                         <i class="ti ti-sparkles text-white" style="font-size: 13px;" aria-hidden="true"></i>
                     </div>
-                    <p class="text-sm font-semibold text-gray-700">AI recommendations</p>
+                    <h2 class="card-title">AI recommendations</h2>
                 </div>
                 <div id="recommendations-list" class="flex flex-col gap-3"></div>
                 <p class="text-xs text-gray-500 mt-3">Rule-based guidance computed from the latest forecast's own numbers and current center capacity -- not a separate AI model.</p>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">PAGASA signal reference</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">PAGASA signal reference</h2>
                 <div class="space-y-1.5 text-xs">
-                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 1</span><span class="text-gray-800 font-medium">39&ndash;61 kph</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 2</span><span class="text-gray-800 font-medium">62&ndash;88 kph</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 3</span><span class="text-gray-800 font-medium">89&ndash;117 kph</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 4</span><span class="text-gray-800 font-medium">118&ndash;184 kph</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 5</span><span class="text-gray-800 font-medium">185+ kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 1</span><span class="text-gray-900 font-medium tabular-nums">39&ndash;61 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 2</span><span class="text-gray-900 font-medium tabular-nums">62&ndash;88 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 3</span><span class="text-gray-900 font-medium tabular-nums">89&ndash;117 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 4</span><span class="text-gray-900 font-medium tabular-nums">118&ndash;184 kph</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-600">Signal 5</span><span class="text-gray-900 font-medium tabular-nums">185+ kph</span></div>
                 </div>
                 <p class="text-xs text-gray-500 mt-3">Computed client-side from the wind speed you enter above -- not a separate model input.</p>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Recent activity</h2>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
 
@@ -350,7 +330,7 @@
                     <div class="min-w-0">
                         <p class="text-xs font-medium text-gray-700">${r.title}</p>
                         <p class="text-xs text-gray-500 mt-0.5">${r.body}</p>
-                        ${r.link ? `<a href="${r.link.href}" class="text-xs text-brand hover:underline">${r.link.label} &rarr;</a>` : ''}
+                        ${r.link ? `<a href="${r.link.href}" class="link text-xs">${r.link.label} &rarr;</a>` : ''}
                     </div>
                 </div>`).join('');
     }
@@ -376,7 +356,7 @@
             <p class="text-3xl font-bold mb-1" style="color:${color}">${pct}%</p>
             <p class="text-xs font-medium mb-2" style="color:${color}">${label}</p>
             <div class="w-full bg-gray-100 rounded-full h-1.5 mb-3">
-                <div class="h-1.5 rounded-full" style="width:${pct}%; background:${color}"></div>
+                <div class="meter-fill" style="width:${pct}%; background:${color}"></div>
             </div>
             <p class="text-xs text-gray-500">R&sup2; ${evaluation.r2.toFixed(3)} &middot; MAE ${evaluation.mae.toFixed(1)} persons</p>
             <p class="text-xs text-gray-500 mt-1">Evaluated via leave-one-out cross-validation across ${evaluation.sample_count} historical event(s).</p>`;
@@ -430,7 +410,7 @@
                         maintainAspectRatio: false,
                         interaction: { intersect: false, mode: 'index' },
                         plugins: { legend: { position: 'bottom' } },
-                        scales: { y: { beginAtZero: true, grid: { color: '#e1e0d9' } }, x: { grid: { display: false } } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#E5E7EB' } }, x: { grid: { display: false } } },
                     },
                 });
             }
@@ -460,9 +440,9 @@
             ! query || (p.evacuation_event?.name ?? 'standalone forecast').toLowerCase().includes(query));
 
         document.getElementById('predictions-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-500 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No forecasts match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm text-center py-8 card">No forecasts match this filter.</p>'
             : filtered.map((p) => `
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="card p-4">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-sm font-medium">${p.evacuation_event?.name ?? 'Standalone forecast'}</p>
                         <p class="text-xs text-gray-500">${new Date(p.generated_at).toLocaleString()}</p>
@@ -501,9 +481,9 @@
             const recent = result.data.data.filter((l) => l.action === 'prediction.generated').slice(0, 6);
             document.getElementById('activity-timeline').innerHTML = recent.length ? recent.map((l) => `
                 <div class="flex gap-2.5">
-                    <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-purple-400"></span>
+                    <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-brand" aria-hidden="true"></span>
                     <div class="min-w-0">
-                        <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
+                        <p class="text-gray-900 font-medium truncate">${l.description ?? l.action}</p>
                         <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                     </div>
                 </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';
@@ -582,7 +562,7 @@
                 maintainAspectRatio: false,
                 interaction: { intersect: false, mode: 'index' },
                 plugins: { legend: { position: 'bottom', labels: { filter: (item) => item.text !== 'Upper bound' && item.text !== 'Lower bound' } } },
-                scales: { y: { beginAtZero: true, grid: { color: '#e1e0d9' } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } } },
+                scales: { y: { beginAtZero: true, grid: { color: '#E5E7EB' } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } } },
             },
         });
 

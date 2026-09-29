@@ -11,44 +11,24 @@
         </div>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
-    <div id="stats-row" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #16a34a;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active centers</p>
-                <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-building text-green-600" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="stats-row" class="stat-strip grid-cols-2 lg:grid-cols-4 mb-4">
+        <div class="stat">
+            <p class="stat-label">Active centers</p>
+            <p id="stat-active" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F59E0B;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Near full (&ge;75%)</p>
-                <p id="stat-near-full" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-alert-triangle text-amber-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Near full (&ge;75%)</p>
+            <p id="stat-near-full" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #6b7280;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Closed centers</p>
-                <p id="stat-closed" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <i class="ti ti-door-off text-gray-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Closed centers</p>
+            <p id="stat-closed" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #dc2626;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hazard zones mapped</p>
-                <p id="stat-hazards" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-map-pin-exclamation text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Hazard zones mapped</p>
+            <p id="stat-hazards" class="stat-value">&mdash;</p>
         </div>
     </div>
 
@@ -59,7 +39,7 @@
             restores normal source order (controls, then map) at desktop
             width, where they already sit side by side anyway. --}}
         <div class="order-2 lg:order-none lg:col-span-1 flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <label class="flex items-center justify-between mb-2 cursor-pointer">
                     <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Evacuation centers</span>
                     <input type="checkbox" id="layer-centers" checked class="rounded border-gray-300 text-brand focus:ring-brand">
@@ -72,7 +52,7 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <label class="flex items-center justify-between mb-2 cursor-pointer">
                     <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Hazard zones</span>
                     <input type="checkbox" id="layer-hazards" checked class="rounded border-gray-300 text-brand focus:ring-brand">
@@ -101,11 +81,11 @@
                 barangay (the staff member's own pinned first), then see its
                 centers -- the map follows, zooming to that barangay's
                 centers. The search box filters whichever list is showing. --}}
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Evacuation centers</p>
                 <nav id="gis-breadcrumb" class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"></nav>
                 <div class="relative mb-2">
-                    <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 14px;" aria-hidden="true"></i>
+                    <i class="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 14px;" aria-hidden="true"></i>
                     <input id="center-search" type="text" placeholder="Search barangays..."
                         class="w-full border border-gray-300 rounded-lg pl-8 pr-2 py-1.5 text-xs">
                 </div>
@@ -125,19 +105,19 @@
                 and none carries a barangay_id), so they're listed city-wide
                 instead of under a barangay. What IS exact is whether an
                 evacuation center sits inside one -- see centersInside(). --}}
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="card p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hazard zones (city-wide)</p>
                 <p class="text-xs text-gray-500 mb-3">Each covers several barangays. Select one to see it on the map.</p>
                 <div id="hazard-list" class="flex flex-col gap-2 text-sm"></div>
             </div>
 
-            <div id="draw-hint" class="hidden bg-white border border-gray-200 rounded-xl p-4 text-xs text-gray-500">
+            <div id="draw-hint" class="hidden card p-4 text-xs text-gray-500">
                 Use the polygon tool in the map's top-right corner to draw a new hazard zone.
             </div>
         </div>
 
         <div class="order-1 lg:order-none lg:col-span-3 flex flex-col gap-2">
-            <div class="bg-white border border-gray-200 rounded-xl p-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="card p-2 flex flex-wrap items-center justify-between gap-2">
                 <p id="map-updated" class="text-xs text-gray-500 pl-1"></p>
                 <div class="flex items-center gap-2">
                     <button id="reset-view-btn" class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
@@ -172,20 +152,20 @@
         plain z-50 (z-index:50) sits far below that, so the map's controls
         rendered on top of the modal instead of being dimmed behind it. --}}
     <div id="hazard-form-panel" class="hidden fixed inset-0 bg-black/50 z-[9999] items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
-                <p id="hazard-form-heading" class="font-semibold text-gray-800">New hazard zone</p>
-                <button type="button" id="hazard-form-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+        <div class="modal max-w-md">
+            <div class="modal-header">
+                <h2 id="hazard-form-heading" class="modal-title">New hazard zone</h2>
+                <button type="button" id="hazard-form-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="flex flex-col gap-3 p-5">
                 <div>
-                    <label class="text-xs text-gray-600 block mb-1">Area name</label>
+                    <label class="label-sm">Area name</label>
                     <input type="text" id="hz-name" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600 block mb-1">Hazard type</label>
+                    <label class="label-sm">Hazard type</label>
                     <select id="hz-type" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
                         <option value="" disabled selected>-- Select hazard type --</option>
                         <option value="flood">Flood</option>
@@ -196,11 +176,11 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600 block mb-1">Barangay (optional)</label>
+                    <label class="label-sm">Barangay (optional)</label>
                     <select id="hz-barangay" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></select>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600 block mb-1">Description</label>
+                    <label class="label-sm">Description</label>
                     <textarea id="hz-description" rows="2" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></textarea>
                 </div>
                 <div class="flex gap-2">

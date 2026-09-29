@@ -7,22 +7,22 @@
     <h1 class="text-xl font-semibold mb-1" id="page-title">Add evacuation center</h1>
     <p class="text-sm text-gray-500 mb-6">Click the map to set the exact location.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-3xl"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-3xl"></div>
 
     <form id="center-form" class="flex flex-col gap-4 max-w-3xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
-                <label class="text-sm text-gray-600 block mb-1">Name</label>
-                <input type="text" id="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Name</label>
+                <input type="text" id="name" required class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Barangay</label>
-                <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <label class="label">Barangay</label>
+                <select id="barangay_id" required class="input"></select>
                 <p id="barangay-lock-note" class="text-xs text-gray-500 mt-1 hidden">Locked to your own barangay.</p>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Type</label>
-                <select id="type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Type</label>
+                <select id="type" required class="input">
                     <option value="school">School</option>
                     <option value="covered_court">Covered court</option>
                     <option value="church">Church</option>
@@ -32,39 +32,39 @@
                 </select>
             </div>
             <div class="sm:col-span-2">
-                <label class="text-sm text-gray-600 block mb-1">Address</label>
+                <label class="label">Address</label>
                 <input type="text" id="address" required placeholder="e.g. Purok 3, Barangay Bacong, Ligao City"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
-                <input type="number" id="capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Capacity (families)</label>
+                <input type="number" id="capacity_families" min="0" placeholder="e.g. 50" class="input">
                 <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
-                <input type="number" id="capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Capacity (persons)</label>
+                <input type="number" id="capacity_persons" min="0" placeholder="e.g. 250" class="input">
                 <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
-                <input type="text" id="camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Camp manager name</label>
+                <input type="text" id="camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Camp manager contact</label>
-                <input type="text" id="camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Camp manager contact</label>
+                <input type="text" id="camp_manager_contact" placeholder="09XXXXXXXXX" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Assistant camp manager name</label>
-                <input type="text" id="assistant_camp_manager_name" placeholder="e.g. Maria Santos" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Assistant camp manager name</label>
+                <input type="text" id="assistant_camp_manager_name" placeholder="e.g. Maria Santos" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Assistant camp manager contact</label>
-                <input type="text" id="assistant_camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Assistant camp manager contact</label>
+                <input type="text" id="assistant_camp_manager_contact" placeholder="09XXXXXXXXX" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Status</label>
-                <select id="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Status</label>
+                <select id="status" required class="input">
                     <option value="on_standby">On standby</option>
                     <option value="active">Active</option>
                     <option value="full">Full</option>
@@ -73,8 +73,8 @@
             </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-            <label class="text-sm text-gray-600 block mb-2">Photo (optional)</label>
+        <div class="card p-4">
+            <label class="label mb-2">Photo (optional)</label>
             <div class="flex items-center gap-4">
                 <div id="photo-preview-wrap" class="hidden shrink-0">
                     <img id="photo-preview" src="" alt="Center photo preview" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <div class="card p-4">
             <p class="text-sm text-gray-600 mb-2">
                 Location (optional) <span id="coords-display" class="text-gray-500">(click the map to set, or leave unset for now)</span>
             </p>
@@ -94,7 +94,7 @@
                 <div class="flex-1">
                     <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
                     <input type="text" id="coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        class="input">
                 </div>
                 <button type="button" id="coords-paste-btn"
                     class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-gray-50">
@@ -109,18 +109,18 @@
             placeholder center be handed off to a real barangay official so
             they can maintain it going forward (they can view but not edit
             a center they didn't technically create). --}}
-        <div id="assign-owner-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
+        <div id="assign-owner-card" class="hidden card p-4">
             <p class="text-sm font-medium text-gray-700 mb-1">Assign to barangay official</p>
             <p class="text-xs text-gray-500 mb-3">
                 Hands this center off to a specific barangay official for ongoing maintenance.
                 Currently assigned to: <span id="current-owner-label" class="font-medium text-gray-700">&mdash;</span>
             </p>
             <div class="flex flex-col sm:flex-row gap-3">
-                <select id="assign-owner-select" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <select id="assign-owner-select" class="input flex-1">
                     <option value="">Select barangay official</option>
                 </select>
                 <button type="button" id="assign-owner-btn" disabled
-                    class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="btn btn-primary shrink-0">
                     Assign
                 </button>
             </div>
@@ -129,7 +129,7 @@
         </div>
 
         <button type="submit" id="submit-btn"
-            class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
+            class="btn btn-primary w-fit">
             Save evacuation center
         </button>
     </form>

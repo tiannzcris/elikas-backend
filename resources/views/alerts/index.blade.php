@@ -4,7 +4,7 @@
 @section('nav-alerts', 'active')
 
 @section('content')
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="page-header">
         <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">Alerts</h1>
             <p class="text-sm text-gray-500">Advisories sent to the dashboard, barangay officials, and evacuees.</p>
@@ -16,43 +16,28 @@
             is a pilot for one form only; the others aren't being converted
             yet. --}}
         <button type="button" id="send-alert-btn"
-            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 btn btn-primary">
             + Send an alert
         </button>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
-    <div id="stats-row" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total alerts</p>
-                <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">All time</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-speakerphone text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="stats-row" class="hidden stat-strip grid-cols-1 sm:grid-cols-3 mb-6">
+        <div class="stat">
+            <p class="stat-label">Total alerts</p>
+            <p id="stat-total" class="stat-value">&mdash;</p>
+            <p class="stat-note">All time</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">SMS delivered</p>
-                <p id="stat-delivered" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-delivered-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-check text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">SMS delivered</p>
+            <p id="stat-delivered" class="stat-value">&mdash;</p>
+            <p id="stat-delivered-pct" class="stat-note">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">SMS failed</p>
-                <p id="stat-failed" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p id="stat-failed-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-x text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">SMS failed</p>
+            <p id="stat-failed" class="stat-value">&mdash;</p>
+            <p id="stat-failed-pct" class="stat-note">&mdash;</p>
         </div>
     </div>
 
@@ -60,7 +45,7 @@
         <div class="lg:col-span-2 min-w-0">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div id="severity-tabs" class="flex items-center gap-2 flex-wrap"></div>
-                <select id="type-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <select id="type-filter" class="input">
                     <option value="">All types</option>
                     <option value="typhoon">Typhoon</option>
                     <option value="flood">Flood</option>
@@ -70,11 +55,11 @@
                 </select>
             </div>
 
-            <div id="empty-state" class="hidden text-center py-16 text-gray-500 text-sm bg-white border border-gray-200 rounded-xl">
+            <div id="empty-state" class="hidden text-center py-16 text-gray-500 text-sm card">
                 No alerts sent yet.
             </div>
 
-            <div id="no-match-state" class="hidden text-center py-16 text-gray-500 text-sm bg-white border border-gray-200 rounded-xl">
+            <div id="no-match-state" class="hidden text-center py-16 text-gray-500 text-sm card">
                 No alerts match this filter.
             </div>
 
@@ -82,8 +67,8 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">SMS delivery summary</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">SMS delivery summary</h2>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                         <canvas id="deliveryChart" role="img" aria-label="Doughnut chart of SMS delivery status"></canvas>
@@ -92,36 +77,36 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Alerts by severity</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Alerts by severity</h2>
                 <div id="severity-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Alerts by type</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Alerts by type</h2>
                 <div id="type-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Recent activity</h2>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
         </div>
     </div>
 
-    <div id="send-alert-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="send-alert-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-2xl">
+            <div class="modal-header">
                 <div>
-                    <p id="alert-modal-heading" class="font-semibold text-gray-800">Send an alert</p>
+                    <h2 id="alert-modal-heading" class="modal-title">Send an alert</h2>
                     <p id="alert-modal-subheading" class="text-xs text-gray-500">Broadcasts instantly to the dashboard. SMS is optional and best-effort.</p>
                 </div>
-                <button type="button" id="alert-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="alert-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="alert-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="alert-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="alert-form" class="flex flex-col gap-4 p-5">
                 <div class="bg-brand-light border border-blue-100 rounded-xl p-3 flex items-center justify-between gap-3">
@@ -134,16 +119,16 @@
                     </button>
                 </div>
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Title</label>
+                    <label class="label">Title</label>
                     <input type="text" id="alert-title" required maxlength="200"
                         placeholder="e.g. Typhoon Warning: Signal #2"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        class="input">
                 </div>
                 <div>
-                    <label class="text-sm text-gray-600 block mb-1">Message</label>
+                    <label class="label">Message</label>
                     <textarea id="alert-message" required maxlength="1000" rows="4"
                         placeholder="e.g. Residents in low-lying areas of Barangay Pawa are advised to evacuate immediately. Proceed to the nearest evacuation center."
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                        class="input"></textarea>
                     <p class="text-xs text-gray-500 mt-1">Plain language, no jargon -- this is what residents and barangay officials will actually read.</p>
                     {{-- A plain <textarea> can't render partial bold/colored text
                         within its own value, so "highlight the remaining
@@ -157,8 +142,8 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Urgency</label>
-                        <select id="alert-severity" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Urgency</label>
+                        <select id="alert-severity" required class="input">
                             <option value="mandatory">Mandatory evacuation</option>
                             <option value="advisory" selected>Advisory</option>
                             <option value="info">Info</option>
@@ -166,8 +151,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Alert type</label>
-                        <select id="alert-type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Alert type</label>
+                        <select id="alert-type" required class="input">
                             <option value="typhoon">Typhoon</option>
                             <option value="flood">Flood</option>
                             <option value="volcanic">Volcanic</option>
@@ -176,8 +161,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Related disaster event (optional)</label>
-                        <select id="alert-evacuation-event" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Related disaster event (optional)</label>
+                        <select id="alert-evacuation-event" class="input">
                             <option value="">None</option>
                         </select>
                     </div>
@@ -192,10 +177,10 @@
                     <p class="text-sm font-medium text-gray-700 mb-3">SMS delivery (optional)</p>
 
                     <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
-                        <label class="text-sm text-gray-600 block mb-1">Send to a specific evacuee only</label>
+                        <label class="label">Send to a specific evacuee only</label>
                         <div class="relative">
                             <input type="text" id="evacuee-search-input" placeholder="Search by name..." autocomplete="off"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                class="input">
                             <div id="evacuee-search-results" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></div>
                         </div>
                         <input type="hidden" id="alert-evacuee-id" value="">
@@ -217,8 +202,8 @@
                         <input type="checkbox" id="alert-notify-evacuees"> Notify registered evacuees by SMS (uses their contact number on file)
                     </label>
                     <div id="barangay-limit-field">
-                        <label class="text-sm text-gray-600 block mb-1">Limit SMS to one barangay (optional)</label>
-                        <select id="alert-barangay" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Limit SMS to one barangay (optional)</label>
+                        <select id="alert-barangay" class="input">
                             <option value="">All barangays</option>
                         </select>
                     </div>
@@ -228,11 +213,11 @@
                     </p>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="alert-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="alert-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="alert-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="alert-submit-btn" class="btn btn-primary">
                         Send alert
                     </button>
                 </div>
@@ -279,7 +264,7 @@
 
         document.getElementById('severity-tabs').innerHTML = Object.keys(labels).map((key) => `
             <button data-filter="${key}"
-                class="severity-tab text-sm px-3 py-1.5 rounded-lg border ${severityFilter === key ? 'border-brand bg-brand-light text-brand font-medium' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}">
+                class="severity-tab chip ${severityFilter === key ? 'chip-active' : ''}" aria-pressed="${severityFilter === key}">
                 ${labels[key]} (${counts[key]})
             </button>
         `).join('');
@@ -404,8 +389,8 @@
 
         document.getElementById('delivery-legend').innerHTML = deliveryMeta.map(([key, label, color]) => `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>${label}</span>
-                <span class="font-medium text-gray-800">${totals[key]} <span class="text-gray-500 font-normal">(${Math.round(totals[key] / deliveryTotal * 100)}%)</span></span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>${label}</span>
+                <span class="font-medium text-gray-900 tabular-nums">${totals[key]} <span class="text-gray-500 font-normal">(${Math.round(totals[key] / deliveryTotal * 100)}%)</span></span>
             </div>`).join('');
 
         if (deliveryChartInstance) deliveryChartInstance.destroy();
@@ -413,7 +398,7 @@
             type: 'doughnut',
             data: {
                 labels: deliveryMeta.map(([, label]) => label),
-                datasets: [{ data: deliveryMeta.map(([key]) => totals[key]), backgroundColor: deliveryMeta.map(([, , c]) => c), borderWidth: 0 }],
+                datasets: [{ data: deliveryMeta.map(([key]) => totals[key]), backgroundColor: deliveryMeta.map(([, , c]) => c), borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -426,10 +411,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${meta.label}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="h-1.5 rounded-full" style="width:${count / maxSeverity * 100}%; background:${meta.dot}"></div>
+                    <div class="meter">
+                        <div class="meter-fill" style="width:${count / maxSeverity * 100}%; background:${meta.dot}"></div>
                     </div>
                 </div>`;
         }).join('');
@@ -442,10 +427,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${label}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-blue-500 h-1.5 rounded-full" style="width:${count / maxType * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / maxType * 100}%"></div>
                     </div>
                 </div>`;
         }).join('');
@@ -460,7 +445,7 @@
                 <div class="flex gap-2.5">
                     <span class="w-2 h-2 rounded-full mt-1.5 shrink-0" style="background:${sev.dot}"></span>
                     <div class="min-w-0">
-                        <p class="text-gray-700 font-medium truncate">${a.title}</p>
+                        <p class="text-gray-900 font-medium truncate">${a.title}</p>
                         <p class="text-gray-500">${a.sender?.name ?? 'System'} &middot; ${new Date(a.created_at).toLocaleString()}</p>
                         ${a.recipient_summary && a.recipient_summary.total > 0 ? `<p class="text-gray-500">${a.recipient_summary.sent}/${a.recipient_summary.total} SMS delivered</p>` : ''}
                     </div>

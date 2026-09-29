@@ -7,10 +7,10 @@
     <h1 id="reports-heading" class="text-xl font-semibold mb-1">DROMIC reports</h1>
     <p id="reports-subtitle" class="text-sm text-gray-500 mb-6">Generate official-format reports directly from registered data.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
     <div id="generate-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div id="region-v-card" class="bg-white border border-gray-200 rounded-xl p-4">
+        <div id="region-v-card" class="card p-4">
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
                     <i class="ti ti-file-report text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
@@ -18,13 +18,13 @@
                 <p class="text-sm font-medium">DROMIC Region V report</p>
             </div>
             <p class="text-xs text-gray-500 mb-3">Full consolidated report for a disaster event, scoped to Ligao City.</p>
-            <select id="region-v-event" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3"></select>
-            <button id="generate-region-v" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2 w-full">
+            <select id="region-v-event" class="input mb-3"></select>
+            <button id="generate-region-v" class="btn btn-primary w-full">
                 Generate
             </button>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <div class="card p-4">
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center shrink-0">
                     <i class="ti ti-clipboard-list text-purple-500" style="font-size: 15px;" aria-hidden="true"></i>
@@ -32,9 +32,9 @@
                 <p class="text-sm font-medium">EC Information Board</p>
             </div>
             <p class="text-xs text-gray-500 mb-3">Single-page board for one evacuation center.</p>
-            <select id="ec-board-event" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2"></select>
-            <select id="ec-board-center" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3"></select>
-            <button id="generate-ec-board" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2 w-full">
+            <select id="ec-board-event" class="input mb-2"></select>
+            <select id="ec-board-center" class="input mb-3"></select>
+            <button id="generate-ec-board" class="btn btn-primary w-full">
                 Generate
             </button>
         </div>
@@ -53,7 +53,7 @@
         </a>
     </div>
 
-    <div id="preview-card" class="hidden bg-white border border-gray-200 rounded-xl p-4 mb-6 overflow-x-auto">
+    <div id="preview-card" class="hidden card p-4 mb-6 overflow-x-auto">
         <p class="text-sm font-medium mb-3">Preview &mdash; barangay breakdown</p>
         <table class="w-full text-sm">
             <thead class="text-gray-500 text-xs uppercase">
@@ -76,46 +76,26 @@
         </table>
     </div>
 
-    <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total reports</p>
-                <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">All time</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-file-report text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="stats-row" class="hidden stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
+        <div class="stat">
+            <p class="stat-label">Total reports</p>
+            <p id="stat-total" class="stat-value">&mdash;</p>
+            <p class="stat-note">All time</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">This month</p>
-                <p id="stat-this-month" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Generated so far</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-calendar-stats text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">This month</p>
+            <p id="stat-this-month" class="stat-value">&mdash;</p>
+            <p class="stat-note">Generated so far</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Persons affected</p>
-                <p id="stat-persons" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Live count, reported events</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Persons affected</p>
+            <p id="stat-persons" class="stat-value">&mdash;</p>
+            <p class="stat-note">Live count, reported events</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p id="stat-latest-label" class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Latest report</p>
-                <p id="stat-latest" class="text-lg font-bold text-gray-800">&mdash;</p>
-                <p id="stat-latest-date" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-clock text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p id="stat-latest-label" class="stat-label">Latest report</p>
+            <p id="stat-latest" class="stat-value text-lg leading-7">&mdash;</p>
+            <p id="stat-latest-date" class="stat-note">&mdash;</p>
         </div>
     </div>
 
@@ -131,11 +111,11 @@
                 <p class="text-sm font-medium text-gray-700">Previously generated reports</p>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <div class="relative flex-1 sm:flex-none">
-                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
+                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by event or report type..."
-                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
+                            class="input pl-9 sm:w-56">
                     </div>
-                    <select id="type-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <select id="type-filter" class="input">
                         <option value="">All report types</option>
                         <option value="dromic_region_v">DROMIC Region V</option>
                         <option value="ec_information_board">EC Information Board</option>
@@ -150,8 +130,8 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div id="type-chart-card" class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Reports by type</p>
+            <div id="type-chart-card" class="card p-4">
+                <h2 class="card-title mb-3">Reports by type</h2>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                         <canvas id="typeChart" role="img" aria-label="Doughnut chart of reports by type"></canvas>
@@ -160,13 +140,13 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Reports generated (last 6 months)</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Reports generated (last 6 months)</h2>
                 <div id="month-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Recent activity</h2>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
 
@@ -214,9 +194,9 @@
         });
 
         document.getElementById('reports-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-500 text-sm text-center py-8 bg-white border border-gray-200 rounded-xl">No reports match this filter.</p>'
+            ? '<p class="text-gray-500 text-sm text-center py-8 card">No reports match this filter.</p>'
             : filtered.map((r) => `
-                <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
+                <div class="card p-3 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                             <i class="ti ${reportTypeIcons[r.report_type] ?? 'ti-file'} text-purple-500" style="font-size: 16px;" aria-hidden="true"></i>
@@ -229,7 +209,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="${r.download_url}" class="text-sm text-brand hover:underline"
+                    <a href="${r.download_url}" class="link text-sm"
                        onclick="downloadWithAuth(event, '${r.download_url}')">Download</a>
                 </div>
             `).join('');
@@ -319,10 +299,10 @@
             const typeTotal = allReports.length || 1;
             document.getElementById('type-legend').innerHTML = typeCounts.map((t) => `
                 <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1.5 text-gray-600">
+                    <span class="flex items-center gap-1.5 text-gray-700">
                         <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${reportTypeColors[t.key]}"></span>${t.label}
                     </span>
-                    <span class="font-medium text-gray-800">${t.count} <span class="text-gray-500 font-normal">(${Math.round(t.count / typeTotal * 100)}%)</span></span>
+                    <span class="font-medium text-gray-900 tabular-nums">${t.count} <span class="text-gray-500 font-normal">(${Math.round(t.count / typeTotal * 100)}%)</span></span>
                 </div>`).join('');
 
             if (typeChartInstance) typeChartInstance.destroy();
@@ -330,7 +310,7 @@
                 type: 'doughnut',
                 data: {
                     labels: typeCounts.map((t) => t.label),
-                    datasets: [{ data: typeCounts.map((t) => t.count), backgroundColor: typeCounts.map((t) => reportTypeColors[t.key]), borderWidth: 0 }],
+                    datasets: [{ data: typeCounts.map((t) => t.count), backgroundColor: typeCounts.map((t) => reportTypeColors[t.key]), borderColor: '#FFFFFF', borderWidth: 2 }],
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
             });
@@ -358,10 +338,10 @@
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-gray-600">${m.label}</span>
-                    <span class="font-medium text-gray-800">${m.count}</span>
+                    <span class="font-medium text-gray-900 tabular-nums">${m.count}</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-1.5">
-                    <div class="bg-blue-500 h-1.5 rounded-full" style="width:${m.count / maxMonth * 100}%"></div>
+                <div class="meter">
+                    <div class="meter-fill bg-brand" style="width:${m.count / maxMonth * 100}%"></div>
                 </div>
             </div>`).join('');
 
@@ -370,9 +350,9 @@
         const recentReportLogs = allLogs.filter((l) => l.action === 'report.generated').slice(0, 6);
         document.getElementById('activity-timeline').innerHTML = recentReportLogs.length ? recentReportLogs.map((l) => `
             <div class="flex gap-2.5">
-                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-purple-400"></span>
+                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-brand" aria-hidden="true"></span>
                 <div class="min-w-0">
-                    <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
+                    <p class="text-gray-900 font-medium truncate">${l.description ?? l.action}</p>
                     <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                 </div>
             </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';

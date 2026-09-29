@@ -21,7 +21,7 @@
     {{-- Level 1 (landing view): one card per barangay that has at least one
         evacuation center. --}}
     <div id="barangay-list-view" class="max-w-3xl">
-        <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 bg-white border border-gray-200 rounded-xl">
+        <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 card">
             <i class="ti ti-building text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
             <p class="text-sm font-medium text-gray-600 mb-1">No evacuation centers yet</p>
             <p class="text-sm text-gray-500">Centers will appear here once barangays register them.</p>
@@ -37,7 +37,7 @@
         <div id="center-list" class="flex flex-col gap-2.5"></div>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mt-4 max-w-3xl"></div>
+    <div id="form-errors" class="hidden callout callout-danger mt-4 max-w-3xl"></div>
 @endsection
 
 @section('scripts')
@@ -125,7 +125,7 @@
 
         listEl.innerHTML = rows.map((r) => `
             <button type="button"
-                class="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-left hover:border-brand hover:shadow-sm transition-shadow"
+                class="w-full flex items-center gap-3 card px-4 py-3.5 text-left hover:border-brand hover:shadow-sm transition-shadow"
                 data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
                 <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                     <i class="ti ti-map-pin text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
@@ -156,7 +156,7 @@
             .sort((a, b) => a.name.localeCompare(b.name));
 
         document.getElementById('center-list').innerHTML = centers.map((c) => `
-            <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3.5 hover:border-brand hover:shadow-sm transition-shadow">
+            <div class="flex items-center gap-3 card px-4 py-3.5 hover:border-brand hover:shadow-sm transition-shadow">
                 <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
                     <i class="ti ti-building text-green-500" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>

@@ -4,55 +4,36 @@
 @section('nav-dashboard', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1" id="dashboard-greeting">Dashboard</h1>
-    <p class="text-sm text-gray-500 mb-6">Here's what's registered so far.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title" id="dashboard-greeting">Dashboard</h1>
+            <p class="page-subtitle">Here's what's registered so far.</p>
+        </div>
+    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total evacuees</p>
-                <p id="stat-evacuees" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Currently displaced, active event(s)</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div class="stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
+        <div class="stat">
+            <p class="stat-label">Total evacuees</p>
+            <p id="stat-evacuees" class="stat-value">&mdash;</p>
+            <p class="stat-note">Currently displaced, active event(s)</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active centers</p>
-                <p id="stat-centers" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Facilities in use</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-building text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Active centers</p>
+            <p id="stat-centers" class="stat-value">&mdash;</p>
+            <p class="stat-note">Facilities in use</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Predicted influx</p>
-                <p id="stat-predicted" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">AI forecast, latest</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-trending-up text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Predicted influx</p>
+            <p id="stat-predicted" class="stat-value">&mdash;</p>
+            <p class="stat-note">AI forecast, latest</p>
         </div>
-        {{-- Border/icon color are set by setAtRiskTile() below, not fixed here
-            like the other three cards -- this is the one stat that's a binary
-            risk signal, not a neutral count, so it needs to look calm at 0
-            and only escalate to red once there's a real problem. A hardcoded
-            red border made 0 look just as alarming as an actual at-risk
-            center, and left a real one nothing further to escalate to. --}}
-        <div id="at-risk-card" class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #D1D5DB;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Centers at risk</p>
-                <p id="stat-at-risk" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">Near or above capacity</p>
-            </div>
-            <div id="at-risk-icon-badge" class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <i class="ti ti-alert-triangle text-gray-400" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        {{-- The one figure that's a risk signal, not a neutral count:
+            setAtRiskTile() below adds .stat-alert (red dot + red figure)
+            only once there's a real problem, so 0 stays calm. --}}
+        <div id="at-risk-card" class="stat">
+            <p class="stat-label">Centers at risk</p>
+            <p id="stat-at-risk" class="stat-value">&mdash;</p>
+            <p class="stat-note">Near or above capacity</p>
         </div>
     </div>
 
@@ -61,23 +42,23 @@
         header button for the full reasoning. Route/page stay fully intact
         and reachable directly; this is a UI visibility change only. --}}
     <a href="/families/create"
-        class="hidden inline-block bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 mb-6">
+        class="hidden btn btn-primary mb-6">
         + Register a family
     </a>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-semibold text-gray-700">Recent evacuation events</p>
-                <a href="/evacuation-events" class="text-xs text-brand hover:underline">View all</a>
+        <div class="card p-4">
+            <div class="card-header">
+                <h2 class="card-title">Recent evacuation events</h2>
+                <a href="/evacuation-events" class="link text-sm">View all</a>
             </div>
-            <div id="recent-events-list" class="flex flex-col gap-3 text-sm"></div>
+            <div id="recent-events-list" class="flex flex-col gap-2 text-sm"></div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-semibold text-gray-700">Evacuation centers overview</p>
-                <a href="/evacuation-centers" class="text-xs text-brand hover:underline">View all</a>
+        <div class="card p-4">
+            <div class="card-header">
+                <h2 class="card-title">Evacuation centers overview</h2>
+                <a href="/evacuation-centers" class="link text-sm">View all</a>
             </div>
             <div class="flex items-center gap-4 mb-3">
                 <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
@@ -85,73 +66,71 @@
                 </div>
                 <div id="centers-legend" class="flex-1 space-y-1.5 text-sm"></div>
             </div>
-            <div id="centers-banner" class="bg-blue-50 text-blue-700 text-xs rounded-lg px-3 py-2 flex items-center gap-1.5">
-                <i class="ti ti-info-circle" style="font-size: 14px;" aria-hidden="true"></i>
+            <div id="centers-banner" class="callout callout-info flex items-center gap-2 text-xs">
+                <i class="ti ti-info-circle shrink-0" style="font-size: 15px;" aria-hidden="true"></i>
                 <span id="centers-banner-text">Loading...</span>
             </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-semibold text-gray-700">Alerts</p>
-                <a href="/alerts" class="text-xs text-brand hover:underline">View all</a>
+        <div class="card p-4">
+            <div class="card-header">
+                <h2 class="card-title">Alerts</h2>
+                <a href="/alerts" class="link text-sm">View all</a>
             </div>
             <div id="alerts-summary" class="mb-3"></div>
+            {{-- Severity is carried by the tint + icon + label; the count
+                itself stays in ink. --}}
             <div class="grid grid-cols-2 gap-2">
-                <div class="bg-orange-50 rounded-lg px-3 py-2 text-center">
-                    <p id="stat-advisories" class="text-lg font-bold text-orange-600">&mdash;</p>
-                    <p class="text-xs text-orange-700">Advisories</p>
+                <div class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
+                    <p id="stat-advisories" class="text-lg font-semibold text-gray-900">&mdash;</p>
+                    <p class="flex items-center gap-1 text-xs font-medium text-orange-800">
+                        <i class="ti ti-speakerphone" style="font-size: 13px;" aria-hidden="true"></i> Advisories
+                    </p>
                 </div>
-                <div class="bg-red-50 rounded-lg px-3 py-2 text-center">
-                    <p id="stat-critical" class="text-lg font-bold text-red-600">&mdash;</p>
-                    <p class="text-xs text-red-700">Critical alerts</p>
+                <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+                    <p id="stat-critical" class="text-lg font-semibold text-gray-900">&mdash;</p>
+                    <p class="flex items-center gap-1 text-xs font-medium text-red-700">
+                        <i class="ti ti-alert-triangle" style="font-size: 13px;" aria-hidden="true"></i> Critical alerts
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-4">
-            <div class="flex items-center gap-2 mb-3">
-                <div class="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center shrink-0">
-                    <i class="ti ti-sparkles text-white" style="font-size: 13px;" aria-hidden="true"></i>
-                </div>
-                <p class="text-sm font-semibold text-gray-700">Predicted influx</p>
-                <span class="text-xs px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700">AI forecast</span>
+        <div class="lg:col-span-2 card p-4">
+            <div class="card-header justify-start">
+                <h2 class="card-title">Predicted influx</h2>
+                <span class="badge badge-neutral">AI forecast</span>
             </div>
             <div id="predicted-influx-content"></div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-            <p class="text-sm font-semibold text-gray-700 mb-3">Quick actions</p>
+        <div class="card p-4">
+            <h2 class="card-title mb-3">Quick actions</h2>
             <div class="grid grid-cols-2 gap-2">
-                <a href="/evacuation-events/create" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-light">
-                    <i class="ti ti-calendar-plus text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                    <span class="text-xs text-gray-600">Add evacuation event</span>
+                <a href="/evacuation-events/create" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-50 transition-colors">
+                    <i class="ti ti-calendar-plus text-brand-700" style="font-size: 20px;" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-700">Add evacuation event</span>
                 </a>
-                <a href="/evacuation-centers" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-light">
-                    <i class="ti ti-building text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                    <span class="text-xs text-gray-600">Manage centers</span>
+                <a href="/evacuation-centers" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-50 transition-colors">
+                    <i class="ti ti-building text-brand-700" style="font-size: 20px;" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-700">Manage centers</span>
                 </a>
-                <a href="/gis-map" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-light">
-                    <i class="ti ti-map text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                    <span class="text-xs text-gray-600">View GIS map</span>
+                <a href="/gis-map" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-50 transition-colors">
+                    <i class="ti ti-map text-brand-700" style="font-size: 20px;" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-700">View GIS map</span>
                 </a>
-                <a href="/reports" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-light">
-                    <i class="ti ti-file-report text-brand" style="font-size: 20px;" aria-hidden="true"></i>
-                    <span class="text-xs text-gray-600">Generate report</span>
+                <a href="/reports" class="flex flex-col items-center text-center gap-1.5 border border-gray-200 rounded-lg p-3 hover:border-brand hover:bg-brand-50 transition-colors">
+                    <i class="ti ti-file-report text-brand-700" style="font-size: 20px;" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-700">Generate report</span>
                 </a>
             </div>
         </div>
     </div>
 
-    <div id="chart-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2 mb-2">
-            <div class="w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center">
-                <i class="ti ti-chart-bar text-white" style="font-size: 14px;" aria-hidden="true"></i>
-            </div>
-            <p class="text-sm text-gray-600">Persons displaced by event</p>
-        </div>
+    <div id="chart-card" class="hidden card p-4">
+        <h2 class="card-title mb-3">Persons displaced by event</h2>
         <div style="position: relative; width: 100%; height: 220px;">
             <canvas id="eventsChart" role="img" aria-label="Bar chart of persons displaced per disaster event">Loading chart data</canvas>
         </div>
@@ -175,7 +154,7 @@
         earthquake: 'ti-activity', other: 'ti-alert-triangle',
     };
     const eventStatusColors = {
-        active: 'bg-green-50 text-green-700', monitoring: 'bg-amber-50 text-amber-700', closed: 'bg-gray-100 text-gray-600',
+        active: 'badge badge-success', monitoring: 'badge badge-warning', closed: 'badge badge-neutral',
     };
     const eventStatusLabels = { active: 'Active', monitoring: 'Monitoring', closed: 'Closed' };
 
@@ -184,17 +163,7 @@
     // up red from a stale previous load while showing "0".
     function setAtRiskTile(count) {
         document.getElementById('stat-at-risk').textContent = count;
-        const badge = document.getElementById('at-risk-icon-badge');
-        const icon = badge.querySelector('i');
-        if (count > 0) {
-            document.getElementById('at-risk-card').style.borderLeftColor = '#EF4444';
-            badge.className = 'w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0';
-            icon.className = 'ti ti-alert-triangle text-red-500';
-        } else {
-            document.getElementById('at-risk-card').style.borderLeftColor = '#D1D5DB';
-            badge.className = 'w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0';
-            icon.className = 'ti ti-alert-triangle text-gray-400';
-        }
+        document.getElementById('at-risk-card').classList.toggle('stat-alert', count > 0);
     }
 
     (async () => {
@@ -233,23 +202,23 @@
 
             document.getElementById('centers-legend').innerHTML = `
                 <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-green-500"></span>In use</span>
-                    <span class="font-medium text-gray-800">${inUse} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(inUse / centers.length * 100) : 0}%)</span></span>
+                    <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#15803D"></span>In use</span>
+                    <span class="font-medium text-gray-900 tabular-nums">${inUse} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(inUse / centers.length * 100) : 0}%)</span></span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-blue-500"></span>Available</span>
-                    <span class="font-medium text-gray-800">${available} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(available / centers.length * 100) : 0}%)</span></span>
+                    <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#2563EB"></span>Available</span>
+                    <span class="font-medium text-gray-900 tabular-nums">${available} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(available / centers.length * 100) : 0}%)</span></span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block bg-red-500"></span>At risk</span>
-                    <span class="font-medium text-gray-800">${atRiskCount} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(atRiskCount / centers.length * 100) : 0}%)</span></span>
+                    <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#DC2626"></span>At risk</span>
+                    <span class="font-medium text-gray-900 tabular-nums">${atRiskCount} <span class="text-gray-500 font-normal">(${centers.length ? Math.round(atRiskCount / centers.length * 100) : 0}%)</span></span>
                 </div>`;
 
             new Chart(document.getElementById('centersChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['In use', 'Available', 'At risk'],
-                    datasets: [{ data: [inUse, available, atRiskCount], backgroundColor: ['#22C55E', '#3B82F6', '#EF4444'], borderWidth: 0 }],
+                    datasets: [{ data: [inUse, available, atRiskCount], backgroundColor: ['#15803D', '#2563EB', '#DC2626'], borderColor: '#FFFFFF', borderWidth: 2 }],
                 },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
             });
@@ -277,9 +246,9 @@
                 box.innerHTML = `
                     <div class="flex flex-col items-center text-center py-8">
                         <i class="ti ti-cloud-off text-gray-300 mb-2" style="font-size: 32px;" aria-hidden="true"></i>
-                        <p class="text-sm font-medium text-gray-500">No forecast data available yet.</p>
-                        <p class="text-xs text-gray-500 mt-1">Forecast will appear here when available.</p>
-                        <a href="/predictive-analytics" class="text-xs text-brand hover:underline mt-2">Generate a forecast &rarr;</a>
+                        <p class="text-sm font-medium text-gray-700">No forecast data available yet.</p>
+                        <p class="text-sm text-gray-500 mt-1">Forecast will appear here when available.</p>
+                        <a href="/predictive-analytics" class="btn btn-secondary btn-sm mt-3">Generate a forecast</a>
                     </div>`;
                 return;
             }
@@ -287,23 +256,23 @@
             box.innerHTML = `
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
                     <div>
-                        <p class="text-xs text-gray-500">Predicted evacuees</p>
-                        <p class="text-xl font-bold text-gray-800">${latest.predicted_evacuees}</p>
+                        <p class="text-xs font-medium text-gray-600">Predicted evacuees</p>
+                        <p class="text-xl font-semibold text-gray-900">${latest.predicted_evacuees}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500">Predicted occupancy</p>
-                        <p class="text-xl font-bold text-gray-800">${latest.predicted_center_occupancy ?? '—'}</p>
+                        <p class="text-xs font-medium text-gray-600">Predicted occupancy</p>
+                        <p class="text-xl font-semibold text-gray-900">${latest.predicted_center_occupancy ?? '—'}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500">Est. resource cost</p>
-                        <p class="text-xl font-bold text-gray-800">₱${Number(latest.predicted_resources_needed ?? 0).toLocaleString()}</p>
+                        <p class="text-xs font-medium text-gray-600">Est. resource cost</p>
+                        <p class="text-xl font-semibold text-gray-900">₱${Number(latest.predicted_resources_needed ?? 0).toLocaleString()}</p>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-gray-500 mb-1">
                     Input: ${latest.input_payload.rainfall_mm}mm rainfall, ${latest.input_payload.wind_speed_kph}kph wind &middot;
                     generated ${new Date(latest.generated_at).toLocaleString()} &middot; ${latest.model_used}
                 </p>
-                <a href="/predictive-analytics" class="text-xs text-brand hover:underline">View full analytics &amp; AI recommendations &rarr;</a>`;
+                <a href="/predictive-analytics" class="link text-sm">View full analytics &amp; AI recommendations</a>`;
         } catch (error) {
             document.getElementById('stat-predicted').textContent = 'None yet';
             document.getElementById('predicted-influx-content').innerHTML =
@@ -322,8 +291,8 @@
             const summary = document.getElementById('alerts-summary');
             if (alerts.length === 0) {
                 summary.innerHTML = `
-                    <div class="flex items-start gap-2 bg-green-50 rounded-lg p-3">
-                        <i class="ti ti-circle-check text-green-600 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
+                    <div class="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+                        <i class="ti ti-circle-check text-green-700 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
                         <div>
                             <p class="text-sm font-medium text-green-800">No active alerts</p>
                             <p class="text-xs text-green-700">There are currently no active alerts in Ligao City.</p>
@@ -342,19 +311,19 @@
             // card just wasn't using the same vocabulary for the one alert
             // it actually shows.
             const severityTint = {
-                mandatory: { bg: 'bg-red-50', icon: 'ti-alert-triangle', iconColor: 'text-red-600', title: 'text-red-800', body: 'text-red-700', badge: 'bg-red-100 text-red-700', label: 'Mandatory' },
-                advisory: { bg: 'bg-orange-50', icon: 'ti-speakerphone', iconColor: 'text-orange-600', title: 'text-orange-800', body: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Advisory' },
-                info: { bg: 'bg-blue-50', icon: 'ti-info-circle', iconColor: 'text-blue-600', title: 'text-blue-800', body: 'text-blue-700', badge: 'bg-blue-100 text-blue-700', label: 'Info' },
-                all_clear: { bg: 'bg-green-50', icon: 'ti-circle-check', iconColor: 'text-green-600', title: 'text-green-800', body: 'text-green-700', badge: 'bg-green-100 text-green-700', label: 'All clear' },
+                mandatory: { bg: 'bg-red-50 border-red-200', icon: 'ti-alert-triangle', iconColor: 'text-red-700', title: 'text-red-900', body: 'text-red-800', badge: 'badge-danger', label: 'Mandatory' },
+                advisory: { bg: 'bg-orange-50 border-orange-200', icon: 'ti-speakerphone', iconColor: 'text-orange-700', title: 'text-orange-900', body: 'text-orange-800', badge: 'badge-advisory', label: 'Advisory' },
+                info: { bg: 'bg-blue-50 border-blue-200', icon: 'ti-info-circle', iconColor: 'text-blue-700', title: 'text-blue-900', body: 'text-blue-800', badge: 'badge-info', label: 'Info' },
+                all_clear: { bg: 'bg-green-50 border-green-200', icon: 'ti-circle-check', iconColor: 'text-green-700', title: 'text-green-900', body: 'text-green-800', badge: 'badge-success', label: 'All clear' },
             };
 
             const latest = alerts[0];
             const sev = severityTint[latest.severity] ?? severityTint.info;
             summary.innerHTML = `
-                <div class="flex items-start gap-2 ${sev.bg} rounded-lg p-3">
-                    <i class="ti ${sev.icon} ${sev.iconColor} shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="flex items-start gap-2 ${sev.bg} border rounded-lg p-3">
+                    <i class="ti ${sev.icon} ${sev.iconColor} shrink-0 mt-0.5" style="font-size: 18px;" aria-hidden="true"></i>
                     <div class="min-w-0">
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold ${sev.badge}">${sev.label.toUpperCase()}</span>
+                        <span class="badge ${sev.badge}">${sev.label}</span>
                         <p class="text-sm font-medium ${sev.title} truncate mt-1">${latest.title}</p>
                         <p class="text-xs ${sev.body}">${new Date(latest.created_at).toLocaleString()}</p>
                     </div>
@@ -373,15 +342,15 @@
             document.getElementById('recent-events-list').innerHTML = events.length === 0
                 ? '<p class="text-gray-500 text-sm text-center py-6">No disaster events yet.</p>'
                 : events.slice(0, 3).map((e) => `
-                    <a href="/evacuation-events" class="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg -mx-1 px-1 py-1">
-                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                            <i class="ti ${eventTypeIcons[e.event_type] ?? 'ti-alert-triangle'} text-blue-500" style="font-size: 17px;" aria-hidden="true"></i>
+                    <a href="/evacuation-events" class="flex items-center gap-3 hover:bg-gray-50 rounded-lg -mx-2 px-2 py-1.5 transition-colors">
+                        <div class="icon-chip">
+                            <i class="ti ${eventTypeIcons[e.event_type] ?? 'ti-alert-triangle'}" style="font-size: 17px;" aria-hidden="true"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="font-medium text-gray-700 truncate">${e.name}</p>
+                            <p class="font-medium text-gray-900 truncate">${e.name}</p>
                             <p class="text-xs text-gray-500">${e.start_date}</p>
                         </div>
-                        <span class="text-xs px-2 py-0.5 rounded-lg shrink-0 ${eventStatusColors[e.status] ?? ''}">${eventStatusLabels[e.status] ?? e.status}</span>
+                        <span class="shrink-0 ${eventStatusColors[e.status] ?? 'badge badge-neutral'}">${eventStatusLabels[e.status] ?? e.status}</span>
                     </a>`).join('');
 
             const withDisplaced = events.filter((e) => e.total_persons_displaced > 0);
@@ -396,7 +365,7 @@
                     datasets: [{
                         label: 'Persons displaced',
                         data: withDisplaced.map((e) => e.total_persons_displaced),
-                        backgroundColor: '#2a78d6',
+                        backgroundColor: '#2563EB',
                         borderRadius: 4,
                         maxBarThickness: 40,
                     }],
@@ -414,7 +383,7 @@
                         },
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#e1e0d9' } },
+                        y: { beginAtZero: true, grid: { color: '#E5E7EB' } },
                         x: { grid: { display: false } },
                     },
                 },

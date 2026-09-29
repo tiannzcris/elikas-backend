@@ -53,7 +53,7 @@
             {{-- The board itself: header block -> age & sex -> sectoral, as
                 one sheet, in the official template's own order. --}}
             <section id="ecb-board" data-region="board"
-                class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                class="card overflow-hidden">
                 <div class="px-4 sm:px-5 pt-4 pb-3 flex flex-wrap items-start justify-between gap-3">
                     <div class="min-w-0">
                         <p class="flex items-center gap-2 text-xs font-medium text-gray-500">
@@ -158,11 +158,11 @@
                 grows taller than the space left below it on screen (set by
                 fitAddEvacueePanel()) -- its fields scroll inside it
                 instead, under the pinned read-back + button. --}}
-            <section data-region="add-evacuee" class="bg-white border border-gray-200 rounded-xl px-4 pt-4 lg:sticky lg:top-2 lg:overflow-y-auto">
+            <section data-region="add-evacuee" class="card px-4 pt-4 lg:sticky lg:top-2 lg:overflow-y-auto">
                 <p class="text-sm font-semibold text-gray-800">Add evacuee</p>
                 <p class="text-xs text-gray-500 mt-0.5 mb-3">Name and birthdate can be added later on the Evacuees page.</p>
 
-                <div id="add-evacuee-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
+                <div id="add-evacuee-errors" class="hidden callout callout-danger mb-3"></div>
 
                 <form id="add-evacuee-form" class="flex flex-col">
                     {{-- Four sections, in the order staff actually answer
@@ -321,16 +321,16 @@
             </section>
         </div>
 
-        <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-5"></div>
+        <div id="form-errors" class="hidden callout callout-danger mb-5"></div>
 
         {{-- Quick Departure: the reverse of Add Evacuee, by bracket + sex +
             quantity rather than by name, for the same speed reason. Used
             far less often than adding, so it sits last, as one compact row. --}}
-        <section data-region="quick-departure" class="bg-white border border-gray-200 rounded-xl p-4">
+        <section data-region="quick-departure" class="card p-4">
             <p class="text-sm font-semibold text-gray-800">Quick departure</p>
             <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one specific person, open their family on the Evacuees page and use Check out on their row.</p>
 
-            <div id="quick-departure-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-3"></div>
+            <div id="quick-departure-errors" class="hidden callout callout-danger mb-3"></div>
 
             <form id="quick-departure-form" class="grid grid-cols-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_6rem_minmax(0,1.2fr)_auto] gap-2 items-end">
                 <div class="col-span-2 lg:col-span-1">

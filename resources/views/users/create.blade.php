@@ -7,26 +7,26 @@
     <h1 class="text-xl font-semibold mb-1" id="page-title">Add a user</h1>
     <p class="text-sm text-gray-500 mb-6">Creates a login that works for both the web dashboard and the offline desktop companion.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-2xl"></div>
 
     <form id="user-form" class="flex flex-col gap-4 max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Full name</label>
-                <input type="text" id="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Full name</label>
+                <input type="text" id="name" required class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                <label class="label flex items-center gap-1">
                     Email
                     <i id="email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
-                <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="input">
                 <p class="text-xs text-gray-500 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1" id="password-label">Password</label>
+                <label class="label" id="password-label">Password</label>
                 <div class="flex gap-2">
-                    <input type="password" id="password" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Minimum 8 characters">
+                    <input type="password" id="password" class="input flex-1 min-w-0" placeholder="Minimum 8 characters">
                     <button type="button" id="generate-password-btn"
                         class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
                         Generate
@@ -34,15 +34,15 @@
                 </div>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Contact number (optional)</label>
-                <input type="text" id="contact_number" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Contact number (optional)</label>
+                <input type="text" id="contact_number" placeholder="09XXXXXXXXX" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                <label class="label flex items-center gap-1">
                     Role
                     <i id="role-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
-                <select id="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                <select id="role" required class="input">
                     <option value="administrator">Administrator</option>
                     <option value="cswd_personnel">CSWD Personnel</option>
                     <option value="barangay_official">Barangay Official</option>
@@ -50,17 +50,17 @@
                 <p id="role-locked-note" class="hidden text-xs text-gray-500 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
             </div>
             <div id="barangay-field" class="hidden">
-                <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                <label class="label flex items-center gap-1">
                     Barangay
                     <i id="barangay-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
-                <select id="barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                <select id="barangay_id" class="input">
                     <option value="">Select barangay</option>
                 </select>
             </div>
             <div id="status-field" class="hidden">
-                <label class="text-sm text-gray-600 block mb-1">Status</label>
-                <select id="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Status</label>
+                <select id="status" class="input">
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <button type="submit" id="submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
+        <button type="submit" id="submit-btn" class="btn btn-primary w-fit">
             Create account
         </button>
     </form>

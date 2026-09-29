@@ -4,20 +4,24 @@
 @section('nav-events', 'active')
 
 @section('content')
-    <h1 class="text-xl font-semibold mb-1" id="page-title">Create a disaster event</h1>
-    <p class="text-sm text-gray-500 mb-6">This becomes selectable for evacuee registration, reports, alerts, and predictions.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title" id="page-title">Create a disaster event</h1>
+            <p class="page-subtitle">This becomes selectable for evacuee registration, reports, alerts, and predictions.</p>
+        </div>
+    </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4 max-w-2xl"></div>
 
     <form id="event-form" class="flex flex-col gap-4 max-w-2xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
-                <label class="text-sm text-gray-600 block mb-1">Event name</label>
-                <input type="text" id="name" required placeholder="e.g. Typhoon Rolly 2026" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Event name</label>
+                <input type="text" id="name" required placeholder="e.g. Typhoon Rolly 2026" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Event type</label>
-                <select id="event_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Event type</label>
+                <select id="event_type" required class="input">
                     <option value="typhoon">Typhoon</option>
                     <option value="flood">Flood</option>
                     <option value="volcanic_eruption">Volcanic eruption</option>
@@ -26,44 +30,44 @@
                 </select>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Status</label>
-                <select id="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Status</label>
+                <select id="status" required class="input">
                     <option value="monitoring">Monitoring</option>
                     <option value="active">Active</option>
                     <option value="closed">Closed</option>
                 </select>
             </div>
             <div id="field-typhoon_category">
-                <label class="text-sm text-gray-600 block mb-1">Typhoon category (optional)</label>
-                <input type="text" id="typhoon_category" placeholder="e.g. Signal No. 2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Typhoon category (optional)</label>
+                <input type="text" id="typhoon_category" placeholder="e.g. Signal No. 2" class="input">
             </div>
             <div id="field-alert_level">
-                <label class="text-sm text-gray-600 block mb-1">Alert level (optional)</label>
-                <input type="text" id="alert_level" placeholder="e.g. Alert Level 3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Alert level (optional)</label>
+                <input type="text" id="alert_level" placeholder="e.g. Alert Level 3" class="input">
             </div>
             <div id="field-rainfall_mm">
-                <label class="text-sm text-gray-600 block mb-1">Rainfall, mm (optional)</label>
-                <input type="number" step="0.1" id="rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Rainfall, mm (optional)</label>
+                <input type="number" step="0.1" id="rainfall_mm" class="input">
             </div>
             <div id="field-max_wind_speed_kph">
-                <label class="text-sm text-gray-600 block mb-1">Max wind speed, kph (optional)</label>
-                <input type="number" step="0.1" id="max_wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Max wind speed, kph (optional)</label>
+                <input type="number" step="0.1" id="max_wind_speed_kph" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Start date</label>
-                <input type="date" id="start_date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Start date</label>
+                <input type="date" id="start_date" required class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">End date (optional)</label>
-                <input type="date" id="end_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">End date (optional)</label>
+                <input type="date" id="end_date" class="input">
             </div>
             <div class="sm:col-span-2">
-                <label class="text-sm text-gray-600 block mb-1">Description (optional)</label>
-                <textarea id="description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <label class="label">Description (optional)</label>
+                <textarea id="description" rows="2" class="input"></textarea>
             </div>
         </div>
 
-        <button type="submit" id="submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
+        <button type="submit" id="submit-btn" class="btn btn-primary w-fit">
             Create event
         </button>
     </form>

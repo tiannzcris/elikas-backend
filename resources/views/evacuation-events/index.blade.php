@@ -4,10 +4,10 @@
 @section('nav-events', 'active')
 
 @section('content')
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="page-header">
         <div class="min-w-0">
-            <h1 class="text-xl font-semibold mb-1">Evacuation events</h1>
-            <p class="text-sm text-gray-500">Disaster events tracked by the system -- create one here before registering evacuees under it.</p>
+            <h1 class="page-title">Evacuation events</h1>
+            <p class="page-subtitle">Disaster events tracked by the system -- create one here before registering evacuees under it.</p>
         </div>
         {{-- Opens the modal below instead of navigating to /evacuation-events/create --
             that route/page still exists untouched (also still reused for
@@ -15,60 +15,35 @@
             only the create flow moved to a modal), following the same
             pattern established for the alerts page. --}}
         <button type="button" id="add-event-btn"
-            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 btn btn-primary">
             + Create event
         </button>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
-    <div id="hero-card" class="hidden bg-white border border-gray-200 rounded-xl p-5 mb-6"></div>
+    <div id="hero-card" class="hidden card p-5 mb-6"></div>
 
-    <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total events</p>
-                <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-alert-triangle text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="stats-row" class="hidden stat-strip grid-cols-2 lg:grid-cols-5 mb-6">
+        <div class="stat">
+            <p class="stat-label">Total events</p>
+            <p id="stat-total" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F59E0B;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Monitoring</p>
-                <p id="stat-monitoring" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-eye text-amber-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Monitoring</p>
+            <p id="stat-monitoring" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active</p>
-                <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-check text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Active</p>
+            <p id="stat-active" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #6B7280;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Closed</p>
-                <p id="stat-closed" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <i class="ti ti-archive text-gray-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Closed</p>
+            <p id="stat-closed" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total displaced</p>
-                <p id="stat-displaced" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Total displaced</p>
+            <p id="stat-displaced" class="stat-value">&mdash;</p>
         </div>
     </div>
 
@@ -77,9 +52,9 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div id="status-tabs" class="flex items-center gap-2 flex-wrap"></div>
                 <div class="relative w-full sm:w-auto">
-                    <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
+                    <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                     <input id="search-input" type="text" placeholder="Search by name or type..."
-                        class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
+                        class="input pl-9 sm:w-56">
                 </div>
             </div>
 
@@ -87,8 +62,8 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Events by status</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Events by status</h2>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                         <canvas id="statusChart" role="img" aria-label="Doughnut chart of events by status"></canvas>
@@ -97,41 +72,41 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Events by type</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Events by type</h2>
                 <div id="type-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Recent activity</h2>
                 <div id="activity-timeline" class="space-y-4 text-xs"></div>
             </div>
         </div>
     </div>
 
-    <div id="create-event-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="create-event-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-2xl">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800">Create a disaster event</p>
+                    <h2 class="modal-title">Create a disaster event</h2>
                     <p class="text-xs text-gray-500">This becomes selectable for evacuee registration, reports, alerts, and predictions.</p>
                 </div>
-                <button type="button" id="event-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="event-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="event-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="event-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="event-form" class="flex flex-col gap-4 p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="text-sm text-gray-600 block mb-1">Event name</label>
-                        <input type="text" id="ev-name" required placeholder="e.g. Typhoon Rolly 2026" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Event name</label>
+                        <input type="text" id="ev-name" required placeholder="e.g. Typhoon Rolly 2026" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Event type</label>
-                        <select id="ev-event_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Event type</label>
+                        <select id="ev-event_type" required class="input">
                             <option value="typhoon">Typhoon</option>
                             <option value="flood">Flood</option>
                             <option value="volcanic_eruption">Volcanic eruption</option>
@@ -140,48 +115,48 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Status</label>
-                        <select id="ev-status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Status</label>
+                        <select id="ev-status" required class="input">
                             <option value="monitoring">Monitoring</option>
                             <option value="active">Active</option>
                             <option value="closed">Closed</option>
                         </select>
                     </div>
                     <div id="field-ev-typhoon_category">
-                        <label class="text-sm text-gray-600 block mb-1">Typhoon category (optional)</label>
-                        <input type="text" id="ev-typhoon_category" placeholder="e.g. Signal No. 2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Typhoon category (optional)</label>
+                        <input type="text" id="ev-typhoon_category" placeholder="e.g. Signal No. 2" class="input">
                     </div>
                     <div id="field-ev-alert_level">
-                        <label class="text-sm text-gray-600 block mb-1">Alert level (optional)</label>
-                        <input type="text" id="ev-alert_level" placeholder="e.g. Alert Level 3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Alert level (optional)</label>
+                        <input type="text" id="ev-alert_level" placeholder="e.g. Alert Level 3" class="input">
                     </div>
                     <div id="field-ev-rainfall_mm">
-                        <label class="text-sm text-gray-600 block mb-1">Rainfall, mm (optional)</label>
-                        <input type="number" step="0.1" id="ev-rainfall_mm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Rainfall, mm (optional)</label>
+                        <input type="number" step="0.1" id="ev-rainfall_mm" class="input">
                     </div>
                     <div id="field-ev-max_wind_speed_kph">
-                        <label class="text-sm text-gray-600 block mb-1">Max wind speed, kph (optional)</label>
-                        <input type="number" step="0.1" id="ev-max_wind_speed_kph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Max wind speed, kph (optional)</label>
+                        <input type="number" step="0.1" id="ev-max_wind_speed_kph" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Start date</label>
-                        <input type="date" id="ev-start_date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Start date</label>
+                        <input type="date" id="ev-start_date" required class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">End date (optional)</label>
-                        <input type="date" id="ev-end_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">End date (optional)</label>
+                        <input type="date" id="ev-end_date" class="input">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="text-sm text-gray-600 block mb-1">Description (optional)</label>
-                        <textarea id="ev-description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                        <label class="label">Description (optional)</label>
+                        <textarea id="ev-description" rows="2" class="input"></textarea>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="event-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="event-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="event-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="event-submit-btn" class="btn btn-primary">
                         Create event
                     </button>
                 </div>
@@ -199,11 +174,12 @@
     }
 
     const statusColors = {
-        active: 'bg-green-50 text-green-700',
-        monitoring: 'bg-amber-50 text-amber-700',
-        closed: 'bg-gray-100 text-gray-600',
+        active: 'badge-success',
+        monitoring: 'badge-warning',
+        closed: 'badge-neutral',
     };
-    const statusDots = { active: '#22C55E', monitoring: '#F59E0B', closed: '#6B7280' };
+    // Status series colors -- see docs/design-system.md, chart palette.
+    const statusDots = { active: '#15803D', monitoring: '#EDA100', closed: '#9CA3AF' };
     const statusLabels = { active: 'Active', monitoring: 'Monitoring', closed: 'Closed' };
     const eventTypeLabels = {
         typhoon: 'Typhoon', flood: 'Flood', volcanic_eruption: 'Volcanic eruption',
@@ -248,41 +224,41 @@
             <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
                 <div>
                     <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs px-2 py-0.5 rounded-lg font-semibold ${statusColors[event.status] ?? ''}">${(statusLabels[event.status] ?? event.status).toUpperCase()}</span>
-                        ${event.typhoon_category ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">${event.typhoon_category}</span>` : ''}
-                        ${event.alert_level ? `<span class="text-xs px-2 py-0.5 rounded-lg bg-red-50 text-red-700">${event.alert_level}</span>` : ''}
+                        <span class="badge ${statusColors[event.status] ?? 'badge-neutral'}">${statusLabels[event.status] ?? event.status}</span>
+                        ${event.typhoon_category ? `<span class="badge badge-info">${event.typhoon_category}</span>` : ''}
+                        ${event.alert_level ? `<span class="badge badge-danger">${event.alert_level}</span>` : ''}
                     </div>
-                    <h2 class="text-lg font-semibold text-gray-800">${event.name}</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">${event.name}</h2>
                     <p class="text-xs text-gray-500 mt-0.5">
                         ${eventTypeLabels[event.event_type] ?? event.event_type} &middot; Started ${event.start_date}${event.end_date ? ' &middot; Ended ' + event.end_date : ''}
                     </p>
                 </div>
-                <a href="/evacuation-events/${event.id}/edit" class="text-sm text-brand hover:underline shrink-0">View / edit details</a>
+                <a href="/evacuation-events/${event.id}/edit" class="btn btn-secondary btn-sm shrink-0">View / edit details</a>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                 <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Rainfall</p>
-                    <p class="text-lg font-bold text-gray-800">${event.rainfall_mm !== null ? event.rainfall_mm + ' mm' : '&mdash;'}</p>
+                    <p class="text-xs font-medium text-gray-600 mb-1">Rainfall</p>
+                    <p class="text-lg font-semibold text-gray-900">${event.rainfall_mm !== null ? event.rainfall_mm + ' mm' : '&mdash;'}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Wind speed</p>
-                    <p class="text-lg font-bold text-gray-800">${event.max_wind_speed_kph !== null ? event.max_wind_speed_kph + ' kph' : '&mdash;'}</p>
+                    <p class="text-xs font-medium text-gray-600 mb-1">Wind speed</p>
+                    <p class="text-lg font-semibold text-gray-900">${event.max_wind_speed_kph !== null ? event.max_wind_speed_kph + ' kph' : '&mdash;'}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Families affected</p>
-                    <p class="text-lg font-bold text-gray-800">${event.total_families_displaced}</p>
+                    <p class="text-xs font-medium text-gray-600 mb-1">Families affected</p>
+                    <p class="text-lg font-semibold text-gray-900">${event.total_families_displaced}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Persons displaced</p>
-                    <p class="text-lg font-bold text-gray-800">${event.total_persons_displaced}</p>
+                    <p class="text-xs font-medium text-gray-600 mb-1">Persons displaced</p>
+                    <p class="text-lg font-semibold text-gray-900">${event.total_persons_displaced}</p>
                 </div>
             </div>
 
             <div id="hero-derived" class="grid grid-cols-2 gap-4 mb-5"></div>
 
             <div>
-                <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Status progress</p>
+                <p class="text-xs font-medium text-gray-600 mb-2">Status progress</p>
                 <div class="flex items-center">
                     ${steps.map((step, i) => `
                         <div class="flex items-center ${i < steps.length - 1 ? 'flex-1' : ''}">
@@ -291,7 +267,7 @@
                                     style="background: ${i <= currentIndex ? statusDots[step] : '#E5E7EB'}">
                                     ${i < currentIndex ? '<i class=\"ti ti-check\" style=\"font-size:13px;\"></i>' : ''}
                                 </span>
-                                <span class="text-xs mt-1 ${i <= currentIndex ? 'text-gray-700 font-medium' : 'text-gray-500'}">${statusLabels[step]}</span>
+                                <span class="text-xs mt-1 ${i <= currentIndex ? 'text-gray-900 font-medium' : 'text-gray-500'}">${statusLabels[step]}</span>
                             </div>
                             ${i < steps.length - 1 ? `<div class="flex-1 h-0.5 mx-2" style="background: ${i < currentIndex ? statusDots[step] : '#E5E7EB'}"></div>` : ''}
                         </div>
@@ -308,13 +284,13 @@
             const barangays = new Set(families.map((f) => f.barangay?.id).filter(Boolean));
             const centers = new Set(families.map((f) => f.evacuation_center?.id).filter(Boolean));
             document.getElementById('hero-derived').innerHTML = `
-                <div class="bg-gray-50 rounded-lg p-3">
-                    <p class="text-xs text-gray-500">Affected barangays</p>
-                    <p class="text-base font-semibold text-gray-800">${barangays.size}</p>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p class="text-xs font-medium text-gray-600">Affected barangays</p>
+                    <p class="text-base font-semibold text-gray-900">${barangays.size}</p>
                 </div>
-                <div class="bg-gray-50 rounded-lg p-3">
-                    <p class="text-xs text-gray-500">Evacuation centers in use</p>
-                    <p class="text-base font-semibold text-gray-800">${centers.size}</p>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p class="text-xs font-medium text-gray-600">Evacuation centers in use</p>
+                    <p class="text-base font-semibold text-gray-900">${centers.size}</p>
                 </div>`;
         }).catch(() => {});
     }
@@ -328,7 +304,7 @@
 
         document.getElementById('status-tabs').innerHTML = Object.keys(labels).map((key) => `
             <button data-filter="${key}"
-                class="status-tab text-sm px-3 py-1.5 rounded-lg border ${statusFilter === key ? 'border-brand bg-brand-light text-brand font-medium' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}">
+                class="status-tab chip ${statusFilter === key ? 'chip-active' : ''}" aria-pressed="${statusFilter === key}">
                 ${labels[key]} (${counts[key]})
             </button>
         `).join('');
@@ -354,18 +330,18 @@
         });
 
         document.getElementById('events-list').innerHTML = filtered.length === 0
-            ? '<p class="text-gray-500 text-sm text-center py-16 bg-white border border-gray-200 rounded-xl">No disaster events match this filter.</p>'
+            ? '<p class="card text-gray-500 text-sm text-center py-16">No disaster events match this filter.</p>'
             : filtered.map((e) => `
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-start gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                                <i class="ti ti-alert-triangle text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="card p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-3 min-w-0">
+                            <div class="icon-chip">
+                                <i class="ti ti-alert-triangle" style="font-size: 18px;" aria-hidden="true"></i>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <p class="font-medium text-sm">${e.name}</p>
-                                    <span class="text-xs px-2 py-0.5 rounded-lg ${statusColors[e.status] ?? ''}">${statusLabels[e.status] ?? e.status}</span>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <p class="font-semibold text-sm text-gray-900">${e.name}</p>
+                                    <span class="badge ${statusColors[e.status] ?? 'badge-neutral'}">${statusLabels[e.status] ?? e.status}</span>
                                 </div>
                                 <p class="text-xs text-gray-500">
                                     ${eventTypeLabels[e.event_type] ?? e.event_type}
@@ -376,15 +352,15 @@
                                 <p class="text-xs text-gray-500 mt-1">Started ${e.start_date}${e.end_date ? ' &middot; Ended ' + e.end_date : ''}</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm"><span class="font-semibold">${e.total_families_displaced}</span> <span class="text-gray-500 text-xs">families</span></p>
-                            <p class="text-sm"><span class="font-semibold">${e.total_persons_displaced}</span> <span class="text-gray-500 text-xs">persons</span></p>
+                        <div class="text-right shrink-0 tabular-nums">
+                            <p class="text-sm"><span class="font-semibold text-gray-900">${e.total_families_displaced}</span> <span class="text-gray-500 text-xs">families</span></p>
+                            <p class="text-sm"><span class="font-semibold text-gray-900">${e.total_persons_displaced}</span> <span class="text-gray-500 text-xs">persons</span></p>
                         </div>
                     </div>
                     ${canManage && e.status !== 'closed' ? `
-                        <div class="border-t border-gray-100 mt-3 pt-3 flex gap-3">
-                            <a href="/evacuation-events/${e.id}/edit" class="text-xs text-brand hover:underline">Edit</a>
-                            <button onclick="closeEvent(${e.id})" class="text-xs text-red-500 hover:underline">Close event</button>
+                        <div class="border-t border-gray-100 mt-3 pt-3 flex gap-2">
+                            <a href="/evacuation-events/${e.id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+                            <button type="button" onclick="closeEvent(${e.id})" class="btn btn-danger-secondary btn-sm">Close event</button>
                         </div>
                     ` : ''}
                 </div>
@@ -399,10 +375,10 @@
         const statusTotal = allEvents.length || 1;
         document.getElementById('status-legend').innerHTML = statusCounts.map((s) => `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600">
+                <span class="flex items-center gap-1.5 text-gray-700">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${statusDots[s.key]}"></span>${s.label}
                 </span>
-                <span class="font-medium text-gray-800">${s.count} <span class="text-gray-500 font-normal">(${Math.round(s.count / statusTotal * 100)}%)</span></span>
+                <span class="font-medium text-gray-900 tabular-nums">${s.count} <span class="text-gray-500 font-normal">(${Math.round(s.count / statusTotal * 100)}%)</span></span>
             </div>`).join('');
 
         if (statusChartInstance) statusChartInstance.destroy();
@@ -410,7 +386,7 @@
             type: 'doughnut',
             data: {
                 labels: statusCounts.map((s) => s.label),
-                datasets: [{ data: statusCounts.map((s) => s.count), backgroundColor: statusCounts.map((s) => statusDots[s.key]), borderWidth: 0 }],
+                datasets: [{ data: statusCounts.map((s) => s.count), backgroundColor: statusCounts.map((s) => statusDots[s.key]), borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -423,10 +399,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${label}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-blue-500 h-1.5 rounded-full" style="width:${count / maxType * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / maxType * 100}%"></div>
                     </div>
                 </div>`;
         }).join('');
@@ -436,9 +412,9 @@
         const recent = allLogs.filter((l) => l.action === 'evacuation_event.created' || l.action === 'evacuation_event.closed').slice(0, 6);
         document.getElementById('activity-timeline').innerHTML = recent.length ? recent.map((l) => `
             <div class="flex gap-2.5">
-                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-blue-400"></span>
+                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-brand" aria-hidden="true"></span>
                 <div class="min-w-0">
-                    <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
+                    <p class="text-gray-900 font-medium truncate">${l.description ?? l.action}</p>
                     <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                 </div>
             </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';

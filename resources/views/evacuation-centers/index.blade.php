@@ -4,7 +4,7 @@
 @section('nav-centers', 'active')
 
 @section('content')
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="page-header">
         <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">Evacuation centers</h1>
             <p class="text-sm text-gray-500">Capacity and live occupancy across Ligao City.</p>
@@ -13,57 +13,32 @@
             that route/page still exists untouched as a fallback, following
             the same pattern established for the alerts page. --}}
         <button type="button" id="add-center-btn"
-            class="hidden shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+            class="hidden shrink-0 btn btn-primary">
             + Add evacuation center
         </button>
     </div>
 
-    <div id="stats-row" class="hidden grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total centers</p>
-                <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-building text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+    <div id="stats-row" class="hidden stat-strip grid-cols-2 lg:grid-cols-5 mb-6">
+        <div class="stat">
+            <p class="stat-label">Total centers</p>
+            <p id="stat-total" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active now</p>
-                <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-check text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Active now</p>
+            <p id="stat-active" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #A855F7;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total capacity</p>
-                <p id="stat-capacity" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-users-group text-purple-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Total capacity</p>
+            <p id="stat-capacity" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Current occupancy</p>
-                <p id="stat-occupancy" class="text-2xl font-bold text-gray-800">&mdash;</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-door-enter text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">Current occupancy</p>
+            <p id="stat-occupancy" class="stat-value">&mdash;</p>
         </div>
-        <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #EF4444;">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">At risk / Full</p>
-                <p id="stat-at-risk" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                <p class="text-xs text-gray-500 italic mt-1">&ge;90% occupied</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                <i class="ti ti-alert-triangle text-red-500" style="font-size: 20px;" aria-hidden="true"></i>
-            </div>
+        <div class="stat">
+            <p class="stat-label">At risk / Full</p>
+            <p id="stat-at-risk" class="stat-value">&mdash;</p>
+            <p class="stat-note">&ge;90% occupied</p>
         </div>
     </div>
 
@@ -73,9 +48,9 @@
                 <div id="filter-tabs" class="flex items-center gap-2 flex-wrap"></div>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <div class="relative flex-1 sm:flex-none">
-                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 15px;" aria-hidden="true"></i>
+                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 15px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by name or barangay..."
-                            class="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm w-full sm:w-56">
+                            class="input pl-9 sm:w-56">
                     </div>
                     <button id="export-btn" class="flex items-center gap-1.5 text-brand border border-brand/30 rounded-lg px-3 py-2 text-sm hover:bg-brand-light shrink-0">
                         <i class="ti ti-download" style="font-size: 15px;" aria-hidden="true"></i> Export
@@ -87,8 +62,8 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Occupancy overview</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Occupancy overview</h2>
                 <div class="flex items-center gap-4">
                     <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                         <canvas id="occupancyChart" role="img" aria-label="Doughnut chart of center occupancy buckets"></canvas>
@@ -97,23 +72,23 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Centers by type</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Centers by type</h2>
                 <div id="type-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Centers by barangay</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Centers by barangay</h2>
                 <div id="barangay-distribution" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Facility coverage</p>
+            <div class="card p-4">
+                <h2 class="card-title mb-3">Facility coverage</h2>
                 <p class="text-xs text-gray-500 mb-3">Share of centers reporting each facility as available.</p>
                 <div id="facility-coverage" class="space-y-2.5 text-xs"></div>
             </div>
 
-            <a href="/gis-map" class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-brand group">
+            <a href="/gis-map" class="card p-4 flex items-center justify-between hover:border-brand group">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                         <i class="ti ti-map text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
@@ -128,34 +103,34 @@
         </div>
     </div>
 
-    <div id="add-center-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="add-center-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-3xl">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800" id="center-modal-title">Add evacuation center</p>
+                    <h2 id="center-modal-title" class="modal-title">Add evacuation center</h2>
                     <p class="text-xs text-gray-500">Click the map to set the exact location.</p>
                 </div>
-                <button type="button" id="center-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="center-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="center-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="center-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="center-form" class="flex flex-col gap-4 p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="text-sm text-gray-600 block mb-1">Name</label>
-                        <input type="text" id="center-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Name</label>
+                        <input type="text" id="center-name" required class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Barangay</label>
-                        <select id="center-barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                        <label class="label">Barangay</label>
+                        <select id="center-barangay_id" required class="input"></select>
                         <p id="center-barangay-lock-note" class="text-xs text-gray-500 mt-1 hidden">Locked to your own barangay.</p>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Type</label>
-                        <select id="center-type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Type</label>
+                        <select id="center-type" required class="input">
                             <option value="school">School</option>
                             <option value="covered_court">Covered court</option>
                             <option value="church">Church</option>
@@ -165,39 +140,39 @@
                         </select>
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="text-sm text-gray-600 block mb-1">Address</label>
+                        <label class="label">Address</label>
                         <input type="text" id="center-address" required placeholder="e.g. Purok 3, Barangay Bacong, Ligao City"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Capacity (families)</label>
-                        <input type="number" id="center-capacity_families" min="0" placeholder="e.g. 50" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Capacity (families)</label>
+                        <input type="number" id="center-capacity_families" min="0" placeholder="e.g. 50" class="input">
                         <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Capacity (persons)</label>
-                        <input type="number" id="center-capacity_persons" min="0" placeholder="e.g. 250" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Capacity (persons)</label>
+                        <input type="number" id="center-capacity_persons" min="0" placeholder="e.g. 250" class="input">
                         <p class="text-xs text-gray-500 mt-1">Leave blank if not yet known.</p>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Camp manager name</label>
-                        <input type="text" id="center-camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Camp manager name</label>
+                        <input type="text" id="center-camp_manager_name" placeholder="e.g. Juan Dela Cruz" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Camp manager contact</label>
-                        <input type="text" id="center-camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Camp manager contact</label>
+                        <input type="text" id="center-camp_manager_contact" placeholder="09XXXXXXXXX" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Assistant camp manager name</label>
-                        <input type="text" id="center-assistant_camp_manager_name" placeholder="e.g. Maria Santos" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Assistant camp manager name</label>
+                        <input type="text" id="center-assistant_camp_manager_name" placeholder="e.g. Maria Santos" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Assistant camp manager contact</label>
-                        <input type="text" id="center-assistant_camp_manager_contact" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Assistant camp manager contact</label>
+                        <input type="text" id="center-assistant_camp_manager_contact" placeholder="09XXXXXXXXX" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Status</label>
-                        <select id="center-status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Status</label>
+                        <select id="center-status" required class="input">
                             <option value="on_standby">On standby</option>
                             <option value="active">Active</option>
                             <option value="full">Full</option>
@@ -207,7 +182,7 @@
                 </div>
 
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <label class="text-sm text-gray-600 block mb-2">Photo (optional)</label>
+                    <label class="label mb-2">Photo (optional)</label>
                     <div class="flex items-center gap-4">
                         <div id="center-photo-preview-wrap" class="hidden shrink-0">
                             <img id="center-photo-preview" src="" alt="Center photo preview" class="w-24 h-24 object-cover rounded-lg border border-gray-200">
@@ -227,7 +202,7 @@
                         <div class="flex-1">
                             <label class="text-xs text-gray-500 block mb-1">Or paste coordinates (lat, long)</label>
                             <input type="text" id="center-coords-paste-input" placeholder="e.g. 13.139123, 123.532145"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                class="input">
                         </div>
                         <button type="button" id="center-coords-paste-btn"
                             class="shrink-0 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg px-4 py-2 hover:bg-white">
@@ -243,18 +218,18 @@
                     barangay official so they can maintain it going
                     forward (they can view but not edit a center they
                     didn't technically create). --}}
-                <div id="assign-owner-card" class="hidden bg-white border border-gray-200 rounded-xl p-4">
+                <div id="assign-owner-card" class="hidden card p-4">
                     <p class="text-sm font-medium text-gray-700 mb-1">Assign to barangay official</p>
                     <p class="text-xs text-gray-500 mb-3">
                         Hands this center off to a specific barangay official for ongoing maintenance.
                         Currently assigned to: <span id="current-owner-label" class="font-medium text-gray-700">&mdash;</span>
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <select id="assign-owner-select" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <select id="assign-owner-select" class="input flex-1">
                             <option value="">Select barangay official</option>
                         </select>
                         <button type="button" id="assign-owner-btn" disabled
-                            class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="btn btn-primary shrink-0">
                             Assign
                         </button>
                     </div>
@@ -262,11 +237,11 @@
                     <p id="assign-owner-success-note" class="text-xs text-green-600 mt-2 hidden"></p>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="center-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="center-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="center-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="center-submit-btn" class="btn btn-primary">
                         Save evacuation center
                     </button>
                 </div>
@@ -349,7 +324,7 @@
 
         document.getElementById('filter-tabs').innerHTML = Object.keys(labels).map((key) => `
             <button data-filter="${key}"
-                class="filter-tab text-sm px-3 py-1.5 rounded-lg border ${activeFilter === key ? 'border-brand bg-brand-light text-brand font-medium' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}">
+                class="filter-tab chip ${activeFilter === key ? 'chip-active' : ''}" aria-pressed="${activeFilter === key}">
                 ${labels[key]} (${counts[key]})
             </button>
         `).join('');
@@ -383,7 +358,7 @@
                 const facilitiesAvailable = facilities.filter((f) => f.is_available).length;
 
                 return `
-                <div class="bg-white border border-gray-200 rounded-xl p-4 hover:border-brand">
+                <div class="card p-4 hover:border-brand">
                     <a href="/evacuation-centers/${c.id}" class="block">
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex items-start gap-2.5">
@@ -436,8 +411,8 @@
 
         document.getElementById('occupancy-legend').innerHTML = bucketMeta.map(([key, label, color]) => `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>${label}</span>
-                <span class="font-medium text-gray-800">${buckets[key]}</span>
+                <span class="flex items-center gap-1.5 text-gray-700"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>${label}</span>
+                <span class="font-medium text-gray-900 tabular-nums">${buckets[key]}</span>
             </div>`).join('');
 
         if (occupancyChartInstance) occupancyChartInstance.destroy();
@@ -445,7 +420,7 @@
             type: 'doughnut',
             data: {
                 labels: bucketMeta.map(([, label]) => label),
-                datasets: [{ data: bucketMeta.map(([key]) => buckets[key]), backgroundColor: bucketMeta.map(([, , c]) => c), borderWidth: 0 }],
+                datasets: [{ data: bucketMeta.map(([key]) => buckets[key]), backgroundColor: bucketMeta.map(([, , c]) => c), borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -460,10 +435,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${TYPE_LABELS[type] ?? type}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-blue-500 h-1.5 rounded-full" style="width:${count / maxType * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / maxType * 100}%"></div>
                     </div>
                 </div>`).join('') || '<p class="text-gray-500">No data yet.</p>';
 
@@ -480,10 +455,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${name}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-purple-500 h-1.5 rounded-full" style="width:${count / maxBrgy * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / maxBrgy * 100}%"></div>
                     </div>
                 </div>`).join('')
             : '<p class="text-gray-500">No data yet.</p>';
@@ -497,10 +472,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${label}</span>
-                        <span class="font-medium text-gray-800">${count}/${totalCenters}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}/${totalCenters}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-teal-500 h-1.5 rounded-full" style="width:${pct}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${pct}%"></div>
                     </div>
                 </div>`;
         }).join('');

@@ -4,7 +4,7 @@
 @section('nav-users', 'active')
 
 @section('content')
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div class="page-header">
         <div class="min-w-0">
             <h1 class="text-xl font-semibold mb-1">User management</h1>
             <p class="text-sm text-gray-500">Create and manage accounts for CSWD personnel and barangay officials.</p>
@@ -16,47 +16,32 @@
             modal, pre-populated, rather than a separate one -- both modes
             still share one form, same as the /users/create and
             /users/{id}/edit routes always have. --}}
-        <button type="button" id="add-user-btn" class="shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+        <button type="button" id="add-user-btn" class="shrink-0 btn btn-primary">
             + Add user
         </button>
     </div>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
     <div id="not-admin-notice" class="hidden bg-amber-50 text-amber-700 text-sm rounded-lg p-3 mb-4">
         Only administrators can manage user accounts.
     </div>
 
     <div id="page-body" class="hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #3B82F6;">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Total users</p>
-                    <p id="stat-total" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                    <p class="text-xs text-gray-500 italic mt-1">All accounts</p>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-users text-blue-500" style="font-size: 20px;" aria-hidden="true"></i>
-                </div>
+        <div class="stat-strip grid-cols-1 sm:grid-cols-3 mb-6">
+            <div class="stat">
+                <p class="stat-label">Total users</p>
+                <p id="stat-total" class="stat-value">&mdash;</p>
+                <p class="stat-note">All accounts</p>
             </div>
-            <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #22C55E;">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Active users</p>
-                    <p id="stat-active" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                    <p id="stat-active-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-user-check text-green-500" style="font-size: 20px;" aria-hidden="true"></i>
-                </div>
+            <div class="stat">
+                <p class="stat-label">Active users</p>
+                <p id="stat-active" class="stat-value">&mdash;</p>
+                <p id="stat-active-pct" class="stat-note">&mdash;</p>
             </div>
-            <div class="bg-white rounded-xl p-4 flex items-center justify-between" style="border-left: 4px solid #F97316;">
-                <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Inactive / suspended</p>
-                    <p id="stat-inactive" class="text-2xl font-bold text-gray-800">&mdash;</p>
-                    <p id="stat-inactive-pct" class="text-xs text-gray-500 italic mt-1">&mdash;</p>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-user-off text-orange-500" style="font-size: 20px;" aria-hidden="true"></i>
-                </div>
+            <div class="stat">
+                <p class="stat-label">Inactive / suspended</p>
+                <p id="stat-inactive" class="stat-value">&mdash;</p>
+                <p id="stat-inactive-pct" class="stat-note">&mdash;</p>
             </div>
         </div>
 
@@ -64,14 +49,14 @@
             <div class="lg:col-span-2 min-w-0">
                 <div class="flex flex-wrap items-center gap-3 mb-4">
                     <div class="relative flex-1 min-w-[200px]">
-                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 16px;" aria-hidden="true"></i>
+                        <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" style="font-size: 16px;" aria-hidden="true"></i>
                         <input id="search-input" type="text" placeholder="Search by name, email, or username..."
-                            class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm">
+                            class="input pl-9">
                     </div>
-                    <select id="role-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <select id="role-filter" class="input">
                         <option value="">All roles</option>
                     </select>
-                    <select id="status-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <select id="status-filter" class="input">
                         <option value="">All status</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
@@ -79,12 +64,12 @@
                     </select>
                 </div>
 
-                <div id="users-list" class="bg-white border border-gray-200 rounded-xl overflow-hidden"></div>
+                <div id="users-list" class="card overflow-hidden"></div>
             </div>
 
             <div class="flex flex-col gap-4">
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm font-semibold text-gray-700 mb-3">Users by role</p>
+                <div class="card p-4">
+                    <h2 class="card-title mb-3">Users by role</h2>
                     <div class="flex items-center gap-4">
                         <div style="position: relative; width: 96px; height: 96px;" class="shrink-0">
                             <canvas id="roleChart" role="img" aria-label="Doughnut chart of users by role"></canvas>
@@ -93,18 +78,18 @@
                     </div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm font-semibold text-gray-700 mb-3">Barangay officials by barangay</p>
+                <div class="card p-4">
+                    <h2 class="card-title mb-3">Barangay officials by barangay</h2>
                     <div id="barangay-distribution" class="space-y-2.5 text-xs"></div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm font-semibold text-gray-700 mb-3">Recent activity</p>
+                <div class="card p-4">
+                    <h2 class="card-title mb-3">Recent activity</h2>
                     <div id="activity-timeline" class="space-y-4 text-xs"></div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
-                    <p class="text-sm font-semibold text-gray-700 mb-3">Role permissions</p>
+                <div class="card p-4">
+                    <h2 class="card-title mb-3">Role permissions</h2>
                     <div class="space-y-3 text-xs">
                         <div>
                             <p class="font-medium text-gray-700 mb-0.5">
@@ -133,14 +118,14 @@
         </div>
     </div>
 
-    <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
+    <div id="delete-modal" class="hidden modal-backdrop">
         <div class="bg-white rounded-xl max-w-md w-full p-5">
             <div class="flex items-center gap-2.5 mb-3">
                 <div class="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
                     <i class="ti ti-alert-triangle text-red-600" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-800">Delete account</p>
+                    <h2 class="modal-title">Delete account</h2>
                     <p class="text-xs text-gray-500">This action is permanent and cannot be undone.</p>
                 </div>
             </div>
@@ -152,13 +137,13 @@
 
             <div id="delete-modal-error" class="hidden bg-red-50 text-red-700 text-xs rounded-lg p-3 mb-3"></div>
 
-            <label class="text-xs text-gray-600 block mb-1">
+            <label class="label-sm">
                 Type <strong id="delete-modal-confirm-email"></strong> to confirm
             </label>
-            <input type="text" id="delete-confirm-input" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4" autocomplete="off">
+            <input type="text" id="delete-confirm-input" class="input mb-4" autocomplete="off">
 
             <div class="flex justify-end gap-2">
-                <button type="button" id="delete-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <button type="button" id="delete-modal-cancel" class="btn btn-secondary">
                     Cancel
                 </button>
                 <button type="button" id="delete-modal-confirm" disabled
@@ -169,38 +154,38 @@
         </div>
     </div>
 
-    <div id="user-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between p-5 border-b border-gray-100">
+    <div id="user-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-2xl">
+            <div class="modal-header">
                 <div>
-                    <p class="font-semibold text-gray-800" id="user-modal-title">Add a user</p>
+                    <h2 id="user-modal-title" class="modal-title">Add a user</h2>
                     <p class="text-xs text-gray-500">Creates a login that works for both the web dashboard and the offline desktop companion.</p>
                 </div>
-                <button type="button" id="user-modal-close" class="text-gray-400 hover:text-gray-600 shrink-0">
+                <button type="button" id="user-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <div id="user-modal-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mx-5 mt-4"></div>
+            <div id="user-modal-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
             <form id="user-form" class="flex flex-col gap-4 p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Full name</label>
-                        <input type="text" id="user-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Full name</label>
+                        <input type="text" id="user-name" required class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                        <label class="label flex items-center gap-1">
                             Email
                             <i id="user-email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
-                        <input type="email" id="user-email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                        <input type="email" id="user-email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="input">
                         <p class="text-xs text-gray-500 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1" id="user-password-label">Password</label>
+                        <label class="label" id="user-password-label">Password</label>
                         <div class="flex gap-2">
-                            <input type="password" id="user-password" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Minimum 8 characters">
+                            <input type="password" id="user-password" class="input flex-1 min-w-0" placeholder="Minimum 8 characters">
                             <button type="button" id="user-generate-password-btn"
                                 class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
                                 Generate
@@ -208,15 +193,15 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1">Contact number (optional)</label>
-                        <input type="text" id="user-contact_number" placeholder="09XXXXXXXXX" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Contact number (optional)</label>
+                        <input type="text" id="user-contact_number" placeholder="09XXXXXXXXX" class="input">
                     </div>
                     <div>
-                        <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                        <label class="label flex items-center gap-1">
                             Role
                             <i id="user-role-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
-                        <select id="user-role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                        <select id="user-role" required class="input">
                             <option value="administrator">Administrator</option>
                             <option value="cswd_personnel">CSWD Personnel</option>
                             <option value="barangay_official">Barangay Official</option>
@@ -224,17 +209,17 @@
                         <p id="user-role-locked-note" class="hidden text-xs text-gray-500 mt-1">Role and barangay can't be changed after an account is created -- create a new account instead if this needs to change.</p>
                     </div>
                     <div id="user-barangay-field" class="hidden">
-                        <label class="text-sm text-gray-600 block mb-1 flex items-center gap-1">
+                        <label class="label flex items-center gap-1">
                             Barangay
                             <i id="user-barangay-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
-                        <select id="user-barangay_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200">
+                        <select id="user-barangay_id" class="input">
                             <option value="">Select barangay</option>
                         </select>
                     </div>
                     <div id="user-status-field" class="hidden">
-                        <label class="text-sm text-gray-600 block mb-1">Status</label>
-                        <select id="user-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <label class="label">Status</label>
+                        <select id="user-status" class="input">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                             <option value="suspended">Suspended</option>
@@ -242,11 +227,11 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                    <button type="button" id="user-modal-cancel" class="text-sm text-gray-600 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50">
+                <div class="modal-footer">
+                    <button type="button" id="user-modal-cancel" class="btn btn-secondary">
                         Cancel
                     </button>
-                    <button type="submit" id="user-submit-btn" class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                    <button type="submit" id="user-submit-btn" class="btn btn-primary">
                         Create account
                     </button>
                 </div>
@@ -432,7 +417,7 @@
                                 <td class="px-4 py-3 text-gray-500">${lastLogin ? new Date(lastLogin).toLocaleString() : 'Never'}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
-                                        <button onclick="openUserModal(${u.id})" class="text-xs text-brand hover:underline">Edit</button>
+                                        <button onclick="openUserModal(${u.id})" class="link text-xs">Edit</button>
                                         <button onclick="toggleStatus(${u.id}, '${u.status}')" class="text-xs ${u.status === 'active' ? 'text-red-500' : 'text-green-600'} hover:underline">
                                             ${u.status === 'active' ? 'Deactivate' : 'Reactivate'}
                                         </button>
@@ -477,10 +462,10 @@
 
         document.getElementById('role-legend').innerHTML = roleCounts.map((r) => `
             <div class="flex items-center justify-between">
-                <span class="flex items-center gap-1.5 text-gray-600">
+                <span class="flex items-center gap-1.5 text-gray-700">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${roleChartColors[r.key] ?? '#9CA3AF'}"></span>${r.label}
                 </span>
-                <span class="font-medium text-gray-800">${r.count} <span class="text-gray-500 font-normal">(${Math.round(r.count / roleTotal * 100)}%)</span></span>
+                <span class="font-medium text-gray-900 tabular-nums">${r.count} <span class="text-gray-500 font-normal">(${Math.round(r.count / roleTotal * 100)}%)</span></span>
             </div>`).join('');
 
         if (roleChartInstance) roleChartInstance.destroy();
@@ -488,7 +473,7 @@
             type: 'doughnut',
             data: {
                 labels: roleCounts.map((r) => r.label),
-                datasets: [{ data: roleCounts.map((r) => r.count), backgroundColor: roleCounts.map((r) => roleChartColors[r.key] ?? '#9CA3AF'), borderWidth: 0 }],
+                datasets: [{ data: roleCounts.map((r) => r.count), backgroundColor: roleCounts.map((r) => roleChartColors[r.key] ?? '#9CA3AF'), borderColor: '#FFFFFF', borderWidth: 2 }],
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } },
         });
@@ -507,10 +492,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-gray-600">${name}</span>
-                        <span class="font-medium text-gray-800">${count}</span>
+                        <span class="font-medium text-gray-900 tabular-nums">${count}</span>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-green-500 h-1.5 rounded-full" style="width:${count / maxBrgy * 100}%"></div>
+                    <div class="meter">
+                        <div class="meter-fill bg-brand" style="width:${count / maxBrgy * 100}%"></div>
                     </div>
                 </div>`).join('')
             : '<p class="text-gray-500">No barangay officials yet.</p>';
@@ -519,9 +504,9 @@
         const recent = allLogs.slice(0, 6);
         document.getElementById('activity-timeline').innerHTML = recent.length ? recent.map((l) => `
             <div class="flex gap-2.5">
-                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-blue-400"></span>
+                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-brand" aria-hidden="true"></span>
                 <div class="min-w-0">
-                    <p class="text-gray-700 font-medium truncate">${l.description ?? l.action}</p>
+                    <p class="text-gray-900 font-medium truncate">${l.description ?? l.action}</p>
                     <p class="text-gray-500">${l.user?.name ?? 'System'} &middot; ${new Date(l.created_at).toLocaleString()}</p>
                 </div>
             </div>`).join('') : '<p class="text-gray-500">No activity recorded yet.</p>';

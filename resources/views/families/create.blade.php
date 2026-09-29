@@ -7,30 +7,30 @@
     <h1 class="text-xl font-semibold mb-1">Register a family</h1>
     <p class="text-sm text-gray-500 mb-6">Register every member of an arriving household in one step.</p>
 
-    <div id="form-errors" class="hidden bg-red-50 text-red-700 text-sm rounded-lg p-3 mb-4"></div>
+    <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
 
     <form id="register-form" class="flex flex-col gap-6 max-w-3xl">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Barangay</label>
-                <select id="barangay_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
-                <label class="text-sm text-gray-600 block mb-1 mt-3">Street/Sitio Address (optional)</label>
-                <input type="text" id="home_address" placeholder="e.g. Purok 3, Sitio Mabuhay" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Barangay</label>
+                <select id="barangay_id" required class="input"></select>
+                <label class="label mt-3">Street/Sitio Address (optional)</label>
+                <input type="text" id="home_address" placeholder="e.g. Purok 3, Sitio Mabuhay" class="input">
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Disaster event</label>
-                <select id="evacuation_event_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <label class="label">Disaster event</label>
+                <select id="evacuation_event_id" required class="input"></select>
             </div>
             <div>
-                <label class="text-sm text-gray-600 block mb-1">Displacement type</label>
-                <select id="displacement_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label class="label">Displacement type</label>
+                <select id="displacement_type" required class="input">
                     <option value="inside_center">Inside an evacuation center</option>
                     <option value="outside_center">Outside (evacuated to relatives/other location)</option>
                 </select>
             </div>
             <div id="center-field">
-                <label class="text-sm text-gray-600 block mb-1">Evacuation center</label>
-                <select id="evacuation_center_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <label class="label">Evacuation center</label>
+                <select id="evacuation_center_id" class="input"></select>
             </div>
             <label class="flex items-center gap-2 text-sm text-gray-600 col-span-2">
                 <input type="checkbox" id="is_4ps_beneficiary"> Household is a 4Ps beneficiary
@@ -46,13 +46,13 @@
         <div id="full-mode-section">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="text-sm font-medium text-gray-700">Household members</h2>
-                <button type="button" id="add-member-btn" class="text-sm text-brand hover:underline">+ Add another member</button>
+                <button type="button" id="add-member-btn" class="link text-sm">+ Add another member</button>
             </div>
             <div id="members-container" class="flex flex-col gap-4"></div>
         </div>
 
         <button type="submit" id="submit-btn"
-            class="bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg px-4 py-2.5 w-fit">
+            class="btn btn-primary w-fit">
             Register family
         </button>
     </form>
@@ -64,30 +64,30 @@
 
     function memberRowHtml(index) {
         return `
-        <div class="member-row bg-white border border-gray-200 rounded-xl p-4" data-index="${index}">
+        <div class="member-row card p-4" data-index="${index}">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">Member ${index + 1}</p>
-                ${index > 0 ? `<button type="button" class="remove-member text-xs text-red-500 hover:underline">Remove</button>` : ''}
+                <p class="text-sm font-semibold text-gray-900">Member ${index + 1}</p>
+                ${index > 0 ? `<button type="button" class="remove-member btn btn-sm btn-danger-secondary">Remove</button>` : ''}
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input type="text" placeholder="First name" class="m-first_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <input type="text" placeholder="Middle name" class="m-middle_name border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                <input type="text" placeholder="Last name" class="m-last_name border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                <select class="m-sex border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="text" placeholder="First name" class="m-first_name input" required>
+                <input type="text" placeholder="Middle name" class="m-middle_name input">
+                <input type="text" placeholder="Last name" class="m-last_name input" required>
+                <select class="m-sex input" required>
                     <option value="">Sex</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                 </select>
-                <input type="date" class="m-date_of_birth border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                <input type="date" class="m-date_of_birth input" required>
                 <div>
-                    <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
-                    <button type="button" class="same-as-head-btn text-xs text-brand hover:underline mt-1">Same as head of family</button>
+                    <input type="text" placeholder="09XXXXXXXXX" class="m-contact_number input" required>
+                    <button type="button" class="same-as-head-btn link text-xs mt-1">Same as head of family</button>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-600 items-center">
+            <div class="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-sm text-gray-700 items-center">
                 <label class="flex items-center gap-1.5"><input type="radio" name="head-${index}" class="m-is_head_of_family"> Head of family</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pwd"> PWD</label>
-                <input type="text" placeholder="PWD type (e.g. visual, mobility)" class="m-pwd_type hidden border border-gray-300 rounded-lg px-2 py-1 text-xs">
+                <input type="text" placeholder="PWD type (e.g. visual, mobility)" class="m-pwd_type hidden input input-sm w-auto text-xs">
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_pregnant"> Pregnant</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_lactating"> Lactating</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
