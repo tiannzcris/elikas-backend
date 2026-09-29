@@ -22,7 +22,7 @@
             <div>
                 <label class="label flex items-center gap-1">
                     Email
-                    <i id="email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                    <i id="email-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
                 <input type="email" id="email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="input">
                 <p class="text-xs text-gray-500 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
@@ -32,7 +32,7 @@
                 <div class="flex gap-2">
                     <input type="password" id="password" class="input flex-1 min-w-0" placeholder="Minimum 8 characters">
                     <button type="button" id="generate-password-btn"
-                        class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
+                        class="btn btn-secondary shrink-0">
                         Generate
                     </button>
                 </div>
@@ -44,7 +44,7 @@
             <div>
                 <label class="label flex items-center gap-1">
                     Role
-                    <i id="role-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                    <i id="role-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
                 <select id="role" required class="input">
                     <option value="administrator">Administrator</option>
@@ -56,7 +56,7 @@
             <div id="barangay-field" class="hidden">
                 <label class="label flex items-center gap-1">
                     Barangay
-                    <i id="barangay-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                    <i id="barangay-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                 </label>
                 <select id="barangay_id" class="input">
                     <option value="">Select barangay</option>

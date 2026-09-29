@@ -6,8 +6,8 @@
 @section('content')
     <div class="page-header">
         <div class="min-w-0">
-            <h1 class="text-xl font-semibold mb-1">User management</h1>
-            <p class="text-sm text-gray-500">Create and manage accounts for CSWD personnel and barangay officials.</p>
+            <h1 class="page-title">User management</h1>
+            <p class="page-subtitle">Create and manage accounts for CSWD personnel and barangay officials.</p>
         </div>
         {{-- Opens the modal below (blank, add mode) instead of navigating to
             /users/create -- that route/page still exists untouched as a
@@ -22,7 +22,7 @@
     </div>
 
     <div id="form-errors" class="hidden callout callout-danger mb-4"></div>
-    <div id="not-admin-notice" class="hidden bg-amber-50 text-amber-700 text-sm rounded-lg p-3 mb-4">
+    <div id="not-admin-notice" class="hidden callout callout-warning mb-4">
         Only administrators can manage user accounts.
     </div>
 
@@ -53,10 +53,10 @@
                         <input id="search-input" type="text" placeholder="Search by name, email, or username..."
                             class="input pl-9">
                     </div>
-                    <select id="role-filter" class="input">
+                    <select id="role-filter" aria-label="Role" class="input w-auto">
                         <option value="">All roles</option>
                     </select>
-                    <select id="status-filter" class="input">
+                    <select id="status-filter" aria-label="Status" class="input w-auto">
                         <option value="">All status</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
@@ -93,21 +93,21 @@
                     <div class="space-y-3 text-xs">
                         <div>
                             <p class="font-medium text-gray-700 mb-0.5">
-                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#A855F7"></span>
+                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#1BAF7A"></span>
                                 System Administrator
                             </p>
                             <p class="text-gray-500">Full system access, user management, backups.</p>
                         </div>
                         <div>
                             <p class="font-medium text-gray-700 mb-0.5">
-                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#3B82F6"></span>
+                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#2563EB"></span>
                                 CSWD Personnel
                             </p>
                             <p class="text-gray-500">Monitoring, reporting, alerts, predictive analytics, GIS management.</p>
                         </div>
                         <div>
                             <p class="font-medium text-gray-700 mb-0.5">
-                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#22C55E"></span>
+                                <span class="w-2 h-2 rounded-full inline-block mr-1" style="background:#EB6834"></span>
                                 Barangay Official
                             </p>
                             <p class="text-gray-500">Evacuee registration and barangay-level reports.</p>
@@ -137,7 +137,7 @@
 
             <div id="delete-modal-error" class="hidden bg-red-50 text-red-700 text-xs rounded-lg p-3 mb-3"></div>
 
-            <label class="label-sm">
+            <label for="delete-confirm-input" class="label-sm">
                 Type <strong id="delete-modal-confirm-email"></strong> to confirm
             </label>
             <input type="text" id="delete-confirm-input" class="input mb-4" autocomplete="off">
@@ -147,7 +147,7 @@
                     Cancel
                 </button>
                 <button type="button" id="delete-modal-confirm" disabled
-                    class="text-sm text-white bg-red-600 rounded-lg px-4 py-2 opacity-50 cursor-not-allowed">
+                    class="btn btn-danger opacity-50 cursor-not-allowed">
                     Delete permanently
                 </button>
             </div>
@@ -177,7 +177,7 @@
                     <div>
                         <label class="label flex items-center gap-1">
                             Email
-                            <i id="user-email-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                            <i id="user-email-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
                         <input type="email" id="user-email" required placeholder="e.g. juan.delacruz@ligao.gov.ph" class="input">
                         <p class="text-xs text-gray-500 mt-1">This is what they'll use to log in -- can't be changed after the account is created.</p>
@@ -187,7 +187,7 @@
                         <div class="flex gap-2">
                             <input type="password" id="user-password" class="input flex-1 min-w-0" placeholder="Minimum 8 characters">
                             <button type="button" id="user-generate-password-btn"
-                                class="shrink-0 text-xs font-medium text-brand border border-brand/30 rounded-lg px-3 hover:bg-brand-light">
+                                class="btn btn-secondary shrink-0">
                                 Generate
                             </button>
                         </div>
@@ -199,7 +199,7 @@
                     <div>
                         <label class="label flex items-center gap-1">
                             Role
-                            <i id="user-role-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                            <i id="user-role-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
                         <select id="user-role" required class="input">
                             <option value="administrator">Administrator</option>
@@ -211,7 +211,7 @@
                     <div id="user-barangay-field" class="hidden">
                         <label class="label flex items-center gap-1">
                             Barangay
-                            <i id="user-barangay-lock-icon" class="hidden ti ti-lock text-gray-400" style="font-size: 13px;" aria-hidden="true"></i>
+                            <i id="user-barangay-lock-icon" class="hidden ti ti-lock text-gray-500" style="font-size: 13px;" aria-hidden="true"></i>
                         </label>
                         <select id="user-barangay_id" class="input">
                             <option value="">Select barangay</option>
@@ -243,22 +243,26 @@
 @section('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+    // Role colors: the validated categorical trio (docs/design-system.md,
+    // chart palette), shared by the badges, the donut and the legend dots.
     const roleColors = {
-        administrator: 'bg-purple-50 text-purple-700',
-        cswd_personnel: 'bg-blue-50 text-blue-700',
-        barangay_official: 'bg-green-50 text-green-700',
-        resident: 'bg-gray-100 text-gray-600',
+        administrator: 'badge-teal',
+        cswd_personnel: 'badge-info',
+        barangay_official: 'badge-advisory',
+        resident: 'badge-neutral',
     };
     const roleChartColors = {
-        administrator: '#A855F7', cswd_personnel: '#3B82F6',
-        barangay_official: '#22C55E', resident: '#9CA3AF',
+        administrator: '#1BAF7A', cswd_personnel: '#2563EB',
+        barangay_official: '#EB6834', resident: '#9CA3AF',
     };
     const statusColors = {
-        active: 'bg-green-50 text-green-700',
-        inactive: 'bg-gray-100 text-gray-600',
-        suspended: 'bg-red-50 text-red-700',
+        active: 'badge-success',
+        inactive: 'badge-neutral',
+        suspended: 'badge-danger',
     };
-    const AVATAR_COLORS = ['#2563EB', '#16A34A', '#D97706', '#DB2777', '#7C3AED', '#0891B2'];
+    const STATUS_LABELS = { active: 'Active', inactive: 'Inactive', suspended: 'Suspended' };
+    // White initials on each clear WCAG AA (see docs/design-system.md, Avatars).
+    const AVATAR_COLORS = ['#1D4ED8', '#15803D', '#B45309', '#BE185D', '#6D28D9', '#0E7490'];
 
     function avatarFor(name) {
         const label = name || '?';
@@ -386,45 +390,45 @@
 
         document.getElementById('users-list').innerHTML = `
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <th class="text-left px-4 py-3">User</th>
-                            <th class="text-left px-4 py-3">Role</th>
-                            <th class="text-left px-4 py-3">Barangay / Office</th>
-                            <th class="text-left px-4 py-3">Status</th>
-                            <th class="text-left px-4 py-3">Last login</th>
-                            <th class="text-left px-4 py-3"></th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Barangay / Office</th>
+                            <th>Status</th>
+                            <th>Last login</th>
+                            <th><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         ${filtered.map((u) => {
                             const lastLogin = lastLoginFor(u.id);
                             return `
-                            <tr class="border-t border-gray-100 hover:bg-gray-50">
-                                <td class="px-4 py-3">
+                            <tr class="hover:bg-gray-50">
+                                <td>
                                     <div class="flex items-center gap-2.5">
                                         ${avatarFor(u.name)}
-                                        <div>
-                                            <p class="font-medium">${u.name}</p>
+                                        <div class="min-w-0">
+                                            <p class="font-medium text-gray-900">${u.name}</p>
                                             <p class="text-xs text-gray-500">${u.email}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg ${roleColors[u.role] ?? ''}">${u.role_display_name}</span></td>
-                                <td class="px-4 py-3 text-gray-500">${u.barangay?.name ?? '&mdash;'}</td>
-                                <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg ${statusColors[u.status] ?? ''}">${u.status}</span></td>
-                                <td class="px-4 py-3 text-gray-500">${lastLogin ? new Date(lastLogin).toLocaleString() : 'Never'}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <button onclick="openUserModal(${u.id})" class="link text-xs">Edit</button>
-                                        <button onclick="toggleStatus(${u.id}, '${u.status}')" class="text-xs ${u.status === 'active' ? 'text-red-500' : 'text-green-600'} hover:underline">
+                                <td><span class="badge ${roleColors[u.role] ?? 'badge-neutral'}">${u.role_display_name}</span></td>
+                                <td class="text-gray-600">${u.barangay?.name ?? '&mdash;'}</td>
+                                <td><span class="badge ${statusColors[u.status] ?? 'badge-neutral'}">${STATUS_LABELS[u.status] ?? u.status}</span></td>
+                                <td class="text-gray-600 whitespace-nowrap">${lastLogin ? new Date(lastLogin).toLocaleString() : 'Never'}</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="openUserModal(${u.id})" class="btn btn-secondary btn-sm">Edit</button>
+                                        <button type="button" onclick="toggleStatus(${u.id}, '${u.status}')" class="btn btn-sm ${u.status === 'active' ? 'btn-danger-secondary' : 'btn-secondary'}">
                                             ${u.status === 'active' ? 'Deactivate' : 'Reactivate'}
                                         </button>
                                         ${currentUser && u.id === currentUser.id ? '' : `
-                                            <button onclick="openDeleteModal(${u.id})"
-                                                class="text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded px-2 py-1 flex items-center gap-1">
-                                                <i class="ti ti-trash" style="font-size: 12px;" aria-hidden="true"></i> Delete
+                                            <button type="button" onclick="openDeleteModal(${u.id})"
+                                                class="btn btn-sm btn-danger-secondary">
+                                                <i class="ti ti-trash" style="font-size: 13px;" aria-hidden="true"></i> Delete
                                             </button>
                                         `}
                                     </div>
@@ -434,7 +438,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
+            <div class="table-meta">
                 Showing ${filtered.length} of ${allUsers.length} users
             </div>`;
     }
