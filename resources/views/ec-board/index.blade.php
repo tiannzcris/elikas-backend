@@ -4,9 +4,11 @@
 @section('nav-ecboard', 'active')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-xl font-semibold mb-1">EC Board</h1>
-        <p class="text-sm text-gray-500">Fast path to a center's board -- pick a barangay, then a center, to add evacuees or check live headcount.</p>
+    <div class="page-header">
+        <div class="min-w-0">
+            <h1 class="page-title">EC Board</h1>
+            <p class="page-subtitle">Fast path to a center's board -- pick a barangay, then a center, to add evacuees or check live headcount.</p>
+        </div>
     </div>
 
     {{-- Barangay -> center drill-down, mirroring the Evacuees page's own
@@ -16,14 +18,14 @@
         page and the board itself). Rows are styled as clickable cards
         (icon + hover lift + chevron), matching the Evacuation Centers list
         page's own card pattern, rather than plain table rows. --}}
-    <nav id="drill-breadcrumb" class="flex items-center gap-1.5 text-sm text-gray-500 mb-4"></nav>
+    <nav id="drill-breadcrumb" aria-label="Breadcrumb" class="flex items-center gap-1.5 text-sm text-gray-600 mb-4"></nav>
 
     {{-- Level 1 (landing view): one card per barangay that has at least one
         evacuation center. --}}
     <div id="barangay-list-view" class="max-w-3xl">
         <div id="barangay-empty-state" class="hidden flex-col items-center text-center py-20 card">
             <i class="ti ti-building text-gray-300 mb-3" style="font-size: 40px;" aria-hidden="true"></i>
-            <p class="text-sm font-medium text-gray-600 mb-1">No evacuation centers yet</p>
+            <p class="text-sm font-medium text-gray-700 mb-1">No evacuation centers yet</p>
             <p class="text-sm text-gray-500">Centers will appear here once barangays register them.</p>
         </div>
         {{-- Only for staff assigned to a barangay (barangay officials),
@@ -55,12 +57,12 @@
     function renderBreadcrumb() {
         const atBarangayLevel = currentBarangayId === null;
         const parts = [atBarangayLevel
-            ? '<span class="text-gray-700 font-medium">All barangays</span>'
-            : '<a href="#" data-goto="barangay" class="hover:text-brand hover:underline">All barangays</a>'];
+            ? '<span class="text-gray-900 font-medium">All barangays</span>'
+            : '<a href="#" data-goto="barangay" class="link font-normal">All barangays</a>'];
 
         if (! atBarangayLevel) {
             parts.push('<i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>');
-            parts.push(`<span class="text-gray-700 font-medium">${currentBarangayName}</span>`);
+            parts.push(`<span class="text-gray-900 font-medium">${currentBarangayName}</span>`);
         }
 
         document.getElementById('drill-breadcrumb').innerHTML = parts.join(' ');
@@ -125,16 +127,16 @@
 
         listEl.innerHTML = rows.map((r) => `
             <button type="button"
-                class="w-full flex items-center gap-3 card px-4 py-3.5 text-left hover:border-brand hover:shadow-sm transition-shadow"
+                class="w-full flex items-center gap-3 card px-4 py-3.5 text-left hover:border-brand transition-colors"
                 data-barangay-id="${r.barangay_id}" data-barangay-name="${r.barangay_name}">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-map-pin text-blue-500" style="font-size: 18px;" aria-hidden="true"></i>
+                <div class="icon-chip w-10 h-10">
+                    <i class="ti ti-map-pin" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-medium text-sm text-gray-800">${r.barangay_name}${r.barangay_id === ownBarangayId ? ' <span class="ml-1 text-xs font-medium px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700">Your barangay</span>' : ''}</p>
+                    <p class="font-semibold text-sm text-gray-900">${r.barangay_name}${r.barangay_id === ownBarangayId ? ' <span class="ml-1 badge badge-info">Your barangay</span>' : ''}</p>
                     <p class="text-xs text-gray-500">${r.center_count} evacuation center${r.center_count === 1 ? '' : 's'}</p>
                 </div>
-                <i class="ti ti-chevron-right text-gray-300 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
+                <i class="ti ti-chevron-right text-gray-400 shrink-0" style="font-size: 18px;" aria-hidden="true"></i>
             </button>`).join('');
     }
 
@@ -156,13 +158,13 @@
             .sort((a, b) => a.name.localeCompare(b.name));
 
         document.getElementById('center-list').innerHTML = centers.map((c) => `
-            <div class="flex items-center gap-3 card px-4 py-3.5 hover:border-brand hover:shadow-sm transition-shadow">
-                <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                    <i class="ti ti-building text-green-500" style="font-size: 18px;" aria-hidden="true"></i>
+            <div class="flex items-center gap-3 card px-4 py-3.5 hover:border-brand transition-colors">
+                <div class="icon-chip w-10 h-10">
+                    <i class="ti ti-building" style="font-size: 18px;" aria-hidden="true"></i>
                 </div>
-                <p class="flex-1 min-w-0 font-medium text-sm text-gray-800">${c.name}</p>
+                <p class="flex-1 min-w-0 font-semibold text-sm text-gray-900">${c.name}</p>
                 <a href="/ec-board/${c.id}?from=ec-board&barangay=${currentBarangayId}"
-                    class="shrink-0 flex items-center gap-1 bg-brand hover:bg-brand-dark text-white text-xs font-medium rounded-lg px-3 py-2">
+                    class="btn btn-primary btn-sm shrink-0 py-2">
                     Go to EC Board <i class="ti ti-arrow-right" style="font-size: 13px;" aria-hidden="true"></i>
                 </a>
             </div>`).join('');

@@ -34,11 +34,11 @@
             convention (e.g. modal Cancel buttons: border-gray-300 +
             hover:bg-gray-50) rather than inventing a new style. --}}
         <a id="back-to-center-link" href="#"
-            class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 hover:border-gray-400 hover:text-brand transition-colors">
+            class="btn btn-secondary px-3 py-1.5">
             <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i>
             <span id="back-to-center-label">Back to center info</span>
         </a>
-        <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand">
+        <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-brand hover:underline underline-offset-2">
             <i class="ti ti-building" style="font-size: 13px;" aria-hidden="true"></i> All evacuation centers
         </a>
     </div>
@@ -65,7 +65,7 @@
                     </div>
                     <label class="flex flex-col gap-1 text-xs text-gray-500 w-full sm:w-auto">
                         Event
-                        <select id="ecb-event-select" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-800 sm:min-w-[14rem]"></select>
+                        <select id="ecb-event-select" class="input input-sm sm:min-w-[14rem]"></select>
                     </label>
                 </div>
 
@@ -174,12 +174,12 @@
                         <legend class="ae-section-title">Who is this person?</legend>
                         <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
                             <div>
-                                <label for="ae-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
-                                <select id="ae-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                                <label for="ae-age-bracket" class="label-sm">Age group</label>
+                                <select id="ae-age-bracket" class="input px-2"></select>
                             </div>
                             <div>
-                                <label for="ae-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
-                                <select id="ae-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                <label for="ae-sex" class="label-sm">Sex</label>
+                                <select id="ae-sex" class="input px-2">
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                 </select>
@@ -206,7 +206,7 @@
                         </div>
 
                         <div id="ae-existing-section" class="flex flex-col gap-2">
-                            <select id="ae-family-id" aria-label="Household already at this center" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                            <select id="ae-family-id" aria-label="Household already at this center" class="input px-2">
                                 <option value="">No households registered here yet</option>
                             </select>
                             {{-- Only for a household whose head was "someone
@@ -223,17 +223,17 @@
                             headSex(). "Not yet known" is always allowed and
                             is stored as null, never guessed as "no". --}}
                         <div id="ae-new-section" class="hidden grid-cols-1 gap-2">
-                            <select id="ae-barangay-id" aria-label="Barangay" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                            <select id="ae-barangay-id" aria-label="Barangay" class="input px-2"></select>
                             <div>
-                                <label for="ae-family-name" class="text-xs text-gray-500 block mb-1">Household head's name</label>
-                                <input type="text" id="ae-family-name" placeholder="e.g. Juan Dela Cruz" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                <label for="ae-family-name" class="label-sm">Household head's name</label>
+                                <input type="text" id="ae-family-name" placeholder="e.g. Juan Dela Cruz" class="input px-2">
                             </div>
                             <label class="flex items-center gap-2 text-sm text-gray-700">
                                 <input type="checkbox" id="ae-head-is-self" checked> This person is the household head
                             </label>
                             <div>
-                                <label for="ae-single-headed" class="text-xs text-gray-500 block mb-1">Only one household head? (single-headed)</label>
-                                <select id="ae-single-headed" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                                <label for="ae-single-headed" class="label-sm">Only one household head? (single-headed)</label>
+                                <select id="ae-single-headed" class="input px-2">
                                     <option value="">Not yet known</option>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
@@ -251,16 +251,16 @@
                             <p class="text-xs text-gray-500 -mt-1 mb-2">Someone other than the person you're adding. Used until they're added and linked.</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <div id="ae-head-sex-field">
-                                    <label for="ae-head-sex" class="text-xs text-gray-500 block mb-1">Head's sex</label>
-                                    <select id="ae-head-sex" class="w-full border border-gray-300 bg-white rounded-lg px-2 py-2 text-sm">
+                                    <label for="ae-head-sex" class="label-sm">Head's sex</label>
+                                    <select id="ae-head-sex" class="input px-2">
                                         <option value="">Not yet known</option>
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
                                     </select>
                                 </div>
                                 <div id="ae-head-minor-field">
-                                    <label for="ae-head-is-minor" class="text-xs text-gray-500 block mb-1">Head is a minor?</label>
-                                    <select id="ae-head-is-minor" class="w-full border border-gray-300 bg-white rounded-lg px-2 py-2 text-sm">
+                                    <label for="ae-head-is-minor" class="label-sm">Head is a minor?</label>
+                                    <select id="ae-head-is-minor" class="input px-2">
                                         <option value="">Not yet known</option>
                                         <option value="1">Yes (under 18)</option>
                                         <option value="0">No</option>
@@ -281,7 +281,7 @@
                         <details id="ae-sectoral" class="border border-gray-200 rounded-lg">
                             <summary class="cursor-pointer select-none px-3 py-2 text-sm text-gray-700">
                                 Sectoral details <span class="text-gray-500">(optional)</span>
-                                <span id="ae-sectoral-count" class="hidden ml-1 text-xs px-2 py-0.5 rounded-lg bg-brand-light text-brand"></span>
+                                <span id="ae-sectoral-count" class="hidden ml-1 badge badge-info"></span>
                             </summary>
                             <div class="px-3 pb-1 pt-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-gray-700">
                                 <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_pwd"> PWD</label>
@@ -311,10 +311,10 @@
                             <ul id="ae-summary" class="text-xs text-gray-700 space-y-0.5"></ul>
                         </div>
                         <button type="submit" id="add-evacuee-submit-btn"
-                            class="w-full bg-brand hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2.5">
+                            class="btn btn-primary w-full py-2.5 disabled:opacity-40">
                             + Add evacuee
                         </button>
-                        <p id="add-evacuee-success-msg" class="hidden text-xs text-green-600 font-medium mt-1.5">&check; Added -- form's ready for the next one.</p>
+                        <p id="add-evacuee-success-msg" class="hidden text-xs text-green-700 font-medium mt-1.5">&check; Added -- form's ready for the next one.</p>
                         <p id="add-evacuee-disabled-note" class="hidden text-xs text-gray-500 mt-1.5">No active disaster event -- can't add evacuees right now.</p>
                     </div>
                 </form>
@@ -334,33 +334,33 @@
 
             <form id="quick-departure-form" class="grid grid-cols-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_6rem_minmax(0,1.2fr)_auto] gap-2 items-end">
                 <div class="col-span-2 lg:col-span-1">
-                    <label for="qd-age-bracket" class="text-xs text-gray-500 block mb-1">Age group</label>
-                    <select id="qd-age-bracket" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></select>
+                    <label for="qd-age-bracket" class="label-sm">Age group</label>
+                    <select id="qd-age-bracket" class="input px-2"></select>
                 </div>
                 <div>
-                    <label for="qd-sex" class="text-xs text-gray-500 block mb-1">Sex</label>
-                    <select id="qd-sex" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                    <label for="qd-sex" class="label-sm">Sex</label>
+                    <select id="qd-sex" class="input px-2">
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                 </div>
                 <div>
-                    <label for="qd-quantity" class="text-xs text-gray-500 block mb-1">How many</label>
-                    <input type="number" min="1" value="1" id="qd-quantity" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                    <label for="qd-quantity" class="label-sm">How many</label>
+                    <input type="number" min="1" value="1" id="qd-quantity" class="input px-2">
                 </div>
                 <div class="col-span-2 lg:col-span-1">
-                    <label for="qd-status" class="text-xs text-gray-500 block mb-1">Reason</label>
-                    <select id="qd-status" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
+                    <label for="qd-status" class="label-sm">Reason</label>
+                    <select id="qd-status" class="input px-2">
                         <option value="returned_home">Returned home</option>
                         <option value="transferred">Transferred elsewhere</option>
                     </select>
                 </div>
                 <button type="submit" id="quick-departure-submit-btn"
-                    class="col-span-2 lg:col-span-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2">
+                    class="btn btn-neutral col-span-2 lg:col-span-1 disabled:opacity-40">
                     Mark as departed
                 </button>
             </form>
-            <p id="quick-departure-success-msg" class="hidden text-xs text-green-600 font-medium mt-2">&check; Marked as departed.</p>
+            <p id="quick-departure-success-msg" class="hidden text-xs text-green-700 font-medium mt-2">&check; Marked as departed.</p>
             <p id="quick-departure-disabled-note" class="hidden text-xs text-gray-500 mt-2">No active disaster event -- can't log departures right now.</p>
         </section>
     </div>
