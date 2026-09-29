@@ -83,7 +83,10 @@
                 </div>
             </div>
 
-            <a href="{{ url(config('elikas.desktop_app_download_url', '/downloads/E-LIKAS-Setup.exe') ?? '/downloads/E-LIKAS-Setup.exe') }}"
+            {{-- download attribute: skips the page-transition click handler
+                below, which delayed the download and left the loading bar
+                stuck (a download never unloads the page). --}}
+            <a href="{{ url(config('elikas.desktop_app_download_url', '/downloads/E-LIKAS-Setup.exe') ?? '/downloads/E-LIKAS-Setup.exe') }}" download
                 class="flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-3 transition-colors shadow-sm">
                 <i class="ti ti-brand-windows" style="font-size: 16px;" aria-hidden="true"></i> Download for Windows
             </a>

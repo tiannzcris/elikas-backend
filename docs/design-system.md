@@ -357,10 +357,13 @@ A 40px `gray-300` decorative icon, a 14px `gray-700` medium line, a 14px
 - **On navy or any dark background** (sidebar, public footer): put the mark on
   a white circle, mark at 78% of the circle. Its dark-navy arms vanish against
   navy otherwise.
-- **About page mockup:** `public/images/about-dashboard-mockup.png` is built
-  from real screenshots of the dashboard (laptop), the dashboard on a phone,
-  and the resident home page on a phone. When the dashboard changes, retake
-  the screenshots rather than editing the image by hand.
+- **Mockup images:** `public/images/about-dashboard-mockup.png` (About page)
+  is built from real screenshots of the dashboard (laptop), the dashboard on
+  a phone, and the resident home page on a phone.
+  `public/images/contact-hotlines-phone-mockup.png` (Contact page) is the real
+  `/hotlines` page on a phone, so it shows the actual numbers. When either
+  page changes (a hotline number, the dashboard layout), retake the
+  screenshots rather than editing the image by hand.
 
 ## Checking your work
 

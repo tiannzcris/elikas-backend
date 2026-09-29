@@ -20,6 +20,16 @@
     </script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+
+        /* AOS starts fade-left/right elements up to 100px off to the side.
+           Clipping the page sections keeps that offset from widening the
+           page on phones: a sideways scroll, and mobile browsers also widen
+           the whole layout to fit it, which pushed the "Get the Mobile App"
+           modal past the screen edge. clip, not hidden, so no scroll
+           container is created and the sticky header keeps working; body's
+           hidden is the fallback for browsers without clip. */
+        body { overflow-x: hidden; }
+        main, section, footer { overflow-x: clip; }
         .hidden { display: none; }
 
         /* Page transition: the destination page still pops into place on
@@ -370,12 +380,16 @@
     <div id="mobile-app-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
         <div id="mobile-app-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-anim"></div>
 
-        <div id="mobile-app-modal-card" class="relative bg-white rounded-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 sm:p-8 text-center modal-card-anim">
-            <button type="button" id="mobile-app-modal-close" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
+        {{-- max-height in an inline style so browsers without dvh support
+            (older Android Chrome) fall back to 90vh instead of no limit at
+            all -- the card must scroll, never run off the screen. --}}
+        <div id="mobile-app-modal-card" class="relative bg-white rounded-2xl max-w-md w-full overflow-y-auto p-6 sm:p-8 text-center modal-card-anim" style="max-height: 90vh; max-height: 90dvh;">
+            <button type="button" id="mobile-app-modal-close" aria-label="Close" class="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
                 <i class="ti ti-x" style="font-size: 16px;" aria-hidden="true"></i>
             </button>
 
-            <p class="text-brand font-bold text-2xl mb-1">E-LIKAS</p>
+            <img src="/images/elikas-logo-mark.png" alt="" class="w-12 h-12 object-contain mx-auto mb-2">
+            <p class="text-[#094776] font-bold text-2xl mb-1">E-LIKAS</p>
             <p class="text-sm text-gray-500 mb-6">Mobile App for Residents</p>
 
             <p class="text-sm text-gray-600 mb-6 text-left">
@@ -384,9 +398,13 @@
                 works offline once you've opened it at least once.
             </p>
 
-            <a href="{{ url(config('elikas.mobile_app_download_url', '/downloads/E-LIKAS-Mobile.apk') ?? '/downloads/E-LIKAS-Mobile.apk') }}"
-                class="block text-center bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-3 transition-colors shadow-sm">
-                Download for Android
+            {{-- download attribute: the browser saves the .apk straight away
+                instead of going through the page-transition click handler
+                below, which delayed the navigation and left the loading
+                bar stuck at 70% (a download never unloads the page). --}}
+            <a href="{{ url(config('elikas.mobile_app_download_url', '/downloads/E-LIKAS-Mobile.apk') ?? '/downloads/E-LIKAS-Mobile.apk') }}" download
+                class="flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg py-3 transition-colors shadow-sm">
+                <i class="ti ti-brand-android" style="font-size: 16px;" aria-hidden="true"></i> Download for Android
             </a>
 
             <p class="text-xs text-gray-500 mt-4 text-left">

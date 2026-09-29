@@ -13,6 +13,16 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
 
+        /* AOS starts fade-left/right elements up to 100px off to the side.
+           Clipping the page sections keeps that offset from widening the
+           page on phones: a sideways scroll, and mobile browsers also widen
+           the whole layout to fit it, which pushed the "Get the Mobile App"
+           modal past the screen edge. clip, not hidden, so no scroll
+           container is created and the sticky header keeps working; body's
+           hidden is the fallback for browsers without clip. */
+        body { overflow-x: hidden; }
+        main, section, footer { overflow-x: clip; }
+
         /* Page transition: the destination page still pops into place on
            load (slight overshoot past 100%, reads as "suddenly forming").
            The OUTGOING side no longer shrinks/fades the current page to
