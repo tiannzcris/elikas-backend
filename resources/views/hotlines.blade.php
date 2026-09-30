@@ -54,7 +54,7 @@
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
                 <a href="/" class="text-gray-600 hover:text-brand">Home</a>
                 <a href="/about" class="text-gray-600 hover:text-brand">About</a>
-                <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a>
+                {{-- <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a> --}}
                 <a href="/find-evacuation-centers" class="text-gray-600 hover:text-brand">Evacuation Centers</a>
                 <a href="/hotlines" class="text-brand border-b-2 border-brand pb-1">Hotlines</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
@@ -67,7 +67,7 @@
             <div class="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm font-medium">
                 <a href="/" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Home</a>
                 <a href="/about" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">About</a>
-                <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Alerts</a>
+                {{-- <a href="/community-alerts" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Alerts</a> --}}
                 <a href="/find-evacuation-centers" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Evacuation Centers</a>
                 <a href="/hotlines" class="block px-3 py-2 rounded-lg text-brand bg-brand-light font-semibold">Hotlines</a>
                 <a href="/contact" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Contact</a>

@@ -90,7 +90,7 @@
             <nav class="hidden sm:flex items-center gap-5 text-sm font-medium">
                 <a href="/" class="text-brand border-b-2 border-brand pb-1">Home</a>
                 <a href="/about" class="text-gray-600 hover:text-brand">About</a>
-                <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a>
+                {{-- <a href="/community-alerts" class="text-gray-600 hover:text-brand">Alerts</a> --}}
                 <a href="/find-evacuation-centers" class="text-gray-600 hover:text-brand">Evacuation Centers</a>
                 <a href="/hotlines" class="text-gray-600 hover:text-brand">Hotlines</a>
                 <a href="/contact" class="text-gray-600 hover:text-brand">Contact</a>
