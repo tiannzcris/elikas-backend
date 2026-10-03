@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Statement · E-LIKAS</title>
+    <meta name="description" content="Privacy Statement for E-LIKAS, an academic capstone project for disaster evacuation management developed in partnership with CSWDO Ligao City: what evacuee information is recorded, how long it is kept, and who can access it.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { DEFAULT: '#2F5496', dark: '#1F3A6E' } } } } };
@@ -20,50 +21,57 @@
             <section>
                 <h2 class="font-semibold text-gray-900 mb-2">About This System</h2>
                 <p>
-                    E-LIKAS is a disaster evacuation management system operated by the
-                    City Social Welfare and Development Office (CSWDO) of Ligao City,
-                    Albay, Philippines. It supports evacuation center management,
-                    evacuee registration, disaster alerting, and related disaster
-                    response coordination.
+                    E-LIKAS is a Bachelor of Science in Information Technology academic
+                    capstone project, developed in partnership with the City Social Welfare
+                    and Development Office (CSWDO) of Ligao City, which cooperated with the
+                    study and provided information supporting its development. It supports
+                    evacuation center management, evacuee registration, disaster alerting,
+                    and related disaster response coordination.
                 </p>
             </section>
 
             <section>
-                <h2 class="font-semibold text-gray-900 mb-2">Information We Collect</h2>
-                <p class="mb-2">When a family is registered during evacuation, we collect:</p>
-                <ul class="list-disc pl-5 space-y-1">
-                    <li>Full name, date of birth, sex, and civil status of each family member</li>
-                    <li>Contact number (where provided)</li>
-                    <li>Barangay of residence</li>
-                    <li>Vulnerability indicators relevant to disaster response: PWD status,
-                        pregnancy, lactating status, solo parent status, indigenous person
-                        status, and 4Ps beneficiary status</li>
-                </ul>
-                <p class="mt-2">
-                    The public-facing mobile app does not require an account and does not
-                    collect any personal information from residents browsing alerts,
-                    evacuation center information, or hazard maps.
-                </p>
-            </section>
-
-            <section>
-                <h2 class="font-semibold text-gray-900 mb-2">How We Use This Information</h2>
+                <h2 class="font-semibold text-gray-900 mb-2">Information We Collect and How We Use It</h2>
                 <p>
-                    Information collected is used to coordinate evacuation center capacity
-                    and resource planning, plan relief and cash assistance distribution,
-                    identify residents who may need additional assistance during disaster
-                    response, and prepare official disaster response reports (such as
-                    DROMIC reports) for submission to relevant government agencies.
+                    When a family is registered as displaced, E-LIKAS records each
+                    member's name, exact date of birth, sex, civil status, and contact
+                    number where provided, along with the family's home address. Depending
+                    on how a family is registered, some of this information -- such as age
+                    bracket and sex, or sectoral details including whether the household
+                    has a single head, or whether a member is a person with disability,
+                    pregnant, or a solo parent -- may initially be recorded as an aggregate
+                    figure before an individual's full details are entered. This
+                    information is used to coordinate evacuation center operations,
+                    allocate relief assistance appropriately, and prepare official disaster
+                    reports for submission to the City Social Welfare and Development
+                    Office (CSWDO) and, where required, to the Department of Social Welfare
+                    and Development (DSWD).
                 </p>
             </section>
 
+            <section>
+                <h2 class="font-semibold text-gray-900 mb-2">How Long It Is Kept</h2>
+                <p>
+                    This information is retained as a historical record even after a
+                    disaster event has concluded. Evacuation records are not deleted or
+                    archived out of the system when an event is closed; they remain part of
+                    the system's permanent record so that official reports can still be
+                    generated or referenced afterward, consistent with standard government
+                    recordkeeping practice for disaster response documentation.
+                </p>
+            </section>
+
+            {{-- Deliberately says nothing yet about barangay officials being
+                limited to their own barangay: that isn't true until the EC
+                Board's cross-barangay access is fixed, and the wording for it
+                comes after that fix is verified. --}}
             <section>
                 <h2 class="font-semibold text-gray-900 mb-2">Who Can Access This Information</h2>
                 <p>
-                    Access is restricted to authorized CSWDO personnel and barangay
-                    officials, through individual password-protected accounts. Each
-                    account's access is limited by role -- barangay officials can only
-                    view and register families within their own barangay.
+                    Access to evacuee information is restricted to authorized CSWDO
+                    personnel and Barangay Officials. Residents using the system's
+                    public-facing features have no access to register, view, or search
+                    any evacuee's personal information.
                 </p>
             </section>
 

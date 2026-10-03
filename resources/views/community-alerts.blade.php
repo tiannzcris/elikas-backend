@@ -82,7 +82,8 @@
                 <p class="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3" data-aos="fade-up" data-aos-duration="500">Stay informed</p>
                 <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">Community Alerts</h1>
                 <p class="text-blue-100/80 text-base max-w-2xl" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                    Official alerts and advisories sent by CSWDO Ligao City -- no account needed. This
+                    Alerts and advisories entered through E-LIKAS's staff dashboard, modeled on how CSWDO Ligao City
+                    would issue them in an actual emergency -- no account needed. This
                     list refreshes with the same alerts sent through the E-LIKAS mobile app.
                 </p>
             </div>
@@ -125,8 +126,8 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-100/70 mb-4 max-w-sm">
-                    E-LIKAS is a public service initiative of the City Social Welfare and
-                    Development Office (CSWDO) Ligao City.
+                    E-LIKAS is an academic capstone project developed in partnership with
+                    the City Social Welfare and Development Office (CSWDO) of Ligao City.
                 </p>
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">

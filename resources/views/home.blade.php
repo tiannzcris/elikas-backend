@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-LIKAS · CSWDO Ligao City</title>
+    {{-- The one sentence search engines should summarize the site from,
+        instead of picking a paragraph themselves. --}}
+    <meta name="description" content="E-LIKAS is an academic capstone project for disaster evacuation management, developed in partnership with CSWDO Ligao City.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -227,8 +230,8 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-100/70 mb-4 max-w-sm">
-                    E-LIKAS is a public service initiative of the City Social Welfare and
-                    Development Office (CSWDO) Ligao City.
+                    E-LIKAS is an academic capstone project developed in partnership with
+                    the City Social Welfare and Development Office (CSWDO) of Ligao City.
                 </p>
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">

@@ -83,7 +83,8 @@
                 <h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">Evacuation Centers &amp; Hazard Map</h1>
                 <p class="text-blue-100/80 text-base max-w-2xl" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
                     Find the nearest evacuation center and see mapped hazard zones across Ligao City --
-                    no account needed. This is a read-only view of the same map CSWDO staff use internally.
+                    no account needed. This is a read-only view of the same map used in E-LIKAS's staff dashboard, built
+                    with CSWDO's guidance on what information is most useful during an evacuation.
                 </p>
             </div>
         </section>
@@ -236,8 +237,8 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-100/70 mb-4 max-w-sm">
-                    E-LIKAS is a public service initiative of the City Social Welfare and
-                    Development Office (CSWDO) Ligao City.
+                    E-LIKAS is an academic capstone project developed in partnership with
+                    the City Social Welfare and Development Office (CSWDO) of Ligao City.
                 </p>
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">

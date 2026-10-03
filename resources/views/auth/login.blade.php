@@ -14,7 +14,7 @@
                 <img src="/images/elikas-logo-mark.png" alt="" class="w-12 h-12 shrink-0">
                 <div class="leading-tight">
                     <p class="text-lg font-semibold tracking-tight text-navy">E-LIKAS</p>
-                    <p class="text-xs text-gray-600">Staff portal, CSWDO Ligao City</p>
+                    <p class="text-xs text-gray-600">Staff portal -- E-LIKAS Capstone Project, in partnership with CSWDO Ligao City</p>
                 </div>
             </div>
 
@@ -56,8 +56,10 @@
         </div>
     </main>
 
-    {{-- Institutional panel: Ligao City Hall behind the logo navy, with the
-        city seal and the CSWDO logo -- who this portal belongs to. --}}
+    {{-- Partner panel: Ligao City Hall behind the logo navy, with the city
+        seal and the CSWDO logo -- the office this capstone project was
+        developed in partnership with. Worded as a partnership, not as an
+        office that runs the system. --}}
     <aside class="hidden md:block flex-1 relative overflow-hidden">
         <div class="absolute -inset-4" style="background-image: url('/images/ligao-city-hall.jpg'); background-size: cover; background-position: center; filter: blur(5px);"></div>
         <div class="absolute inset-0" style="background: linear-gradient(160deg, rgba(7,58,97,0.92), rgba(9,71,118,0.80));"></div>
@@ -70,7 +72,7 @@
                     class="w-20 h-20 rounded-full ring-4 ring-white/25 shadow-lg object-cover">
             </div>
             <p class="text-white font-semibold text-4xl tracking-tight mb-2">E-LIKAS</p>
-            <p class="text-sm text-[#C7D7F0]">CSWDO Ligao City</p>
+            <p class="text-sm text-[#C7D7F0]">Capstone project, in partnership with CSWDO Ligao City</p>
         </div>
     </aside>
 
