@@ -55,7 +55,6 @@
                 <button type="button" id="cm-save-btn" class="btn btn-secondary">
                     Save camp manager info
                 </button>
-                <span id="cm-saved-msg" class="hidden text-sm font-medium text-green-700">&check; Saved</span>
             </div>
         </div>
 
@@ -173,10 +172,20 @@
                 method: 'PUT',
                 body: JSON.stringify({ facilities }),
             });
-            button.textContent = 'Saved!';
-            setTimeout(() => { button.disabled = false; button.textContent = 'Save facilities checklist'; }, 1500);
+            button.disabled = false;
+            button.textContent = 'Save facilities checklist';
+            Ui.toast('Facilities checklist saved');
         } catch (error) {
-            showFormErrors(error);
+            const fieldClass = { quantity: 'f-quantity', is_available: 'f-available', concerns_and_needs: 'f-notes' };
+            showFormErrors(error, {
+                form: 'facilities-form',
+                // facilities.3.quantity -> the fourth facility row's quantity.
+                fieldFor: (key) => {
+                    const match = key.match(/^facilities\.(\d+)\.(\w+)$/);
+                    if (! match || ! fieldClass[match[2]]) return null;
+                    return document.querySelectorAll('#facilities-list > div')[Number(match[1])]?.querySelector(`.${fieldClass[match[2]]}`) ?? null;
+                },
+            });
             button.disabled = false;
             button.textContent = 'Save facilities checklist';
         }
@@ -196,11 +205,15 @@
                     assistant_camp_manager_contact: document.getElementById('acm-contact-input').value || null,
                 }),
             });
-            const msg = document.getElementById('cm-saved-msg');
-            msg.classList.remove('hidden');
-            setTimeout(() => msg.classList.add('hidden'), 1500);
+            Ui.toast('Camp manager info saved');
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, {
+                form: button.closest('.card'),
+                fields: {
+                    camp_manager_name: 'cm-name-input', camp_manager_contact: 'cm-contact-input',
+                    assistant_camp_manager_name: 'acm-name-input', assistant_camp_manager_contact: 'acm-contact-input',
+                },
+            });
         } finally {
             button.disabled = false;
         }

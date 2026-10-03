@@ -170,7 +170,7 @@
                 ? (document.getElementById('barangay_id').value || null) : null;
             payload.email = document.getElementById('email').value;
             if (! password) {
-                showFormErrors({ message: 'Password is required when creating a new account.' });
+                showFormErrors({ errors: { password: ['Enter a password for the new account.'] } }, { form: 'user-form' });
                 return;
             }
         }
@@ -180,15 +180,16 @@
         button.textContent = isEdit ? 'Saving...' : 'Creating...';
 
         try {
-            if (isEdit) {
-                await Api.request(`/users/${userId}`, { method: 'PATCH', body: JSON.stringify(payload) });
-            } else {
-                const result = await Api.post('/users', payload);
-                alert(result.message);
-            }
+            const result = isEdit
+                ? await Api.request(`/users/${userId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+                : await Api.post('/users', payload);
+            // "...the email could not be sent -- share the password with
+            // them directly" must not slip away on its own: that toast
+            // stays until it's dismissed.
+            Ui.toastAfterRedirect(result.message, { tone: /could not/i.test(result.message) ? 'warning' : 'success' });
             window.location.href = '/users';
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, { form: 'user-form' });
             button.disabled = false;
             button.textContent = isEdit ? 'Save changes' : 'Create account';
         }

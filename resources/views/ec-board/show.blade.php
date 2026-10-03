@@ -74,7 +74,17 @@
                 <div class="min-w-0">
                     <p class="flex items-center gap-2 text-xs font-medium text-gray-500">
                         EC Information Board
-                        <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
+                        <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span> Live</span>
+                        {{-- How fresh "Live" is: the figures are worked out
+                            when the board loads, not pushed, so this is the
+                            time of the last successful load (see
+                            renderBoardFreshness()). --}}
+                        <span id="ecb-updated" class="hidden items-center gap-1 text-gray-500">
+                            <span>updated <time id="ecb-updated-time"></time></span>
+                            <button type="button" id="ecb-refresh-btn" class="btn-icon w-6 h-6" aria-label="Refresh the board" title="Refresh the board">
+                                <i class="ti ti-refresh" style="font-size: 14px;" aria-hidden="true"></i>
+                            </button>
+                        </span>
                     </p>
                     <h1 id="ecb-center-name" class="text-lg font-semibold text-gray-900 leading-snug mt-0.5"></h1>
                     <p class="text-sm text-gray-500">Barangay <span id="ecb-barangay" class="text-gray-700 font-medium"></span></p>
@@ -339,7 +349,6 @@
                         <ul id="ae-summary" class="text-xs text-gray-700 space-y-0.5"></ul>
                     </div>
                     <div class="flex flex-wrap items-center justify-end gap-2">
-                        <p id="add-evacuee-success-msg" class="hidden mr-auto text-xs text-green-700 font-medium" role="status">&check; Added -- form's ready for the next one.</p>
                         <button type="button" class="btn btn-secondary" data-close-modal>Close</button>
                         <button type="submit" id="add-evacuee-submit-btn"
                             class="btn btn-primary disabled:opacity-40">
@@ -396,7 +405,6 @@
                 </div>
 
                 <div class="modal-footer col-span-2 items-center">
-                    <p id="quick-departure-success-msg" class="hidden mr-auto text-xs text-green-700 font-medium" role="status">&check; Marked as departed.</p>
                     <button type="button" class="btn btn-secondary" data-close-modal>Close</button>
                     <button type="submit" id="quick-departure-submit-btn"
                         class="btn btn-neutral disabled:opacity-40">
@@ -499,10 +507,46 @@
         try {
             const result = await Api.get(`/evacuation-centers/${centerId}/quick-count?evacuation_event_id=${eventId}`);
             renderEcBoard(result.data);
+            boardLoadedAt = new Date();
+            renderBoardFreshness();
         } catch (error) {
             showFormErrors(error);
         }
     }
+
+    // "updated 3 mins ago" next to Live, with the exact time on hover --
+    // the same "As of" idea as the desktop and mobile apps. Re-worded every
+    // 30 seconds so a board left open shows its age honestly.
+    let boardLoadedAt = null;
+
+    function relativeTime(date) {
+        const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+        if (minutes < 1) return 'just now';
+        if (minutes < 60) return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} hr${hours === 1 ? '' : 's'} ago`;
+        const days = Math.floor(hours / 24);
+        return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+
+    function renderBoardFreshness() {
+        if (! boardLoadedAt) return;
+        const time = document.getElementById('ecb-updated-time');
+        time.textContent = relativeTime(boardLoadedAt);
+        time.dateTime = boardLoadedAt.toISOString();
+        time.title = `As of ${boardLoadedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+        document.getElementById('ecb-updated').classList.remove('hidden');
+        document.getElementById('ecb-updated').classList.add('inline-flex');
+    }
+
+    setInterval(renderBoardFreshness, 30 * 1000);
+
+    document.getElementById('ecb-refresh-btn').addEventListener('click', async (e) => {
+        const button = e.currentTarget;
+        button.disabled = true;
+        await loadEcBoard(document.getElementById('ecb-event-select').value);
+        button.disabled = false;
+    });
 
     // Populates the "Add evacuee" form's own dropdowns (households already
     // at this center, and barangays for a brand-new household) -- runs on
@@ -758,6 +802,8 @@
 
         document.getElementById('add-evacuee-errors').classList.add('hidden');
         document.getElementById('quick-departure-errors').classList.add('hidden');
+        clearFormErrors('add-evacuee-form');
+        clearFormErrors('quick-departure-form');
 
         openBoardModalEl = document.getElementById(modalId);
         boardModalOpener = opener;
@@ -806,15 +852,6 @@
             first.focus();
         }
     });
-
-    // An error comes back at the top of the form, which may be scrolled
-    // out of view by then -- bring it into view.
-    const showFormError = (errorBox, error) => {
-        const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-        errorBox.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-        errorBox.classList.remove('hidden');
-        errorBox.scrollIntoView({ block: 'nearest' });
-    };
 
     // '' (Not yet known) -> null, never a guessed "no".
     const triState = (value) => (value === '' ? null : value === '1');
@@ -880,13 +917,22 @@
             // for the next one (unlike household mode, which carries over).
             document.querySelectorAll('#ae-sectoral .ae-flag').forEach((box) => { box.checked = false; });
             updateSectoralFlagsUi();
-            const successMsg = document.getElementById('add-evacuee-success-msg');
-            successMsg.classList.remove('hidden');
-            setTimeout(() => successMsg.classList.add('hidden'), 2500);
 
+            // After the refresh, so "ready" is true: a new family just added
+            // is in the Already here list by the time the toast says so.
             await Promise.all([loadEcBoard(eventId), loadAddEvacueeFormData(eventId)]);
+            Ui.toast('Evacuee added. The form is ready for the next one.');
         } catch (error) {
-            showFormError(errorBox, error);
+            showFormErrors(error, {
+                form: 'add-evacuee-form',
+                box: errorBox,
+                fields: {
+                    age_bracket: 'ae-age-bracket', sex: 'ae-sex', family_id: 'ae-family-id',
+                    barangay_id: 'ae-barangay-id', family_name: 'ae-family-name',
+                    head_is_self: aeMode === 'new' ? 'ae-head-is-self' : 'ae-existing-head-is-self',
+                    is_single_headed: 'ae-single-headed', head_sex: 'ae-head-sex', head_is_minor: 'ae-head-is-minor',
+                },
+            });
         } finally {
             button.disabled = false;
             button.textContent = '+ Add evacuee';
@@ -924,9 +970,7 @@
             // reason intentionally carry over, same "ready for the next
             // one" convenience as Add Evacuee above.
             document.getElementById('qd-quantity').value = 1;
-            const successMsg = document.getElementById('quick-departure-success-msg');
-            successMsg.classList.remove('hidden');
-            setTimeout(() => successMsg.classList.add('hidden'), 2500);
+            Ui.toast(`Marked ${payload.quantity} as departed`);
 
             // Refreshes the live "Now" figures and age/sex breakdown --
             // this action never touches cumulative, so nothing else on the
@@ -936,7 +980,11 @@
             // The "only N available" block from quickDeparture() is a
             // plain top-level message, not a per-field errors object --
             // same fallback families/index.blade.php's own forms use.
-            showFormError(errorBox, error);
+            showFormErrors(error, {
+                form: 'quick-departure-form',
+                box: errorBox,
+                fields: { age_bracket: 'qd-age-bracket', sex: 'qd-sex', quantity: 'qd-quantity', status: 'qd-status' },
+            });
         } finally {
             button.disabled = false;
             button.textContent = 'Mark as departed';

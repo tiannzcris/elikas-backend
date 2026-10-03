@@ -293,11 +293,16 @@
     async function toggleStatus(userId, currentStatus) {
         const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
         const verb = newStatus === 'active' ? 'reactivate' : 'deactivate';
-        if (! confirm(`Are you sure you want to ${verb} this account?`)) return;
+        const name = allUsers.find((u) => u.id === userId)?.name ?? 'This user';
+        const confirmed = await Ui.confirm(newStatus === 'active'
+            ? { title: 'Reactivate this account?', message: `${name} will be able to log in again.`, confirmLabel: 'Reactivate', tone: 'primary' }
+            : { title: 'Deactivate this account?', message: `${name} won't be able to log in until the account is reactivated.`, confirmLabel: 'Deactivate' });
+        if (! confirmed) return;
 
         try {
             await Api.request(`/users/${userId}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
             loadUsers();
+            Ui.toast(`Account ${verb}d`);
         } catch (error) {
             showFormErrors(error);
         }
@@ -356,6 +361,7 @@
             await Api.request(`/users/${pendingDeleteUser.id}`, { method: 'DELETE' });
             closeDeleteModal();
             loadUsers();
+            Ui.toast('Account deleted');
         } catch (error) {
             // Shows the backend's exact reason inline in the modal (e.g.
             // "This account has 3 alerts sent... use Deactivate instead")
@@ -581,6 +587,7 @@
         editingUserId = userId;
 
         document.getElementById('user-modal-errors').classList.add('hidden');
+        clearFormErrors('user-form');
         document.getElementById('user-form').reset();
         document.getElementById('user-password').type = 'password';
         document.getElementById('user-barangay-field').classList.add('hidden');
@@ -699,9 +706,7 @@
                 ? (document.getElementById('user-barangay_id').value || null) : null;
             payload.email = document.getElementById('user-email').value;
             if (! password) {
-                const box = document.getElementById('user-modal-errors');
-                box.innerHTML = '<p>Password is required when creating a new account.</p>';
-                box.classList.remove('hidden');
+                showFormErrors({ errors: { password: ['Enter a password for the new account.'] } }, { form: 'user-form', box: 'user-modal-errors', prefix: 'user-' });
                 return;
             }
         }
@@ -711,19 +716,17 @@
         button.textContent = isEdit ? 'Saving...' : 'Creating...';
 
         try {
-            if (isEdit) {
-                await Api.request(`/users/${editingUserId}`, { method: 'PATCH', body: JSON.stringify(payload) });
-            } else {
-                const result = await Api.post('/users', payload);
-                alert(result.message);
-            }
+            const result = isEdit
+                ? await Api.request(`/users/${editingUserId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+                : await Api.post('/users', payload);
             closeUserModal();
+            // "...the email could not be sent -- share the password with
+            // them directly" must not slip away on its own: that toast
+            // stays until it's dismissed.
+            Ui.toast(result.message, { tone: /could not/i.test(result.message) ? 'warning' : 'success' });
             await loadUsers(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('user-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'user-form', box: 'user-modal-errors', prefix: 'user-' });
         } finally {
             button.disabled = false;
             button.textContent = isEdit ? 'Save changes' : 'Create account';

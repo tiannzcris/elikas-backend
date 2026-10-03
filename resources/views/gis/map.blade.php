@@ -275,6 +275,7 @@
     // in the same session, defeating the placeholder/required check
     // below after the first successful save.
     function resetHazardForm() {
+        clearFormErrors('hazard-form-panel');
         document.getElementById('hz-name').value = '';
         document.getElementById('hz-type').value = '';
         document.getElementById('hz-barangay').value = '';
@@ -314,14 +315,18 @@
     }
 
     async function deleteHazardArea(id, name) {
-        if (! confirm(`Delete hazard zone "${name}"? This cannot be undone.`)) {
-            return;
-        }
+        const confirmed = await Ui.confirm({
+            title: 'Delete this hazard zone?',
+            message: `"${name}" will be removed from the map. This can't be undone.`,
+            confirmLabel: 'Delete zone',
+        });
+        if (! confirmed) return;
 
         try {
             await Api.request(`/hazard-areas/${id}`, { method: 'DELETE' });
             map.closePopup();
             loadMapData();
+            Ui.toast('Hazard zone deleted');
         } catch (error) {
             showFormErrors(error);
         }
@@ -370,15 +375,20 @@
         document.getElementById('hz-save').addEventListener('click', async () => {
             if (! pendingLayer && ! editingHazardAreaId) return;
 
-            const name = document.getElementById('hz-name').value;
-            if (! name) {
-                showFormErrors({ message: 'Give the hazard zone a name before saving.' });
-                return;
-            }
+            // Shown under the field itself, in the panel, rather than in the
+            // page's error box above the map.
+            const hazardErrorOptions = {
+                form: 'hazard-form-panel',
+                fields: { area_name: 'hz-name', hazard_type: 'hz-type', barangay_id: 'hz-barangay', description: 'hz-description' },
+            };
 
+            const name = document.getElementById('hz-name').value;
             const hazardType = document.getElementById('hz-type').value;
-            if (! hazardType) {
-                showFormErrors({ message: 'Select a hazard type before saving.' });
+            const missing = {};
+            if (! name) missing.area_name = ['Give the hazard zone a name.'];
+            if (! hazardType) missing.hazard_type = ['Choose a hazard type.'];
+            if (Object.keys(missing).length) {
+                showFormErrors({ errors: missing }, { ...hazardErrorOptions, box: null });
                 return;
             }
 
@@ -390,12 +400,14 @@
             };
 
             try {
+                const wasEditing = !! editingHazardAreaId;
                 if (editingHazardAreaId) {
                     await Api.patch(`/hazard-areas/${editingHazardAreaId}`, payload);
                 } else {
                     payload.geojson = pendingLayer.toGeoJSON().geometry;
                     await Api.post('/hazard-areas', payload);
                 }
+                Ui.toast(wasEditing ? 'Hazard zone saved' : 'Hazard zone added');
                 resetHazardForm();
                 document.getElementById('hazard-form-panel').classList.add('hidden');
                 document.getElementById('hazard-form-panel').classList.remove('flex');
@@ -404,7 +416,7 @@
                 editingHazardAreaId = null;
                 loadMapData(); // refresh so the change renders with its proper color/popup
             } catch (error) {
-                showFormErrors(error);
+                showFormErrors(error, hazardErrorOptions);
             }
         });
 

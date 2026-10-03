@@ -117,12 +117,16 @@
                     <button id="sidebar-toggle-btn" class="btn-icon md:hidden -ml-1" aria-label="Toggle navigation menu">
                         <i class="ti ti-menu-2" style="font-size: 20px;" aria-hidden="true"></i>
                     </button>
-                    <span class="hidden md:flex items-center gap-1.5">
+                    <span class="hidden md:flex items-center gap-1.5 whitespace-nowrap">
                         <i class="ti ti-calendar text-gray-500" style="font-size: 16px;" aria-hidden="true"></i>
                         <span id="topbar-datetime"></span>
                     </span>
-                    <span class="hidden md:block w-px h-4 bg-gray-200" aria-hidden="true"></span>
-                    <span class="hidden md:flex items-center gap-1.5">
+                    {{-- The location only shows from xl (1280px) up: on a
+                        laptop-width screen the sidebar leaves too little room
+                        next to the alert button and account menu, and it
+                        wrapped and clipped. The date never wraps. --}}
+                    <span class="hidden xl:block w-px h-4 bg-gray-200" aria-hidden="true"></span>
+                    <span class="hidden xl:flex items-center gap-1.5 whitespace-nowrap">
                         <i class="ti ti-map-pin text-gray-500" style="font-size: 16px;" aria-hidden="true"></i>
                         Ligao City, Albay
                     </span>
@@ -174,6 +178,7 @@
     </div>
 
     <script src="/js/api.js"></script>
+    <script src="/js/ui.js"></script>
     <script>
         // Runs on every page using this layout: enforce login, and show the
         // logged-in user's name in the topbar.

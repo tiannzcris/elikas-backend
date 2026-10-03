@@ -113,6 +113,17 @@
         .help { @apply mt-1 text-xs text-gray-500; }
         .input { @apply w-full rounded-lg border border-field bg-white px-3 py-2 text-sm text-gray-900 transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-600; }
         .input-sm { @apply px-2.5 py-1.5; }
+        /* Inline field errors (showFormErrors in public/js/api.js):
+           red-600 border is 4.83:1, red-700 message text 6.47:1 on white. */
+        .input[aria-invalid="true"] { @apply border-red-600 focus:border-red-600 focus:ring-red-600/25; }
+        .field-error { @apply mt-1 flex items-start gap-1 text-xs font-medium text-red-700; }
+
+        /* Toasts (Ui.toast in public/js/ui.js): white on gray-900, 17.74:1.
+           An overlay, so it gets a shadow. */
+        .ui-toast { @apply pointer-events-auto flex items-start gap-2.5 w-full sm:w-auto sm:min-w-[16rem] sm:max-w-sm rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg; animation: ui-toast-in 160ms ease-out; }
+        .ui-toast-leaving { opacity: 0; transform: translateY(4px); transition: opacity 200ms, transform 200ms; }
+        .ui-toast-close { @apply -my-0.5 -mr-1 inline-flex items-center justify-center w-6 h-6 shrink-0 rounded text-gray-300 hover:bg-white/10 hover:text-white; }
+        @keyframes ui-toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
         /* Badges */
         .badge { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium leading-4 whitespace-nowrap ring-1 ring-inset; }

@@ -234,7 +234,6 @@
                         </button>
                     </div>
                     <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
-                    <p id="assign-owner-success-note" class="text-xs text-green-700 mt-2 hidden"></p>
                 </div>
 
                 <div class="modal-footer">
@@ -693,14 +692,9 @@
 
             document.getElementById('current-owner-label').textContent = result.data.creator?.name ?? 'Not yet assigned';
 
-            const note = document.getElementById('assign-owner-success-note');
-            note.textContent = result.message;
-            note.classList.remove('hidden');
+            Ui.toast(result.message);
         } catch (error) {
-            const box = document.getElementById('center-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { box: 'center-modal-errors', form: 'assign-owner-card', fields: { user_id: 'assign-owner-select' } });
         } finally {
             button.disabled = false;
             button.textContent = 'Assign';
@@ -711,6 +705,7 @@
         editingCenterId = centerId;
 
         document.getElementById('center-modal-errors').classList.add('hidden');
+        clearFormErrors('center-form');
         document.getElementById('center-form').reset();
 
         // .reset() clears the file input itself, but not this manually-
@@ -724,7 +719,6 @@
         // previously-edited center (or from "Add", which never shows it)
         // could linger visible for the wrong center.
         document.getElementById('assign-owner-card').classList.add('hidden');
-        document.getElementById('assign-owner-success-note').classList.add('hidden');
         document.getElementById('assign-owner-empty-note').classList.add('hidden');
         document.getElementById('assign-owner-select').classList.remove('hidden');
         document.getElementById('assign-owner-btn').classList.remove('hidden');
@@ -916,12 +910,10 @@
             const url = isEdit ? `/evacuation-centers/${editingCenterId}` : '/evacuation-centers';
             await Api.request(url, { method: 'POST', body: formData });
             closeCenterModal();
+            Ui.toast(isEdit ? 'Evacuation center saved' : 'Evacuation center added');
             await loadCenters(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('center-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'center-form', box: 'center-modal-errors', prefix: 'center-' });
         } finally {
             button.disabled = false;
             button.textContent = isEdit ? 'Save changes' : 'Save evacuation center';

@@ -129,7 +129,6 @@
                 </button>
             </div>
             <p id="assign-owner-empty-note" class="text-xs text-gray-500 mt-2 hidden">No active barangay officials found for this center's barangay yet.</p>
-            <p id="assign-owner-success-note" class="text-xs text-green-700 mt-2 hidden"></p>
         </div>
 
         <button type="submit" id="submit-btn"
@@ -199,9 +198,7 @@
 
             document.getElementById('current-owner-label').textContent = result.data.creator?.name ?? 'Not yet assigned';
 
-            const note = document.getElementById('assign-owner-success-note');
-            note.textContent = result.message;
-            note.classList.remove('hidden');
+            Ui.toast(result.message);
         } catch (error) {
             showFormErrors(error);
         } finally {
@@ -416,9 +413,10 @@
         try {
             const url = isEdit ? `/evacuation-centers/${centerId}` : '/evacuation-centers';
             await Api.request(url, { method: 'POST', body: formData });
+            Ui.toastAfterRedirect(isEdit ? 'Evacuation center saved' : 'Evacuation center added');
             window.location.href = '/evacuation-centers';
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, { form: 'center-form', fields: { latitude: 'coords-paste-input', longitude: 'coords-paste-input' } });
             button.disabled = false;
             button.textContent = isEdit ? 'Save changes' : 'Save evacuation center';
         }

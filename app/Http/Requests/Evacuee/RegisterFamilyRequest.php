@@ -52,6 +52,37 @@ class RegisterFamilyRequest extends FormRequest
     }
 
     /**
+     * Plain field names: these messages show directly under each member's
+     * field on the Register family form, so "members.0.contact_number"
+     * must read as "contact number".
+     */
+    public function attributes(): array
+    {
+        return [
+            'evacuation_event_id' => 'disaster event',
+            'barangay_id' => 'barangay',
+            'evacuation_center_id' => 'evacuation center',
+            'members.*.first_name' => 'first name',
+            'members.*.middle_name' => 'middle name',
+            'members.*.last_name' => 'last name',
+            'members.*.sex' => 'sex',
+            'members.*.date_of_birth' => 'date of birth',
+            'members.*.contact_number' => 'contact number',
+            'members.*.pwd_type' => 'PWD type',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'members.*.contact_number.regex' => 'Enter an 11-digit mobile number starting with 09 (or +639).',
+            'members.*.pwd_type.required_if' => 'Enter the PWD type.',
+            'members.*.date_of_birth.before_or_equal' => 'The date of birth can\'t be in the future.',
+            'evacuation_center_id.required_if' => 'Choose the evacuation center.',
+        ];
+    }
+
+    /**
      * Exactly one member must be flagged as head of family -- Family's
      * head_of_family_evacuee_id needs exactly one value to point to, and
      * DROMIC's family-count logic assumes one head per household.
@@ -65,7 +96,9 @@ class RegisterFamilyRequest extends FormRequest
             if ($headCount !== 1) {
                 $validator->errors()->add(
                     'members',
-                    "Exactly one member must be marked is_head_of_family (found {$headCount})."
+                    $headCount === 0
+                        ? 'Mark one member as Head of family.'
+                        : "Only one member can be Head of family ({$headCount} are marked)."
                 );
             }
         });

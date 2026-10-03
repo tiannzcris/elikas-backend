@@ -271,10 +271,15 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" id="family-modal-cancel" class="btn btn-secondary">
+                    <button type="button" id="family-modal-cancel" class="btn btn-secondary sm:mr-auto">
                         Cancel
                     </button>
-                    <button type="submit" id="f-submit-btn" class="btn btn-primary">
+                    {{-- Keeps the pop-up open for the next family, like Add
+                        evacuee on the EC Board. --}}
+                    <button type="submit" id="f-submit-another-btn" data-next="another" class="btn btn-secondary">
+                        Register and add another
+                    </button>
+                    <button type="submit" id="f-submit-btn" data-next="close" class="btn btn-primary">
                         Register family
                     </button>
                 </div>
@@ -1034,7 +1039,7 @@
                 <p class="text-sm font-semibold text-gray-900">Member ${index + 1}</p>
                 ${index > 0 ? `<button type="button" class="remove-member btn btn-sm btn-danger-secondary">Remove</button>` : ''}
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
                 <input type="text" placeholder="First name" class="m-first_name input" required>
                 <input type="text" placeholder="Middle name" class="m-middle_name input">
                 <input type="text" placeholder="Last name" class="m-last_name input" required>
@@ -1130,6 +1135,8 @@
     // call this with no prefill at all, same as before.
     async function openFamilyModal(prefill = {}) {
         document.getElementById('family-modal-errors').classList.add('hidden');
+        clearFormErrors('register-form');
+        document.getElementById('family-modal-cancel').textContent = 'Cancel';
         document.getElementById('register-form').reset();
         document.getElementById('f-members-container').innerHTML = '';
         // Matches whatever displacement_type the reset above landed on
@@ -1239,29 +1246,59 @@
             })),
         };
 
-        const button = document.getElementById('f-submit-btn');
-        button.disabled = true;
-        button.textContent = 'Registering...';
+        const addAnother = e.submitter?.dataset.next === 'another';
+        const buttons = [document.getElementById('f-submit-btn'), document.getElementById('f-submit-another-btn')];
+        const pressed = addAnother ? buttons[1] : buttons[0];
+        const pressedLabel = pressed.textContent.trim();
+        buttons.forEach((b) => { b.disabled = true; });
+        pressed.textContent = 'Registering...';
+        document.getElementById('family-modal-errors').classList.add('hidden');
+        clearFormErrors('register-form');
 
         try {
             await Api.post('/families/register', payload);
-            closeFamilyModal();
+            if (addAnother) {
+                // Ready for the next family: members and the 4Ps answer
+                // clear; event, barangay, displacement and center stay.
+                // What was saved stays saved, so Cancel now reads Close.
+                document.getElementById('f-members-container').innerHTML = '';
+                fMemberCount = 0;
+                fAddMemberRow();
+                document.getElementById('f-is_4ps_beneficiary').checked = false;
+                document.getElementById('family-modal-cancel').textContent = 'Close';
+                document.querySelector('#family-modal .modal').scrollTo({ top: 0 });
+                document.querySelector('#f-members-container .m-first_name').focus();
+                Ui.toast('Family registered. The form is ready for the next one.');
+            } else {
+                closeFamilyModal();
+                Ui.toast('Family registered');
+            }
             // Refresh in place, no full page reload: stat cards/sidebar via
             // loadFamilies(), plus whichever drill-down level is currently
             // visible (and the barangay summary underneath it) via
             // refreshCurrentDrillView() -- a plain loadFamilies() alone
             // wouldn't touch the barangay/center summary tables at all.
-            await Promise.all([loadFamilies(), refreshCurrentDrillView()]);
+            // Not awaited: the form is ready for the next family now, so
+            // its buttons mustn't wait on the lists behind it.
+            Promise.all([loadFamilies(), refreshCurrentDrillView()]).catch(() => {});
         } catch (error) {
             // Shown inside the modal itself (not the page's #form-errors
             // box, which sits behind the modal and wouldn't be visible).
-            const box = document.getElementById('family-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, {
+                form: 'register-form',
+                box: 'family-modal-errors',
+                prefix: 'f-',
+                // members.2.first_name -> the third member card's First name.
+                fieldFor: (key) => {
+                    const match = key.match(/^members\.(\d+)\.(\w+)$/);
+                    if (! match) return null;
+                    const row = document.querySelectorAll('#f-members-container .member-row')[Number(match[1])];
+                    return row?.querySelector(`.m-${match[2]}`) ?? null;
+                },
+            });
         } finally {
-            button.disabled = false;
-            button.textContent = 'Register family';
+            buttons.forEach((b) => { b.disabled = false; });
+            pressed.textContent = pressedLabel;
         }
     });
 </script>

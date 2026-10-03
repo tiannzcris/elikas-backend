@@ -55,10 +55,19 @@
             <div id="members-container" class="flex flex-col gap-4"></div>
         </div>
 
-        <button type="submit" id="submit-btn"
-            class="btn btn-primary w-fit">
-            Register family
-        </button>
+        {{-- "Register and add another" keeps staff on this form for the next
+            family (the same event, barangay and center usually apply), the
+            way Add evacuee on the EC Board stays open after each person. --}}
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="submit" id="submit-btn" data-next="list"
+                class="btn btn-primary">
+                Register family
+            </button>
+            <button type="submit" id="submit-another-btn" data-next="another"
+                class="btn btn-secondary">
+                Register and add another
+            </button>
+        </div>
     </form>
 @endsection
 
@@ -73,7 +82,7 @@
                 <p class="text-sm font-semibold text-gray-900">Member ${index + 1}</p>
                 ${index > 0 ? `<button type="button" class="remove-member btn btn-sm btn-danger-secondary">Remove</button>` : ''}
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
                 <input type="text" placeholder="First name" class="m-first_name input" required>
                 <input type="text" placeholder="Middle name" class="m-middle_name input">
                 <input type="text" placeholder="Last name" class="m-last_name input" required>
@@ -223,18 +232,53 @@
             })),
         };
 
-        const button = document.getElementById('submit-btn');
-        button.disabled = true;
-        button.textContent = 'Registering...';
+        const addAnother = e.submitter?.dataset.next === 'another';
+        const buttons = [document.getElementById('submit-btn'), document.getElementById('submit-another-btn')];
+        const pressed = addAnother ? buttons[1] : buttons[0];
+        const pressedLabel = pressed.textContent.trim();
+        buttons.forEach((b) => { b.disabled = true; });
+        pressed.textContent = 'Registering...';
+        document.getElementById('form-errors').classList.add('hidden');
+        clearFormErrors('register-form');
 
         try {
             await Api.post('/families/register', payload);
-            window.location.href = '/families';
+            if (! addAnother) {
+                Ui.toastAfterRedirect('Family registered');
+                window.location.href = '/families';
+                return;
+            }
+
+            // Ready for the next family: members and the family's own
+            // details clear; event, barangay, displacement and center stay.
+            resetForNextFamily();
+            Ui.toast('Family registered. The form is ready for the next one.');
         } catch (error) {
-            showFormErrors(error);
-            button.disabled = false;
-            button.textContent = 'Register family';
+            showFormErrors(error, {
+                form: 'register-form',
+                // members.2.first_name -> the third member card's First name.
+                fieldFor: (key) => {
+                    const match = key.match(/^members\.(\d+)\.(\w+)$/);
+                    if (! match) return null;
+                    const row = document.querySelectorAll('#members-container .member-row')[Number(match[1])];
+                    return row?.querySelector(`.m-${match[2]}`) ?? null;
+                },
+            });
+        } finally {
+            buttons.forEach((b) => { b.disabled = false; });
+            pressed.textContent = pressedLabel;
         }
     });
+
+    function resetForNextFamily() {
+        document.getElementById('members-container').innerHTML = '';
+        memberCount = 0;
+        addMemberRow();
+        document.getElementById('home_address').value = '';
+        document.getElementById('is_4ps_beneficiary').checked = false;
+        window.scrollTo({ top: 0 });
+        document.getElementById('main-content').scrollTo({ top: 0 });
+        document.querySelector('#members-container .m-first_name').focus();
+    }
 </script>
 @endsection

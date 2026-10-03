@@ -118,24 +118,166 @@ class ApiError extends Error {
 }
 
 /**
- * Renders API validation errors under an alert box with id="form-errors".
- * Every form page includes a <div id="form-errors" class="hidden">...</div>
- * and calls this in its catch block, so error display looks the same
- * everywhere instead of each page inventing its own.
+ * Shows an API error. Every form page includes a
+ * <div id="form-errors" class="hidden callout callout-danger"></div> and
+ * calls this in its catch block, so error display looks the same everywhere
+ * instead of each page inventing its own.
+ *
+ * Pass `form` (the form element or its id) and each field-level validation
+ * error is shown directly under its own field instead (see "Form inputs" in
+ * docs/design-system.md). The box then keeps only what has no field on
+ * screen, plus a one-line pointer to the highlighted fields. Fields are
+ * found, in order, by:
+ *   fields[key]     -- an id, an element, or a function returning one
+ *   fieldFor(key)   -- for keys like members.2.first_name
+ *   #{prefix}{key}  -- the usual case: the field's id is the API key
+ *   [name="{key}"]
+ * Options: { form, box (element or id, default 'form-errors'), prefix, fields, fieldFor }.
  */
-function showFormErrors(error) {
-    const box = document.getElementById('form-errors');
-    if (! box) {
+function showFormErrors(error, options = {}) {
+    const byId = (elOrId) => (typeof elOrId === 'string' ? document.getElementById(elOrId) : elOrId);
+    // box: null means "fields only" -- the page's box is then used only for
+    // a message that has no field on screen.
+    const fieldsOnly = 'box' in options && options.box === null;
+    let box = fieldsOnly ? null : byId(options.box ?? 'form-errors');
+    const form = byId(options.form ?? null);
+
+    if (form) clearFormErrors(form);
+
+    if (! box && ! form) {
         alert(error.message);
         return;
     }
 
-    let messages = [error.message];
+    const unplaced = [];
+    let placed = 0;
+    let firstField = null;
+
     if (error.errors) {
-        messages = Object.values(error.errors).flat();
+        for (const [key, messages] of Object.entries(error.errors)) {
+            const field = form ? findErrorField(form, key, options) : null;
+            if (field) {
+                markFieldError(field, [].concat(messages).join(' '));
+                placed++;
+                firstField ??= field;
+            } else {
+                unplaced.push(...[].concat(messages));
+            }
+        }
+    } else {
+        unplaced.push(error.message);
     }
 
-    box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-    box.classList.remove('hidden');
-    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (fieldsOnly && unplaced.length) box = document.getElementById('form-errors');
+
+    if (box && (unplaced.length || ! fieldsOnly)) {
+        const lines = [...unplaced];
+        if (placed && ! fieldsOnly) {
+            lines.push(placed === 1 ? 'Check the highlighted field.' : `Check the ${placed} highlighted fields.`);
+        }
+        box.innerHTML = lines.map((m) => `<p>${escapeErrorText(m)}</p>`).join('');
+        box.classList.remove('hidden');
+    }
+
+    if (firstField) {
+        firstField.focus({ preventScroll: true });
+        firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (box) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+/** Removes every inline field error (and hides nothing else) inside `form`. */
+function clearFormErrors(form) {
+    const scope = typeof form === 'string' ? document.getElementById(form) : form;
+    if (! scope) return;
+    scope.querySelectorAll('.field-error').forEach((p) => p.remove());
+    scope.querySelectorAll('[aria-invalid="true"]').forEach((field) => unmarkField(field));
+}
+
+function escapeErrorText(text) {
+    return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+function findErrorField(form, key, options) {
+    const resolve = (found) => (typeof found === 'string' ? document.getElementById(found) : found);
+    const visible = (el) => (el && el.getClientRects().length ? el : null);
+
+    const mapped = options.fields?.[key];
+    if (mapped) return visible(resolve(typeof mapped === 'function' ? mapped(key) : mapped));
+
+    const viaFn = options.fieldFor ? resolve(options.fieldFor(key)) : null;
+    if (viaFn) return visible(viaFn);
+
+    return visible(form.querySelector(`#${CSS.escape((options.prefix ?? '') + key)}`))
+        || visible(form.querySelector(`[name="${CSS.escape(key)}"]`));
+}
+
+function markFieldError(field, message) {
+    // A checkbox's message goes under its whole label, not beside the box.
+    let anchor = ['checkbox', 'radio'].includes(field.type) ? (field.closest('label') ?? field) : field;
+
+    // A field sharing a positioned wrapper with an overlaid button or icon
+    // (password show/hide, lock icons): the message goes after the whole
+    // wrapper, or the overlay would stretch over it.
+    const holder = anchor.parentElement;
+    if (holder && getComputedStyle(holder).position === 'relative'
+        && [...holder.children].some((child) => child !== anchor && getComputedStyle(child).position === 'absolute')) {
+        anchor = holder;
+    }
+
+    // A field sitting directly in a grid or flex row gets a wrapper first,
+    // so the message lands under it inside the same cell instead of taking
+    // a cell of its own. Column-span/flex sizing moves to the wrapper.
+    const parentDisplay = anchor.parentElement ? getComputedStyle(anchor.parentElement).display : '';
+    if (/grid|flex/.test(parentDisplay)) {
+        const wrap = document.createElement('div');
+        wrap.className = 'min-w-0';
+        wrap.dataset.fieldWrap = '';
+        [...anchor.classList]
+            .filter((c) => /^([a-z0-9]+:)?(col-span-|flex-1$|grow$|basis-)/.test(c))
+            .forEach((c) => wrap.classList.add(c));
+        const hadFocus = document.activeElement === field;
+        anchor.replaceWith(wrap);
+        wrap.append(anchor);
+        if (hadFocus) field.focus({ preventScroll: true });
+        anchor = wrap;
+    }
+
+    const p = document.createElement('p');
+    p.className = 'field-error';
+    p.id = `field-error-${Math.random().toString(36).slice(2, 9)}`;
+    p.innerHTML = `<i class="ti ti-alert-circle shrink-0" style="font-size: 14px; margin-top: 1px;" aria-hidden="true"></i><span>${escapeErrorText(message)}</span>`;
+    // Inside the new wrapper when one was made, otherwise right after the
+    // field (or its label, or its positioned wrapper).
+    if (anchor.dataset?.fieldWrap !== undefined) {
+        anchor.append(p);
+    } else {
+        anchor.insertAdjacentElement('afterend', p);
+    }
+
+    field.setAttribute('aria-invalid', 'true');
+    field.dataset.errorId = p.id;
+    field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), p.id].filter(Boolean).join(' '));
+
+    // Editing the field clears its message.
+    const clear = () => {
+        p.remove();
+        unmarkField(field);
+        field.removeEventListener('input', clear);
+        field.removeEventListener('change', clear);
+    };
+    field.addEventListener('input', clear);
+    field.addEventListener('change', clear);
+}
+
+function unmarkField(field) {
+    const errorId = field.dataset.errorId;
+    field.removeAttribute('aria-invalid');
+    if (errorId) {
+        document.getElementById(errorId)?.remove();
+        const rest = (field.getAttribute('aria-describedby') || '').split(' ').filter((id) => id && id !== errorId);
+        rest.length ? field.setAttribute('aria-describedby', rest.join(' ')) : field.removeAttribute('aria-describedby');
+        delete field.dataset.errorId;
+    }
 }

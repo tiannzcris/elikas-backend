@@ -374,6 +374,7 @@
             : 'Corrects this person\'s own details -- doesn\'t change their family or check-in status.';
 
         document.getElementById('member-modal-errors').classList.add('hidden');
+        clearFormErrors('member-form');
         document.getElementById('member-form').reset();
 
         // ?? '' throughout -- a placeholder member (see is_placeholder)
@@ -428,9 +429,12 @@
                 ? `Member ${currentFamily.members.indexOf(member) + 1} (details pending)`
                 : member.full_name;
 
-            if (! confirm(`Permanently remove ${memberLabel} from this family? This cannot be undone.`)) {
-                return;
-            }
+            const confirmed = await Ui.confirm({
+                title: 'Remove this member?',
+                message: `${memberLabel} will be permanently removed from this family. This can't be undone.`,
+                confirmLabel: 'Remove member',
+            });
+            if (! confirmed) return;
 
             // Determined client-side (rather than parsing the response
             // message) -- removing the head of family when they're the
@@ -446,11 +450,12 @@
             try {
                 const result = await Api.request(`/evacuees/${evacueeId}`, { method: 'DELETE' });
                 if (isLastMember) {
-                    alert(result.message);
+                    Ui.toastAfterRedirect(result.message);
                     window.location.href = '/families';
                     return;
                 }
                 await loadFamily(); // refresh in place, no full page reload
+                Ui.toast('Member removed');
             } catch (error) {
                 showFormErrors(error);
                 button.disabled = false;
@@ -499,12 +504,10 @@
         try {
             await Api.request(`/evacuees/${editingEvacueeId}`, { method: 'PATCH', body: JSON.stringify(payload) });
             closeMemberModal();
+            Ui.toast('Member details saved');
             await loadFamily(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('member-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'member-form', box: 'member-modal-errors', prefix: 'm-' });
         } finally {
             button.disabled = false;
             button.textContent = 'Save changes';
@@ -532,6 +535,7 @@
             `Closes their stay at ${activeRecord.evacuation_center?.name ?? 'their current location'}, so they no longer count as here now.`;
         document.getElementById('checkout-status').value = 'returned_home';
         document.getElementById('checkout-modal-errors').classList.add('hidden');
+        clearFormErrors('checkout-form');
         document.getElementById('checkout-modal').classList.remove('hidden');
         document.getElementById('checkout-modal').classList.add('flex');
     }
@@ -563,10 +567,15 @@
 
         const status = document.getElementById('checkout-status').value;
         const reason = status === 'transferred' ? 'transferred elsewhere' : 'returned home';
+        const memberName = memberDisplayName(member);
         // A real, lasting change -- confirmed explicitly, like Remove.
-        if (! confirm(`Check out ${memberDisplayName(member)} as ${reason}? They'll no longer count as here now.`)) {
-            return;
-        }
+        const confirmed = await Ui.confirm({
+            title: `Check out ${memberName}?`,
+            message: `They'll be recorded as ${reason} and no longer count as here now.`,
+            confirmLabel: 'Check out',
+            tone: 'neutral',
+        });
+        if (! confirmed) return;
 
         const button = document.getElementById('checkout-submit-btn');
         button.disabled = true;
@@ -576,11 +585,9 @@
             await Api.request(`/evacuees/${checkingOutEvacueeId}/check-out`, { method: 'POST', body: JSON.stringify({ status }) });
             closeCheckoutModal();
             await loadFamily(); // refresh in place -- the row now reads "Checked out"
+            Ui.toast(`${memberName} checked out`);
         } catch (error) {
-            const box = document.getElementById('checkout-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'checkout-form', box: 'checkout-modal-errors', fields: { status: 'checkout-status' } });
         } finally {
             button.disabled = false;
             button.textContent = 'Check out';
@@ -649,6 +656,7 @@
 
         updateHouseholdHeadUi();
         document.getElementById('household-modal-errors').classList.add('hidden');
+        clearFormErrors('household-form');
         document.getElementById('household-modal').classList.remove('hidden');
         document.getElementById('household-modal').classList.add('flex');
     }
@@ -692,12 +700,17 @@
         try {
             await Api.request(`/families/${familyId}/household`, { method: 'PATCH', body: JSON.stringify(payload) });
             closeHouseholdModal();
+            Ui.toast('Family details saved');
             await loadFamily(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('household-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, {
+                form: 'household-form',
+                box: 'household-modal-errors',
+                fields: {
+                    head_of_family_evacuee_id: 'hh-head', is_single_headed: 'hh-single-headed',
+                    head_sex: 'hh-head-sex', head_is_minor: 'hh-head-is-minor',
+                },
+            });
         } finally {
             button.disabled = false;
             button.textContent = 'Save changes';
@@ -708,6 +721,7 @@
 
     async function openCenterModal() {
         document.getElementById('center-modal-errors').classList.add('hidden');
+        clearFormErrors('center-form');
 
         const select = document.getElementById('center-select');
         select.innerHTML = '<option value="">Select center</option>';
@@ -757,12 +771,10 @@
         try {
             await Api.request(`/families/${familyId}/evacuation-center`, { method: 'PATCH', body: JSON.stringify(payload) });
             closeCenterModal();
+            Ui.toast('Evacuation center changed');
             await loadFamily(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('center-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'center-form', box: 'center-modal-errors', fields: { evacuation_center_id: 'center-select' } });
         } finally {
             button.disabled = false;
             button.textContent = 'Save changes';

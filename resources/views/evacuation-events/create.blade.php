@@ -174,9 +174,10 @@
             } else {
                 await Api.post('/evacuation-events', payload);
             }
+            Ui.toastAfterRedirect(isEdit ? 'Event saved' : 'Event created');
             window.location.href = '/evacuation-events';
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, { form: 'event-form' });
             button.disabled = false;
             button.textContent = isEdit ? 'Save changes' : 'Create event';
         }

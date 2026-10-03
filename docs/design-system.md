@@ -273,8 +273,16 @@ turns `red-700`. At 0 it stays calm and ink-colored.
 - Each field has a `.label` above it (`.label-sm` in dense panels) and optional
   `.help` below.
 - Checkboxes and radios use `accent-color: brand`.
-- Errors go in a `.callout .callout-danger` box above the form (see
-  `showFormErrors()` in `public/js/api.js`).
+- **Errors go under the field they're about.** Call
+  `showFormErrors(error, { form })` (`public/js/api.js`): each validation
+  error appears as a `.field-error` line (12px medium `red-700`, 6.47:1, with
+  a `ti-alert-circle`) under its field, and the field gets `aria-invalid` and
+  a `red-600` border (4.83:1). Editing the field clears its message. The
+  form's `.callout .callout-danger` box above keeps only what has no field on
+  screen (a server error, "only 3 available"), plus "Check the highlighted
+  fields." Fields are matched by id (`prefix` + API key), by `fields: { key:
+  id }`, or by `fieldFor(key)` for list keys such as `members.2.first_name`.
+  Pass `box: null` for a panel that should show field messages only.
 
 ### Badges (status pills)
 
@@ -320,9 +328,52 @@ border, `brand-50` fill and `brand-700` text (6.16:1), and the markup carries
   scroll: add `flex flex-col overflow-hidden` to `.modal` and give the body
   `flex-1 min-h-0 overflow-y-auto`. EC Board's *Add evacuee* is the example.
 - A form staff repeat many times in a row (*Add evacuee*, *Quick departure*)
-  stays open after saving, with a short success line beside the buttons.
-  Its secondary button says *Close*, not *Cancel*, because what was saved
-  stays saved.
+  stays open after saving and confirms with a toast. Its secondary button
+  says *Close*, not *Cancel*, because what was saved stays saved. A form
+  that is usually closed after one save but sometimes repeated (*Register
+  family*) offers a secondary *Register and add another* next to the
+  primary, which keeps the event, barangay and center and clears the rest.
+
+### Confirm dialog
+
+`Ui.confirm({ title, message, confirmLabel, tone })` (`public/js/ui.js`)
+replaces the browser's `confirm()`, and resolves `true` or `false`.
+
+- **Title** is the question ("Close this event?"); **message** says what will
+  happen, in one or two plain sentences; **confirmLabel** names the action
+  ("Close event", "Delete zone"), never "OK" or "Yes".
+- **tone** picks the confirm button: `danger` (the default: deletes,
+  removes, closes, deactivates) is the solid `.btn-danger` "final confirm
+  inside a delete dialog", with the red warning icon from the Delete
+  account dialog; `neutral` (`.btn-neutral`) for a committing action that
+  isn't destructive, such as *Check out*; `primary` for a safe one, such as
+  *Reactivate*.
+- Cancel sits left of the confirm button. For `danger`, Cancel has focus
+  when the dialog opens, so a stray Enter cancels. Escape and a click on the
+  backdrop cancel. It sits above any open modal.
+- Deleting a user account keeps its own type-the-email dialog: deliberately
+  more friction than this.
+
+### Toasts
+
+`Ui.toast(message, { tone })` confirms something that just happened, in
+the bottom-right corner (full width at the bottom on a phone).
+
+- White 14px medium text on `gray-900` (17.74:1), `rounded-lg`, with an
+  overlay shadow and a tone icon: `success` (`ti-circle-check`, the
+  default), `info`, `danger`, and `warning`.
+- It never blocks anything and goes away on its own: 4 seconds, 7 for
+  `danger`. Hovering or focusing it pauses the timer, and it has a
+  Dismiss button. `warning` stays until dismissed: use it when staff still
+  have to act on the message (the account's password email could not be
+  sent).
+- The text is past tense and names what happened with the same word as the
+  button: *Send alert* → "Alert sent", *Register family* → "Family
+  registered".
+- When the save navigates to another page, call
+  `Ui.toastAfterRedirect(message)` before navigating; the toast shows once
+  on the next page.
+- Toasts don't carry errors from a form. Those go under their fields.
 
 ### Meters
 
@@ -335,6 +386,19 @@ matches the dashboard's at-risk rule.
 A 40px `gray-300` decorative icon, a 14px `gray-700` medium line, a 14px
 `gray-500` explanation, and optionally a secondary action. Keep them inside a
 `.card`.
+
+### Live figures
+
+A figure that's worked out when the page loads (EC Board) is labelled
+*Live* with how long ago it loaded: "updated 3 mins ago", re-worded every
+30 seconds, with the exact "As of" time on hover and a refresh icon button
+beside it. It is the load time, so a board left open shows its real age.
+
+### Top bar
+
+The date always shows from `md` up, and never wraps. "Ligao City, Albay"
+shows only from `xl` (1280px), because at laptop widths the sidebar leaves
+too little room next to the alert button and account menu.
 
 ### Sidebar navigation
 

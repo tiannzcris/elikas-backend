@@ -113,7 +113,7 @@
                 // would be mostly city-wide figures (see layouts/app).
                 window.location.href = result.data.user.role === 'barangay_official' ? '/ec-board' : '/dashboard';
             } catch (error) {
-                showFormErrors(error);
+                showFormErrors(error, { form: 'login-form' });
                 button.disabled = false;
                 button.textContent = 'Log in';
             }

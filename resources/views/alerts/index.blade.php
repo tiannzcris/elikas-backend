@@ -360,13 +360,17 @@
     });
 
     async function deleteAlert(id, title) {
-        if (! confirm(`Delete the alert "${title}"? This cannot be undone.`)) {
-            return;
-        }
+        const confirmed = await Ui.confirm({
+            title: 'Delete this alert?',
+            message: `"${title}" will be removed from the alerts list. This can't be undone.`,
+            confirmLabel: 'Delete alert',
+        });
+        if (! confirmed) return;
 
         try {
             await Api.request(`/alerts/${id}`, { method: 'DELETE' });
             await loadAlerts();
+            Ui.toast('Alert deleted');
         } catch (error) {
             showFormErrors(error);
         }
@@ -697,6 +701,7 @@
         editingAlert = alertToEdit;
 
         document.getElementById('alert-modal-errors').classList.add('hidden');
+        clearFormErrors('alert-form');
         document.getElementById('alert-form').reset();
         clearSelectedEvacuee();
         lastBarangayFillValue = null;
@@ -841,14 +846,20 @@
                 await Api.post('/alerts', payload);
             }
             closeAlertModal();
+            Ui.toast(isEditing ? 'Alert updated' : 'Alert sent');
             await loadAlerts(); // refresh in place, no full page reload
         } catch (error) {
             // Shown inside the modal itself (not the page's #form-errors
-            // box, which sits behind the modal and wouldn't be visible)
-            // -- same message/errors-array handling showFormErrors uses.
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            // box, which sits behind the modal and wouldn't be visible).
+            showFormErrors(error, {
+                form: 'alert-form',
+                box,
+                fields: {
+                    title: 'alert-title', message: 'alert-message', severity: 'alert-severity',
+                    alert_type: 'alert-type', evacuation_event_id: 'alert-evacuation-event',
+                    barangay_id: 'alert-barangay', evacuee_id: 'evacuee-search-input',
+                },
+            });
         } finally {
             button.disabled = false;
             button.textContent = isEditing ? 'Save changes' : 'Send alert';

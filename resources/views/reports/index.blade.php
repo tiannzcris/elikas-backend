@@ -502,6 +502,7 @@
                 evacuation_center_id: Number(document.getElementById('ec-board-center').value),
             });
             await loadReportsList();
+            Ui.toast('EC Information Board generated. It\'s at the top of the reports list.');
         } catch (error) {
             showFormErrors(error);
         } finally {

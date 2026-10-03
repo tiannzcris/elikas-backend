@@ -123,9 +123,10 @@
 
         try {
             await Api.post('/alerts', payload);
+            Ui.toastAfterRedirect('Alert sent');
             window.location.href = '/alerts';
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, { form: 'alert-form' });
             button.disabled = false;
             button.textContent = 'Send alert';
         }

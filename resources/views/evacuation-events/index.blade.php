@@ -193,12 +193,16 @@
     const canManage = user && user.role !== 'barangay_official';
 
     async function closeEvent(id) {
-        if (! confirm('Close this event? It will no longer be selectable for new evacuee registration, but its reports and predictions stay available.')) {
-            return;
-        }
+        const confirmed = await Ui.confirm({
+            title: 'Close this event?',
+            message: 'Staff can no longer add evacuees to it. Its reports and predictions stay available.',
+            confirmLabel: 'Close event',
+        });
+        if (! confirmed) return;
         try {
             await Api.request(`/evacuation-events/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'closed' }) });
             loadEvents();
+            Ui.toast('Event closed');
         } catch (error) {
             showFormErrors(error);
         }
@@ -492,6 +496,7 @@
 
     function openEventModal() {
         document.getElementById('event-modal-errors').classList.add('hidden');
+        clearFormErrors('event-form');
         document.getElementById('event-form').reset();
         updateEventTypeFields(); // after reset(), so it matches the now-default "Typhoon" selection
         document.getElementById('create-event-modal').classList.remove('hidden');
@@ -540,12 +545,10 @@
         try {
             await Api.post('/evacuation-events', payload);
             closeEventModal();
+            Ui.toast('Event created');
             await loadEvents(); // refresh in place, no full page reload
         } catch (error) {
-            const box = document.getElementById('event-modal-errors');
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            box.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            box.classList.remove('hidden');
+            showFormErrors(error, { form: 'event-form', box: 'event-modal-errors', prefix: 'ev-' });
         } finally {
             button.disabled = false;
             button.textContent = 'Create event';

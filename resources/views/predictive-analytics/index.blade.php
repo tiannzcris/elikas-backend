@@ -652,10 +652,16 @@
         // JavaScript, which would otherwise let an empty field silently
         // submit as "0mm rainfall" instead of stopping with a clear message
         // that the field needs to actually be filled in first.
-        if (rainfallInput.value.trim() === '' || windInput.value.trim() === '') {
-            showFormErrors({ message: 'Enter both forecasted rainfall and wind speed before generating a forecast.' });
+        // Shown under the fields themselves (the card holding the button).
+        const forecastErrorOptions = { form: document.getElementById('generate-btn').closest('.card') ?? document.body, box: null };
+        const missing = {};
+        if (rainfallInput.value.trim() === '') missing.rainfall_mm = ['Enter the forecasted rainfall.'];
+        if (windInput.value.trim() === '') missing.wind_speed_kph = ['Enter the forecasted wind speed.'];
+        if (Object.keys(missing).length) {
+            showFormErrors({ errors: missing }, forecastErrorOptions);
             return;
         }
+        clearFormErrors(forecastErrorOptions.form);
 
         const button = document.getElementById('generate-btn');
         button.disabled = true;
@@ -670,7 +676,7 @@
             await loadPredictions();
             await loadActivity();
         } catch (error) {
-            showFormErrors(error);
+            showFormErrors(error, { ...forecastErrorOptions, box: undefined });
         } finally {
             button.disabled = false;
             button.textContent = 'Generate forecast';
