@@ -504,5 +504,15 @@ class FamilyController extends Controller
         } else {
             $query->whereHas('evacuationEvent', fn (Builder $q) => $q->where('status', '!=', 'closed'));
         }
+
+        // Opt-in, for the Evacuees page's drill-down: only families with at
+        // least one member still checked in. A family whose every member
+        // has been checked out drops out of that view but stays in the
+        // database, in every report, and in the evacuee name search. Off by
+        // default so the Dashboard, reports and the mobile app keep their
+        // current figures.
+        if ($request->boolean('here_now')) {
+            $query->whereHas('members.evacuationRecords', fn (Builder $r) => $r->whereNull('date_out'));
+        }
     }
 }

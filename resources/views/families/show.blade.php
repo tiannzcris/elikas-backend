@@ -43,7 +43,14 @@
             <i class="ti ti-alert-circle shrink-0 mt-px" style="font-size: 14px;" aria-hidden="true"></i>
             <span id="family-head-unlinked-text"></span>
         </p>
-        <h2 class="card-title mt-6 mb-3">Members</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 mt-6 mb-3">
+            <h2 class="card-title">Members</h2>
+            {{-- Only while at least one member is still checked in (see
+                renderDepartButton()); gone once everyone has left. --}}
+            <button type="button" id="depart-family-btn" class="hidden btn btn-secondary btn-sm" aria-haspopup="dialog">
+                <i class="ti ti-door-exit" style="font-size: 15px;" aria-hidden="true"></i> Mark family as departed
+            </button>
+        </div>
         <div class="card divide-y divide-gray-100" id="members-list"></div>
     </div>
 
@@ -144,6 +151,53 @@
                     </button>
                     <button type="submit" id="checkout-submit-btn" class="btn btn-neutral">
                         Check out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Mark family as departed: checks out several members at once, with
+        one reason for all of them. Lists only members still checked in.
+        Each ticked member goes through the same single-person Check out
+        call above (POST /evacuees/{id}/check-out), one at a time, so each
+        gets its own record closed and its own log entry; one that fails
+        doesn't undo the others. --}}
+    <div id="depart-family-modal" class="hidden modal-backdrop">
+        <div class="modal max-w-md" role="dialog" aria-modal="true" aria-labelledby="depart-family-title">
+            <div class="modal-header">
+                <div>
+                    <h2 id="depart-family-title" class="modal-title">Mark family as departed</h2>
+                    <p class="text-xs text-gray-500">Checks out everyone ticked, with one reason for all of them. Members already checked out aren't listed.</p>
+                </div>
+                <button type="button" id="depart-family-close" class="btn-icon -mr-1.5" aria-label="Close">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div id="depart-family-errors" class="hidden callout callout-danger mx-5 mt-4" role="alert"></div>
+
+            <form id="depart-family-form" class="flex flex-col gap-4 p-5">
+                <fieldset>
+                    <legend class="label">Who is leaving</legend>
+                    <div id="depart-family-members" class="border border-gray-200 rounded-lg divide-y divide-gray-100"></div>
+                </fieldset>
+                <div>
+                    <label for="depart-family-status" class="label">Reason</label>
+                    <select id="depart-family-status" class="input">
+                        <option value="returned_home">Returned home</option>
+                        <option value="transferred">Transferred elsewhere</option>
+                        <option value="other">Others</option>
+                    </select>
+                    <p class="help">Applies to everyone ticked above.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="depart-family-cancel" class="btn btn-secondary">
+                        Cancel
+                    </button>
+                    <button type="submit" id="depart-family-submit-btn" class="btn btn-neutral">
+                        Mark as departed
                     </button>
                 </div>
             </form>
@@ -251,6 +305,8 @@
     let editingEvacueeId = null;
 
     const sentenceCase = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+    // 'other' is the "Others" check-out reason; the rest read fine as is.
+    const memberStatusLabels = { other: 'Departed (other reason)' };
 
     function renderMembers() {
         document.getElementById('members-list').innerHTML = currentFamily.members.map((m, idx) => {
@@ -284,7 +340,7 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    <span class="badge ${m.status === 'active' ? 'badge-success' : 'badge-neutral'} mr-1">${sentenceCase(m.status.replace('_', ' '))}</span>
+                    <span class="badge ${m.status === 'active' ? 'badge-success' : 'badge-neutral'} mr-1">${memberStatusLabels[m.status] ?? sentenceCase(m.status.replace('_', ' '))}</span>
                     <button type="button" class="edit-member-btn btn btn-sm ${m.is_placeholder ? 'btn-attention' : 'btn-secondary'}" data-id="${m.id}">${m.is_placeholder ? 'Add details' : 'Edit'}</button>
                     ${activeRecord ? `<button type="button" class="checkout-member-btn btn btn-sm btn-secondary" data-id="${m.id}">Check out</button>` : ''}
                     <button type="button" class="remove-member-btn btn btn-sm btn-danger-secondary" data-id="${m.id}">Remove</button>
@@ -344,6 +400,7 @@
             }
 
             renderMembers();
+            renderDepartButton();
             document.getElementById('content-wrap').classList.remove('hidden');
         } catch (error) {
             showFormErrors(error);
@@ -592,6 +649,126 @@
             button.disabled = false;
             button.textContent = 'Check out';
         }
+    });
+
+    // --- Mark family as departed --------------------------------------------
+
+    const departReasons = { returned_home: 'returned home', transferred: 'transferred elsewhere', other: 'departed for another reason' };
+    const checkedInMembers = () => currentFamily.members.filter((m) => m.evacuation_records.some((r) => ! r.date_out));
+    const tickedDepartIds = () => [...document.querySelectorAll('#depart-family-members .depart-member:checked')].map((box) => Number(box.value));
+
+    function renderDepartButton() {
+        document.getElementById('depart-family-btn').classList.toggle('hidden', checkedInMembers().length === 0);
+    }
+
+    // Everyone still checked in, ticked unless `ticked` says otherwise
+    // (after a partly failed batch: only the ones that failed).
+    function renderDepartMembers(ticked = null) {
+        const here = checkedInMembers();
+        document.getElementById('depart-family-members').innerHTML = here.length ? here.map((m) => {
+            const record = m.evacuation_records.find((r) => ! r.date_out);
+            const isHead = m.id === currentFamily.head_of_family?.id;
+            const checked = ticked === null || ticked.has(m.id);
+            return `
+                <label class="flex items-start gap-3 px-3 py-2.5 text-sm text-gray-900 cursor-pointer">
+                    <input type="checkbox" class="depart-member mt-0.5" value="${m.id}" ${checked ? 'checked' : ''}>
+                    <span class="min-w-0">
+                        <span class="font-medium">${Ui.escapeHtml(memberDisplayName(m))}</span>
+                        ${isHead ? '<span class="badge badge-info ml-1">Head of family</span>' : ''}
+                        <span class="block text-xs text-gray-500">Checked in at ${Ui.escapeHtml(record.evacuation_center?.name ?? 'unspecified location')}</span>
+                    </span>
+                </label>`;
+        }).join('') : '<p class="px-3 py-2.5 text-sm text-gray-500">No one in this family is checked in any more.</p>';
+        updateDepartSubmit();
+    }
+
+    function updateDepartSubmit() {
+        const count = tickedDepartIds().length;
+        const button = document.getElementById('depart-family-submit-btn');
+        button.disabled = count === 0;
+        button.textContent = count === 0 ? 'Mark as departed' : `Mark ${count} as departed`;
+    }
+
+    function openDepartModal() {
+        document.getElementById('depart-family-status').value = 'returned_home';
+        document.getElementById('depart-family-errors').classList.add('hidden');
+        renderDepartMembers();
+        document.getElementById('depart-family-modal').classList.remove('hidden');
+        document.getElementById('depart-family-modal').classList.add('flex');
+        document.querySelector('#depart-family-members .depart-member')?.focus();
+    }
+
+    function closeDepartModal() {
+        document.getElementById('depart-family-modal').classList.add('hidden');
+        document.getElementById('depart-family-modal').classList.remove('flex');
+        document.getElementById('depart-family-btn').focus();
+    }
+
+    document.getElementById('depart-family-btn').addEventListener('click', openDepartModal);
+    document.getElementById('depart-family-close').addEventListener('click', closeDepartModal);
+    document.getElementById('depart-family-cancel').addEventListener('click', closeDepartModal);
+    document.getElementById('depart-family-members').addEventListener('change', updateDepartSubmit);
+    document.getElementById('depart-family-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'depart-family-modal') closeDepartModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ! document.getElementById('depart-family-modal').classList.contains('hidden')) {
+            closeDepartModal();
+        }
+    });
+
+    document.getElementById('depart-family-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const ids = tickedDepartIds();
+        if (! ids.length) return;
+        const members = ids.map((id) => currentFamily.members.find((m) => m.id === id));
+        const status = document.getElementById('depart-family-status').value;
+
+        // Same weight as the single Check out's confirmation.
+        const confirmed = await Ui.confirm({
+            title: members.length === 1 ? `Mark ${memberDisplayName(members[0])} as departed?` : `Mark ${members.length} members as departed?`,
+            message: `They'll be recorded as ${departReasons[status]} and no longer count as here now.`,
+            confirmLabel: 'Mark as departed',
+            tone: 'neutral',
+        });
+        if (! confirmed) return;
+
+        const button = document.getElementById('depart-family-submit-btn');
+        button.disabled = true;
+        button.textContent = 'Marking...';
+        document.getElementById('depart-family-errors').classList.add('hidden');
+
+        // One at a time through the single-person endpoint: each success
+        // stands on its own, and a failure is reported by name.
+        const failed = [];
+        for (const member of members) {
+            try {
+                await Api.request(`/evacuees/${member.id}/check-out`, { method: 'POST', body: JSON.stringify({ status }) });
+            } catch (error) {
+                const reason = error.errors ? Object.values(error.errors).flat().join(' ') : error.message;
+                failed.push({ member, name: memberDisplayName(member), reason });
+            }
+        }
+
+        const done = members.length - failed.length;
+        await loadFamily();
+
+        if (! failed.length) {
+            closeDepartModal();
+            Ui.toast(`${done} ${done === 1 ? 'member' : 'members'} marked as departed`);
+            return;
+        }
+
+        // Partly done: the ones that went through stay checked out. The
+        // list now shows who is still here, with only the failed ones
+        // ticked, ready to try again.
+        renderDepartMembers(new Set(failed.map((f) => f.member.id)));
+        const box = document.getElementById('depart-family-errors');
+        box.innerHTML = `<p class="font-medium">${done ? `${done} of ${members.length} marked as departed.` : 'No one was marked as departed.'} ${failed.length === 1 ? 'This one was' : 'These were'} not:</p>`
+            + `<ul class="list-disc pl-5 mt-1">${failed.map((f) => `<li>${Ui.escapeHtml(f.name)}: ${Ui.escapeHtml(f.reason)}</li>`).join('')}</ul>`;
+        box.classList.remove('hidden');
+        if (done) Ui.toast(`${done} ${done === 1 ? 'member' : 'members'} marked as departed`);
     });
 
     // --- Edit-household modal -----------------------------------------------

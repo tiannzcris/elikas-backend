@@ -618,8 +618,8 @@
             // stat cards below are never silently truncated once total
             // families pass 200.
             const [familiesResult, statsResult] = await Promise.all([
-                Api.get('/families?per_page=200'),
-                Api.get('/families/stats'),
+                Api.get('/families?per_page=200&here_now=1'),
+                Api.get('/families/stats?here_now=1'),
             ]);
 
             allFamilies = familiesResult.data.data;
@@ -736,7 +736,7 @@
 
     async function loadBarangaySummary() {
         try {
-            const result = await Api.get('/families/barangay-summary');
+            const result = await Api.get('/families/barangay-summary?here_now=1');
             lastBarangaySummaryRows = result.data;
             renderBarangaySummaryTable(result.data);
         } catch (error) {
@@ -780,8 +780,8 @@
 
         try {
             const [familiesResult, centerSummaryResult] = await Promise.all([
-                Api.get(`/families?barangay_id=${barangayId}&per_page=200`),
-                Api.get(`/families/center-summary?barangay_id=${barangayId}`),
+                Api.get(`/families?barangay_id=${barangayId}&per_page=200&here_now=1`),
+                Api.get(`/families/center-summary?barangay_id=${barangayId}&here_now=1`),
             ]);
             familiesInCurrentBarangay = familiesResult.data.data;
             centerSummaryRowsCache = centerSummaryResult.data;
@@ -857,8 +857,8 @@
         if (currentBarangayId !== null) {
             try {
                 const [familiesResult, centerSummaryResult] = await Promise.all([
-                    Api.get(`/families?barangay_id=${currentBarangayId}&per_page=200`),
-                    Api.get(`/families/center-summary?barangay_id=${currentBarangayId}`),
+                    Api.get(`/families?barangay_id=${currentBarangayId}&per_page=200&here_now=1`),
+                    Api.get(`/families/center-summary?barangay_id=${currentBarangayId}&here_now=1`),
                 ]);
                 familiesInCurrentBarangay = familiesResult.data.data;
                 centerSummaryRowsCache = centerSummaryResult.data;
@@ -899,7 +899,7 @@
             rankingMode = 'centers';
 
             try {
-                const statsResult = await Api.get(`/families/stats?barangay_id=${currentBarangayId}`);
+                const statsResult = await Api.get(`/families/stats?barangay_id=${currentBarangayId}&here_now=1`);
                 totals = statsResult.data;
             } catch (error) {
                 totals = { households: scopedFamilies.length, total_persons: allMembers(scopedFamilies).length };

@@ -165,9 +165,12 @@ class EvacueeController extends Controller
     }
 
     /**
-     * Closes out the evacuee's currently-active evacuation record -- either
-     * because they went home, or were transferred elsewhere. This is what
-     * moves them out of the "currently displaced" DROMIC counts.
+     * Closes out the evacuee's currently-active evacuation record -- because
+     * they went home, were transferred elsewhere, or left for some other
+     * reason ('other'). This is what moves them out of the "currently
+     * displaced" DROMIC counts. The Evacuees page's "Mark family as
+     * departed" calls this once per selected member, so a batch gets
+     * exactly this path and one log entry per person.
      */
     public function checkOut(Request $request, Evacuee $evacuee)
     {
@@ -176,7 +179,7 @@ class EvacueeController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['returned_home', 'transferred'])],
+            'status' => ['required', Rule::in(['returned_home', 'transferred', 'other'])],
         ]);
 
         $record = $evacuee->evacuationRecords()->whereNull('date_out')->latest('date_in')->first();
