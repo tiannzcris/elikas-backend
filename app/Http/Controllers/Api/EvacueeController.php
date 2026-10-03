@@ -67,7 +67,7 @@ class EvacueeController extends Controller
         // Same rule as EC Board's "Already here": a legacy bulk-entry
         // household is closed to new members.
         if ($family->is_legacy_bulk_entry) {
-            return $this->error('This is a legacy bulk-entry household from an old headcount, not a real family -- add this person to their actual household instead.', 422);
+            return $this->error('This is a legacy bulk entry from an old headcount, not a real family -- add this person to their actual family instead.', 422);
         }
 
         $validated = $request->validate([

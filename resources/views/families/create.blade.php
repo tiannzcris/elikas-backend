@@ -7,7 +7,7 @@
     <div class="page-header">
         <div class="min-w-0">
             <h1 class="page-title">Register a family</h1>
-            <p class="page-subtitle">Register every member of an arriving household in one step.</p>
+            <p class="page-subtitle">Register every member of an arriving family in one step.</p>
         </div>
     </div>
 
@@ -37,7 +37,7 @@
                 <select id="evacuation_center_id" class="input"></select>
             </div>
             <label class="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
-                <input type="checkbox" id="is_4ps_beneficiary"> Household is a 4Ps beneficiary
+                <input type="checkbox" id="is_4ps_beneficiary"> Family is a 4Ps beneficiary
             </label>
         </div>
 
@@ -49,7 +49,7 @@
             is the only path here. --}}
         <div id="full-mode-section">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="card-title">Household members</h2>
+                <h2 class="card-title">Family members</h2>
                 <button type="button" id="add-member-btn" class="link text-sm">+ Add another member</button>
             </div>
             <div id="members-container" class="flex flex-col gap-4"></div>
@@ -97,7 +97,7 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_solo_parent"> Solo parent</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" class="m-is_indigenous_person"> Indigenous person</label>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the household's number.</p>
+            <p class="text-xs text-gray-500 mt-2">Contact number is required for every member -- if someone doesn't have their own phone (e.g. a child or elderly member), use "Same as head of family" to reuse the family's number.</p>
         </div>`;
     }
 

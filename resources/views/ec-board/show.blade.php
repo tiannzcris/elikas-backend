@@ -165,7 +165,7 @@
                     </table>
 
                     <p class="px-4 sm:px-5 py-3 border-t border-gray-200 text-xs text-gray-600">
-                        Counted from each evacuee's sectoral details. Child- and single-headed families are counted once per household, by the head's sex, from the answers given when the household was added.
+                        Counted from each evacuee's sectoral details. Child- and single-headed families are counted once per family, by the head's sex, from the answers given when the family was added.
                     </p>
                 </div>
             </div>
@@ -223,31 +223,31 @@
                             then describe the head too. --}}
                         <p id="ae-head-note" class="hidden mt-2 items-start gap-1.5 text-xs text-brand-dark">
                             <i class="ti ti-user-check shrink-0 mt-px" style="font-size: 14px;" aria-hidden="true"></i>
-                            <span>This person's age and sex will be used for the household head.</span>
+                            <span>This person's age and sex will be used for the family head.</span>
                         </p>
                     </fieldset>
 
                     <fieldset class="ae-section">
-                        <legend class="ae-section-title">Household</legend>
+                        <legend class="ae-section-title">Family</legend>
                         <div class="bg-gray-50 border border-gray-200 rounded-lg p-0.5 grid grid-cols-2 text-xs mb-2">
                             <button type="button" id="ae-mode-existing-btn" class="ae-mode-btn px-2 py-1.5 rounded-md font-medium bg-brand text-white" data-mode="existing">
                                 Already here
                             </button>
                             <button type="button" id="ae-mode-new-btn" class="ae-mode-btn px-2 py-1.5 rounded-md font-medium text-gray-500" data-mode="new">
-                                New household
+                                New family
                             </button>
                         </div>
 
                         <div id="ae-existing-section" class="flex flex-col gap-2">
-                            <select id="ae-family-id" aria-label="Household already at this center" class="input px-2">
-                                <option value="">No households registered here yet</option>
+                            <select id="ae-family-id" aria-label="Family already at this center" class="input px-2">
+                                <option value="">No families registered here yet</option>
                             </select>
                             {{-- Only for a household whose head was "someone
                                 else" and hasn't been linked yet -- the real
                                 head arriving later (see addEvacuee()). --}}
                             <label id="ae-existing-head" class="hidden items-start gap-2 text-sm text-gray-700">
                                 <input type="checkbox" id="ae-existing-head-is-self" class="mt-0.5">
-                                <span>This person is the household head <span class="block text-xs text-gray-500">This household has no head linked yet.</span></span>
+                                <span>This person is the family head <span class="block text-xs text-gray-500">This family has no head linked yet.</span></span>
                             </label>
                         </div>
 
@@ -258,14 +258,14 @@
                         <div id="ae-new-section" class="hidden grid-cols-1 gap-2">
                             <select id="ae-barangay-id" aria-label="Barangay" class="input px-2"></select>
                             <div>
-                                <label for="ae-family-name" class="label-sm">Household head's name</label>
+                                <label for="ae-family-name" class="label-sm">Family name</label>
                                 <input type="text" id="ae-family-name" placeholder="e.g. Juan Dela Cruz" class="input px-2">
                             </div>
                             <label class="flex items-center gap-2 text-sm text-gray-700">
-                                <input type="checkbox" id="ae-head-is-self" checked> This person is the household head
+                                <input type="checkbox" id="ae-head-is-self" checked> This person is the family head
                             </label>
                             <div>
-                                <label for="ae-single-headed" class="label-sm">Only one household head? (single-headed)</label>
+                                <label for="ae-single-headed" class="label-sm">Only one family head? (single-headed)</label>
                                 <select id="ae-single-headed" class="input px-2">
                                     <option value="">Not yet known</option>
                                     <option value="1">Yes</option>
@@ -280,7 +280,7 @@
                         answers can't be mistaken for this person's own. --}}
                     <div id="ae-head-section" role="group" aria-labelledby="ae-head-section-title" class="ae-section hidden">
                         <div class="border border-dashed border-gray-300 bg-gray-50 rounded-lg p-3">
-                            <p id="ae-head-section-title" class="text-xs font-semibold text-gray-800 mb-1">About the actual household head</p>
+                            <p id="ae-head-section-title" class="text-xs font-semibold text-gray-800 mb-1">About the actual family head</p>
                             <p class="text-xs text-gray-500 -mt-1 mb-2">Someone other than the person you're adding. Used until they're added and linked.</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <div id="ae-head-sex-field">
@@ -527,7 +527,7 @@
                     const label = f.name || f.head_of_family?.full_name || `Family #${f.id}`;
                     return `<option value="${f.id}">${label} (${f.member_count} member${f.member_count === 1 ? '' : 's'})</option>`;
                 }).join('')
-                : '<option value="">No households registered here yet</option>';
+                : '<option value="">No families registered here yet</option>';
 
             // Keep the household staff were adding to selected after a
             // refresh (the next arrival is often from the same family).
@@ -537,7 +537,7 @@
                 barangaysResult.data.map((b) => `<option value="${b.id}" ${b.id === centerBarangayId ? 'selected' : ''}>${b.name}</option>`).join('');
 
             // Which households still have no head linked decides whether
-            // Already here offers "This person is the household head".
+            // Already here offers "This person is the family head".
             updateHeadQuestionsUi();
         } catch (error) {
             // Dropdowns just stay at their previous options if this fails --
@@ -707,13 +707,13 @@
 
         if (aeMode === 'existing') {
             const household = selectedHousehold();
-            lines.push(household ? `Joins the household already here: ${optionText('ae-family-id')}.` : 'Choose the household this person belongs to.');
+            lines.push(household ? `Joins the family already here: ${optionText('ae-family-id')}.` : 'Choose the family this person belongs to.');
             if (personIsHead()) {
-                lines.push(`Becomes that household's head (${minorText(isMinorBracket(value('ae-age-bracket')))}).`);
+                lines.push(`Becomes that family's head (${minorText(isMinorBracket(value('ae-age-bracket')))}).`);
             }
         } else {
             const name = document.getElementById('ae-family-name').value.trim();
-            lines.push(`New household: ${name || '(head\'s name not entered yet)'}, ${optionText('ae-barangay-id') || 'no barangay chosen'}.`);
+            lines.push(`New family: ${name || '(family name not entered yet)'}, ${optionText('ae-barangay-id') || 'no barangay chosen'}.`);
             lines.push(personIsHead()
                 ? `Head: this person (${minorText(isMinorBracket(value('ae-age-bracket')))}).`
                 : `Head: someone else, ${value('ae-head-sex') || 'sex not yet known'}, ${minorText(value('ae-head-is-minor') === '' ? null : value('ae-head-is-minor') === '1')}.`);

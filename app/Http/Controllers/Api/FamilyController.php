@@ -463,7 +463,7 @@ class FamilyController extends Controller
             'user_id' => $request->user()->id,
             'action' => 'family.household_updated',
             'description' => sprintf(
-                '%s updated the household details of family #%d (head: %s).',
+                '%s updated the details of family #%d (head: %s).',
                 $request->user()->name,
                 $family->id,
                 $head ? "evacuee #{$head->id}" : 'someone not listed'
@@ -475,7 +475,7 @@ class FamilyController extends Controller
             new FamilyResource(
                 $family->fresh()->load(['members.evacuationRecords.evacuationCenter', 'headOfFamily', 'barangay', 'evacuationEvent'])
             ),
-            'Household details updated successfully.'
+            'Family details updated successfully.'
         );
     }
 

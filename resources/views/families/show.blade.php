@@ -16,7 +16,7 @@
             anything else on the page. --}}
         <div id="family-legacy-notice" class="hidden mb-3 items-start gap-2 text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
             <i class="ti ti-alert-triangle shrink-0 mt-0.5" style="font-size: 16px;" aria-hidden="true"></i>
-            <span><span class="font-semibold">Legacy bulk entry -- needs manual review.</span> These people were created together from an old headcount, not registered as one household, so they're counted as a single family until someone who knows who's who moves them into their real households. No one new can be added here.</span>
+            <span><span class="font-semibold">Legacy bulk entry -- needs manual review.</span> These people were created together from an old headcount, not registered as one family, so they're counted as a single family until someone who knows who's who moves them into their real families. No one new can be added here.</span>
         </div>
         <p class="text-sm text-gray-600" id="family-subtitle"></p>
         <p class="text-sm text-gray-600 hidden" id="family-address"></p>
@@ -31,8 +31,8 @@
             headSex()) -- editable at any time, for households created
             before these questions existed or answered "not yet known". --}}
         <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <p class="text-sm text-gray-700" id="family-household">Household: &mdash;</p>
-            <button type="button" id="edit-household-btn" class="btn btn-secondary btn-sm shrink-0">Edit household</button>
+            <p class="text-sm text-gray-700" id="family-household">Family details: &mdash;</p>
+            <button type="button" id="edit-household-btn" class="btn btn-secondary btn-sm shrink-0">Edit family details</button>
         </div>
         </div>
         {{-- Visible reminder for a household whose head is someone who
@@ -52,7 +52,7 @@
             <div class="modal-header">
                 <div>
                     <h2 id="member-modal-title" class="modal-title">Edit member</h2>
-                    <p class="text-xs text-gray-500" id="member-modal-subtitle">Corrects this person's own details -- doesn't change their household or check-in status.</p>
+                    <p class="text-xs text-gray-500" id="member-modal-subtitle">Corrects this person's own details -- doesn't change their family or check-in status.</p>
                 </div>
                 <button type="button" id="member-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
                     <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
@@ -154,7 +154,7 @@
         <div class="modal max-w-md">
             <div class="modal-header">
                 <div>
-                    <h2 class="modal-title">Edit household</h2>
+                    <h2 class="modal-title">Edit family details</h2>
                     <p class="text-xs text-gray-500">Used for the child- and single-headed family counts on the EC Board and reports. Leave anything you don't know as "Not yet known".</p>
                 </div>
                 <button type="button" id="household-modal-close" class="btn-icon -mr-1.5" aria-label="Close">
@@ -166,7 +166,7 @@
 
             <form id="household-form" class="flex flex-col gap-4 p-5">
                 <div>
-                    <label for="hh-head" class="label">Household head</label>
+                    <label for="hh-head" class="label">Family head</label>
                     <select id="hh-head" class="input"></select>
                     <p id="hh-head-note" class="text-xs text-gray-500 mt-1"></p>
                 </div>
@@ -189,7 +189,7 @@
                     </div>
                 </div>
                 <div>
-                    <label for="hh-single-headed" class="label">Only one household head? (single-headed)</label>
+                    <label for="hh-single-headed" class="label">Only one family head? (single-headed)</label>
                     <select id="hh-single-headed" class="input">
                         <option value="">Not yet known</option>
                         <option value="1">Yes</option>
@@ -371,7 +371,7 @@
         document.getElementById('member-modal-title').textContent = member.is_placeholder ? 'Add details' : 'Edit member';
         document.getElementById('member-modal-subtitle').textContent = member.is_placeholder
             ? 'Fill in this person\'s real details -- this is currently a placeholder from a quick headcount registration.'
-            : 'Corrects this person\'s own details -- doesn\'t change their household or check-in status.';
+            : 'Corrects this person\'s own details -- doesn\'t change their family or check-in status.';
 
         document.getElementById('member-modal-errors').classList.add('hidden');
         document.getElementById('member-form').reset();
@@ -600,7 +600,7 @@
         const f = currentFamily;
         const sex = f.head_sex ? ` (${f.head_sex})` : '';
         document.getElementById('family-household').textContent =
-            `Household: single-headed ${yesNoUnknown(f.is_single_headed)}, child-headed ${yesNoUnknown(f.is_child_headed)}${sex}`;
+            `Family details: single-headed ${yesNoUnknown(f.is_single_headed)}, child-headed ${yesNoUnknown(f.is_child_headed)}${sex}`;
 
         // Legacy bulk entry: its own notice replaces the head reminder --
         // there's no real head to link for a lumped-together headcount.
@@ -618,7 +618,7 @@
         if (unlinked) {
             const answered = [f.head_sex, f.is_child_headed === null ? null : (f.is_child_headed ? 'a minor' : 'not a minor')].filter(Boolean);
             document.getElementById('family-head-unlinked-text').textContent =
-                `Head not yet linked. ${answered.length ? `Counts use the answers given for the head (${answered.join(', ')}) ` : 'Nothing is known about the head yet '}until a member is linked. When the head is added to this household, tick "This person is the household head", or choose them here in Edit household.`;
+                `Head not yet linked. ${answered.length ? `Counts use the answers given for the head (${answered.join(', ')}) ` : 'Nothing is known about the head yet '}until a member is linked. When the head is added to this family, tick "This person is the family head", or choose them here in Edit family details.`;
         }
     }
 

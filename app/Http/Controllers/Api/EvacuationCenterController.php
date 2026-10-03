@@ -332,6 +332,12 @@ class EvacuationCenterController extends Controller
             'is_single_headed' => ['nullable', 'boolean'],
             'head_is_minor' => ['nullable', 'boolean'],
             'head_sex' => ['nullable', 'in:male,female'],
+        ], [
+            // In the form's own words, not the field names (the default
+            // would read "...when household mode is existing").
+            'family_id.required_if' => 'Choose the family this person belongs to.',
+            'barangay_id.required_if' => "Choose the new family's barangay.",
+            'family_name.required_if' => 'Enter the family name.',
         ]);
 
         $existingFamily = null;
@@ -339,14 +345,14 @@ class EvacuationCenterController extends Controller
             $existingFamily = Family::findOrFail($validated['family_id']);
 
             if ((int) $existingFamily->evacuation_event_id !== (int) $validated['evacuation_event_id']) {
-                return $this->error('Selected household belongs to a different disaster event.', 422);
+                return $this->error('Selected family belongs to a different disaster event.', 422);
             }
 
             // Enforced here, not just by hiding it from "Already here", so
             // no app -- including desktop/mobile builds that still list it
             // -- can add anyone to a legacy bulk-entry household.
             if ($existingFamily->is_legacy_bulk_entry) {
-                return $this->error('This is a legacy bulk-entry household from an old headcount, not a real family -- add this person to their actual household, or as a new household.', 422);
+                return $this->error('This is a legacy bulk entry from an old headcount, not a real family -- add this person to their actual family, or as a new family.', 422);
             }
         }
 
