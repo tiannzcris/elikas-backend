@@ -365,12 +365,14 @@ A 40px `gray-300` decorative icon, a 14px `gray-700` medium line, a 14px
   a white circle, mark at 78% of the circle. Its dark-navy arms vanish against
   navy otherwise.
 - **Mockup images:** `public/images/about-dashboard-mockup.png` (About page)
-  is built from real screenshots of the dashboard (laptop), the dashboard on
-  a phone, and the resident home page on a phone.
+  is built from real screenshots: the dashboard on the laptop, and the
+  resident mobile app's Home (front) and Alerts (back) screens on the two
+  phones, drawn as Android phones because the app ships as an APK.
   `public/images/contact-hotlines-phone-mockup.png` (Contact page) is the real
-  `/hotlines` page on a phone, so it shows the actual numbers. When either
-  page changes (a hotline number, the dashboard layout), retake the
-  screenshots rather than editing the image by hand.
+  `/hotlines` page on a phone, so it shows the actual numbers. When what
+  they show changes (a hotline number, the dashboard layout, the mobile
+  app's screens), retake the screenshots rather than editing the image by
+  hand.
 
 ## Checking your work
 

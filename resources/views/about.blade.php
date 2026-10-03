@@ -157,7 +157,7 @@
                 </div>
 
                 <div class="lg:col-span-2 lg:pt-8" data-aos="fade-left">
-                    <img src="/images/about-dashboard-mockup.png" alt="E-LIKAS web dashboard on a laptop and a phone, next to the resident website on a phone" class="w-full h-auto object-contain">
+                    <img src="/images/about-dashboard-mockup.png" alt="E-LIKAS web dashboard on a laptop, next to the E-LIKAS mobile app's Home and Alerts screens on two phones" class="w-full h-auto object-contain">
                 </div>
             </div>
         </section>
