@@ -60,6 +60,9 @@ Route::prefix('v1')->group(function () {
             // backs the Evacuees page's Sectoral Summary card (Child/Single-
             // Headed Family, counted live from each family's household answers).
             Route::get('/families/sectoral-quick-count-summary', [FamilyController::class, 'sectoralQuickCountSummary']);
+            // Same "must come before {family}" reasoning -- the Dashboard's
+            // "Needs attention" summary and the Evacuees page's section.
+            Route::get('/families/needs-attention', [FamilyController::class, 'needsAttention']);
             Route::get('/families/{family}', [FamilyController::class, 'show']);
             Route::post('/families/{family}/members', [EvacueeController::class, 'addMember']);
             Route::patch('/families/{family}/evacuation-center', [FamilyController::class, 'updateEvacuationCenter']);

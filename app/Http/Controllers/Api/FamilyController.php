@@ -308,6 +308,82 @@ class FamilyController extends Controller
         ]);
     }
 
+    /**
+     * "Needs attention": the Dashboard's summary and the Evacuees page's
+     * section of the same name. Two kinds, both limited to what the
+     * Evacuees page itself shows by default (scopeToRequest(): a barangay
+     * official's own barangay only, non-closed events) and to families
+     * with someone still checked in:
+     *
+     *  - a family that needs a head linked: no evacuee linked as
+     *    head_of_family_evacuee_id (its head was "someone else" who hasn't
+     *    been added and linked yet). The same rule as the family page's
+     *    "Head not yet linked" reminder, so legacy bulk entries -- which
+     *    have no real head to link -- are left out, as they are there.
+     *  - an evacuee who needs classifying: exactly who the EC Board counts
+     *    in its "Not yet classified" row (see
+     *    EvacuationCenterQuickCount::liveAgeSexBreakdown()) -- checked in at
+     *    a center with no age group (no date of birth and no
+     *    age_bracket_override) or no sex on record.
+     *
+     * Both are resolved through the family page's existing flows (Edit
+     * family details, Add details), after which they drop out of here.
+     */
+    public function needsAttention(Request $request)
+    {
+        $query = Family::query()->with(['barangay', 'headOfFamily', 'members.evacuationRecords.evacuationCenter']);
+        $this->scopeToRequest($query, $request, hereNow: true);
+        $families = $query->orderBy('id')->get();
+
+        $openStayAtCenter = fn (Evacuee $member) => $member->evacuationRecords->first(
+            fn ($r) => $r->date_out === null && $r->status === 'currently_evacuated' && $r->evacuation_center_id !== null
+        );
+        $familyLabel = fn (Family $family) => $family->name
+            ?: ($family->headOfFamily?->full_name ? trim(preg_replace('/\s+/', ' ', $family->headOfFamily->full_name)) : "Family #{$family->id}");
+
+        $needingHead = $families
+            ->filter(fn (Family $f) => $f->head_of_family_evacuee_id === null && ! $f->is_legacy_bulk_entry)
+            ->map(fn (Family $f) => [
+                'id' => $f->id,
+                'label' => $familyLabel($f),
+                'barangay_name' => $f->barangay?->name,
+                'evacuation_center_name' => $f->members->map($openStayAtCenter)->filter()->first()?->evacuationCenter?->name,
+                'member_count' => $f->members->count(),
+            ])
+            ->values();
+
+        $needingClassification = $families->flatMap(fn (Family $f) => $f->members->values()->map(function (Evacuee $m, int $index) use ($f, $openStayAtCenter, $familyLabel) {
+            $stay = $openStayAtCenter($m);
+            $missing = array_values(array_filter([
+                ! in_array($m->age_bracket, EvacuationCenterQuickCount::AGE_BRACKETS, true) ? 'age group' : null,
+                ! in_array($m->sex, ['male', 'female'], true) ? 'sex' : null,
+            ]));
+            if (! $stay || ! $missing) {
+                return null;
+            }
+
+            return [
+                'id' => $m->id,
+                'family_id' => $f->id,
+                // Same label the family page gives this row.
+                'label' => $m->is_placeholder ? 'Member '.($index + 1).' (details pending)' : trim(preg_replace('/\s+/', ' ', $m->full_name)),
+                'family_label' => $familyLabel($f),
+                'barangay_name' => $f->barangay?->name,
+                'evacuation_center_name' => $stay->evacuationCenter?->name,
+                'missing' => $missing,
+            ];
+        }))->filter()->values();
+
+        return $this->success([
+            'counts' => [
+                'families_needing_head' => $needingHead->count(),
+                'evacuees_needing_classification' => $needingClassification->count(),
+            ],
+            'families_needing_head' => $needingHead,
+            'evacuees_needing_classification' => $needingClassification,
+        ]);
+    }
+
     public function show(Request $request, Family $family)
     {
         if (! $this->userMayAccessBarangay($request->user(), $family->barangay_id)) {
@@ -490,7 +566,7 @@ class FamilyController extends Controller
      * gets exactly that event, closed or not, since the caller asked for
      * it by id, not by browsing "what's current".
      */
-    private function scopeToRequest(Builder $query, Request $request): void
+    private function scopeToRequest(Builder $query, Request $request, bool $hereNow = false): void
     {
         $user = $request->user();
         if ($user->isBarangayOfficial()) {
@@ -511,7 +587,7 @@ class FamilyController extends Controller
         // database, in every report, and in the evacuee name search. Off by
         // default so the Dashboard, reports and the mobile app keep their
         // current figures.
-        if ($request->boolean('here_now')) {
+        if ($hereNow || $request->boolean('here_now')) {
             $query->whereHas('members.evacuationRecords', fn (Builder $r) => $r->whereNull('date_out'));
         }
     }

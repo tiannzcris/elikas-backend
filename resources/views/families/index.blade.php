@@ -68,6 +68,34 @@
         </div>
     </div>
 
+    {{-- "Needs attention" (FamilyController::needsAttention(), the same
+        list behind the Dashboard's summary): families waiting for their
+        head to be linked, and evacuees their center counts as "Not yet
+        classified". Each links to the family page, which opens its existing
+        Edit family details or Add details form. Hidden when there's
+        nothing; scoped like the rest of this page. --}}
+    <section id="needs-attention" class="hidden card overflow-hidden mb-6 scroll-mt-4" aria-labelledby="needs-attention-title">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
+            <i class="ti ti-alert-circle text-amber-700" style="font-size: 18px;" aria-hidden="true"></i>
+            <h2 id="needs-attention-title" class="card-title">Needs attention</h2>
+            <span id="needs-attention-count" class="badge badge-warning"></span>
+        </div>
+        <div id="na-families" class="hidden">
+            <div class="px-4 pt-3 pb-2">
+                <h3 class="text-sm font-semibold text-gray-900">Families that need a head linked</h3>
+                <p class="text-xs text-gray-500">Their head was recorded as someone else who hasn't been added and linked yet. Once that person is a member, choose them as head in Edit family details.</p>
+            </div>
+            <ul id="na-families-list" class="divide-y divide-gray-100 border-t border-gray-100"></ul>
+        </div>
+        <div id="na-evacuees" class="hidden">
+            <div class="px-4 pt-3 pb-2">
+                <h3 class="text-sm font-semibold text-gray-900">Evacuees that need classifying</h3>
+                <p class="text-xs text-gray-500">Counted in their center's "Not yet classified" row because their age group or sex isn't on record. Adding their details classifies them.</p>
+            </div>
+            <ul id="na-evacuees-list" class="divide-y divide-gray-100 border-t border-gray-100"></ul>
+        </div>
+    </section>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 min-w-0">
             {{-- Barangay -> center -> family drill-down. "All barangays" is
@@ -994,10 +1022,58 @@
         }
     });
 
+    // --- Needs attention -----------------------------------------------------
+
+    async function loadNeedsAttention() {
+        let data;
+        try {
+            data = (await Api.get('/families/needs-attention')).data;
+        } catch (error) {
+            return; // the section just stays hidden
+        }
+        const esc = (text) => Ui.escapeHtml(text ?? '');
+        const where = (item) => [item.barangay_name, item.evacuation_center_name].filter(Boolean).map(esc).join(' · ');
+        const back = 'from=needs-attention';
+
+        document.getElementById('na-families-list').innerHTML = data.families_needing_head.map((f) => `
+            <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900">${esc(f.label)}</p>
+                    <p class="text-xs text-gray-500">${where(f)}${where(f) ? ' · ' : ''}${f.member_count} ${f.member_count === 1 ? 'member' : 'members'}</p>
+                </div>
+                <a href="/families/${f.id}?resolve=head&${back}" class="btn btn-secondary btn-sm shrink-0">Edit family details</a>
+            </li>`).join('');
+
+        document.getElementById('na-evacuees-list').innerHTML = data.evacuees_needing_classification.map((ev) => `
+            <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900">${esc(ev.label)} <span class="font-normal text-gray-600">in ${esc(ev.family_label)}</span></p>
+                    <p class="text-xs text-gray-500">${where(ev)}${where(ev) ? ' · ' : ''}No ${ev.missing.map(esc).join(' or ')} on record</p>
+                </div>
+                <a href="/families/${ev.family_id}?resolve=details&evacuee=${ev.id}&${back}" class="btn btn-attention btn-sm shrink-0">Add details</a>
+            </li>`).join('');
+
+        const { families_needing_head: families, evacuees_needing_classification: evacuees } = data.counts;
+        document.getElementById('na-families').classList.toggle('hidden', ! families);
+        document.getElementById('na-evacuees').classList.toggle('hidden', ! evacuees);
+        document.getElementById('na-evacuees').classList.toggle('border-t', !! (families && evacuees));
+        document.getElementById('na-evacuees').classList.toggle('border-gray-200', !! (families && evacuees));
+        document.getElementById('needs-attention-count').textContent = families + evacuees;
+        document.getElementById('needs-attention').classList.toggle('hidden', ! (families + evacuees));
+
+        // Arrived from the Dashboard's summary (or back from a family page):
+        // the section only exists once loaded, so the browser couldn't jump
+        // to it on its own.
+        if (window.location.hash === '#needs-attention' && families + evacuees) {
+            document.getElementById('needs-attention').scrollIntoView({ block: 'start' });
+        }
+    }
+
     renderBreadcrumb();
 
     (async () => {
         await loadFamilies();
+        loadNeedsAttention();
         await loadBarangaySummary();
 
         // Deep link support: /families?barangay=X&center=Y lands straight on

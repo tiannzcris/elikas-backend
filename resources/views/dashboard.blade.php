@@ -11,6 +11,18 @@
         </div>
     </div>
 
+    {{-- "Needs attention": families still waiting for their head to be
+        linked, and evacuees their center counts as "Not yet classified"
+        (FamilyController::needsAttention()). Only the counts that aren't
+        zero, and hidden entirely while both are. Opens the Evacuees page's
+        section, where each one is listed with a way to fix it. --}}
+    <a id="needs-attention-summary" href="/families#needs-attention"
+        class="hidden callout callout-warning mb-6 items-center gap-2 hover:bg-amber-100 transition-colors">
+        <i class="ti ti-alert-circle shrink-0" style="font-size: 16px;" aria-hidden="true"></i>
+        <span class="flex-1 min-w-0"><span class="font-semibold">Needs attention:</span> <span id="needs-attention-text"></span></span>
+        <span class="inline-flex items-center gap-0.5 font-medium shrink-0">Review <i class="ti ti-chevron-right" style="font-size: 15px;" aria-hidden="true"></i></span>
+    </a>
+
     <div class="stat-strip grid-cols-2 lg:grid-cols-4 mb-6">
         <div class="stat">
             <p class="stat-label">Total evacuees</p>
@@ -177,6 +189,22 @@
             document.getElementById('stat-evacuees').textContent = result.data.total_persons;
         } catch (error) {
             document.getElementById('stat-evacuees').textContent = '0';
+        }
+    })();
+
+    (async () => {
+        try {
+            const { counts } = (await Api.get('/families/needs-attention')).data;
+            const parts = [
+                counts.families_needing_head && `${counts.families_needing_head} ${counts.families_needing_head === 1 ? 'family needs' : 'families need'} a head linked`,
+                counts.evacuees_needing_classification && `${counts.evacuees_needing_classification} ${counts.evacuees_needing_classification === 1 ? 'evacuee needs' : 'evacuees need'} classifying`,
+            ].filter(Boolean);
+            const summary = document.getElementById('needs-attention-summary');
+            document.getElementById('needs-attention-text').textContent = parts.join(', ');
+            summary.classList.toggle('hidden', ! parts.length);
+            summary.classList.toggle('flex', parts.length > 0);
+        } catch (error) {
+            // Stays hidden: the rest of the dashboard doesn't depend on it.
         }
     })();
 

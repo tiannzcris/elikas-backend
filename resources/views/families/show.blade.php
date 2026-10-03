@@ -390,7 +390,10 @@
             // section's own back-button fix (see ec-board/show.blade.php).
             const params = new URLSearchParams(window.location.search);
             const backLink = document.getElementById('back-link');
-            if (params.get('from') === 'families' && params.get('barangay')) {
+            if (params.get('from') === 'needs-attention') {
+                backLink.href = '/families#needs-attention';
+                document.getElementById('back-link-label').textContent = 'Back to Needs attention';
+            } else if (params.get('from') === 'families' && params.get('barangay')) {
                 const barangayId = params.get('barangay');
                 const centerId = params.get('center');
                 backLink.href = `/families?barangay=${barangayId}${centerId ? `&center=${centerId}` : ''}`;
@@ -407,7 +410,22 @@
         }
     }
 
-    loadFamily();
+    // Arrived from the Evacuees page's "Needs attention" list: open the
+    // existing form that resolves it -- Edit family details (link the head)
+    // or Add details (classify this person) -- once, then drop the request
+    // from the URL so a reload doesn't reopen it.
+    function openRequestedForm() {
+        const params = new URLSearchParams(window.location.search);
+        const resolve = params.get('resolve');
+        if (! currentFamily || ! resolve) return;
+        if (resolve === 'head') openHouseholdModal();
+        if (resolve === 'details') openMemberModal(Number(params.get('evacuee')));
+        params.delete('resolve');
+        params.delete('evacuee');
+        history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+    }
+
+    loadFamily().then(openRequestedForm);
 
     // --- Edit-member modal -------------------------------------------------
 
