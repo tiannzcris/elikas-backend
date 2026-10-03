@@ -117,7 +117,10 @@
                     <button id="sidebar-toggle-btn" class="btn-icon md:hidden -ml-1" aria-label="Toggle navigation menu">
                         <i class="ti ti-menu-2" style="font-size: 20px;" aria-hidden="true"></i>
                     </button>
-                    <span class="hidden md:flex items-center gap-1.5 whitespace-nowrap">
+                    {{-- The date shows from lg (1024px) up. Between md and lg
+                        the sidebar is already showing and the date, which
+                        never wraps, ran under the alert button. --}}
+                    <span class="hidden lg:flex items-center gap-1.5 whitespace-nowrap">
                         <i class="ti ti-calendar text-gray-500" style="font-size: 16px;" aria-hidden="true"></i>
                         <span id="topbar-datetime"></span>
                     </span>
