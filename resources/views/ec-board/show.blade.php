@@ -13,6 +13,9 @@
         .ecb-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
         .ecb-table col.ecb-num { width: 4.25rem; }
         @media (min-width: 640px) { .ecb-table col.ecb-num { width: 6rem; } }
+        /* Side by side (xl): narrower number columns leave each table's
+           label column room for its longest label on one line. */
+        @media (min-width: 1280px) { .ecb-table col.ecb-num { width: 4.5rem; } }
         .ecb-table th, .ecb-table td { padding: 0.4rem 1rem; }
         .ecb-table th:not(:first-child), .ecb-table td:not(:first-child) { text-align: right; }
         @media (max-width: 639px) { .ecb-table th, .ecb-table td { padding: 0.4rem 0.625rem; } }
@@ -23,84 +26,98 @@
            is the structure. The legend is floated so it sits inside the
            section like any other heading rather than on its border. */
         .ae-section { min-width: 0; border-top: 1px solid #F3F4F6; padding-top: 0.75rem; margin-top: 0.75rem; }
-        .ae-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+        .ae-section:first-child, #add-evacuee-errors + .ae-section { border-top: 0; padding-top: 0; margin-top: 0; }
         .ae-section-title { float: left; width: 100%; margin-bottom: 0.5rem; font-size: 0.75rem; line-height: 1rem; font-weight: 600; color: #1F2937; }
         .ae-section-title + * { clear: both; }
     </style>
 
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+    {{-- Way back on the left; the board's two actions on the right. Each
+        opens its form in a pop-up over the board (see openBoardModal()),
+        so the board keeps the whole width and stays in view, dimmed,
+        behind the form. Both stay disabled until the board has loaded
+        with an open event to record against. --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         {{-- A real secondary-button treatment (border + hover fill), not a
             plain sentence -- matches this app's own existing ghost-button
             convention (e.g. modal Cancel buttons: border-gray-300 +
             hover:bg-gray-50) rather than inventing a new style. --}}
-        <a id="back-to-center-link" href="#"
-            class="btn btn-secondary px-3 py-1.5">
-            <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i>
-            <span id="back-to-center-label">Back to center info</span>
-        </a>
-        <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-brand hover:underline underline-offset-2">
-            <i class="ti ti-building" style="font-size: 13px;" aria-hidden="true"></i> All evacuation centers
-        </a>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <a id="back-to-center-link" href="#"
+                class="btn btn-secondary px-3 py-1.5">
+                <i class="ti ti-arrow-left" style="font-size: 15px;" aria-hidden="true"></i>
+                <span id="back-to-center-label">Back to center info</span>
+            </a>
+            <a href="/evacuation-centers" class="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-brand hover:underline underline-offset-2">
+                <i class="ti ti-building" style="font-size: 13px;" aria-hidden="true"></i> All evacuation centers
+            </a>
+        </div>
+        <div data-region="board-actions" class="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" id="open-quick-departure-btn" class="btn btn-secondary flex-1 sm:flex-none" aria-haspopup="dialog" disabled>
+                <i class="ti ti-door-exit" style="font-size: 16px;" aria-hidden="true"></i> Quick departure
+            </button>
+            <button type="button" id="open-add-evacuee-btn" class="btn btn-primary flex-1 sm:flex-none" aria-haspopup="dialog" disabled>
+                <i class="ti ti-user-plus" style="font-size: 16px;" aria-hidden="true"></i> Add evacuee
+            </button>
+        </div>
     </div>
 
+    <p id="board-actions-disabled-note" class="hidden callout callout-info mb-4">No active disaster event -- can't add evacuees or log departures right now.</p>
+
     <div id="content-wrap" class="hidden">
-        {{-- Board on the left, the fast-entry Add Evacuee panel on the right
-            (sticky on wide screens, so it stays in reach while the board
-            scrolls). Below lg the board comes first -- it names the center
-            and event being added to -- and the panel follows it. --}}
-        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_21rem] gap-5 items-start mb-5">
-
-            {{-- The board itself: header block -> age & sex -> sectoral, as
-                one sheet, in the official template's own order. --}}
-            <section id="ecb-board" data-region="board"
-                class="card overflow-hidden">
-                <div class="px-4 sm:px-5 pt-4 pb-3 flex flex-wrap items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <p class="flex items-center gap-2 text-xs font-medium text-gray-500">
-                            EC Information Board
-                            <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
-                        </p>
-                        <h1 id="ecb-center-name" class="text-lg font-semibold text-gray-900 leading-snug mt-0.5"></h1>
-                        <p class="text-sm text-gray-500">Barangay <span id="ecb-barangay" class="text-gray-700 font-medium"></span></p>
-                    </div>
-                    <label class="flex flex-col gap-1 text-xs text-gray-500 w-full sm:w-auto">
-                        Event
-                        <select id="ecb-event-select" class="input input-sm sm:min-w-[14rem]"></select>
-                    </label>
+        {{-- The board itself: header block -> age & sex -> sectoral, as one
+            sheet, in the official template's own order. On wide screens
+            the two tables sit side by side (age & sex first, on the left)
+            so neither stretches across the whole page. --}}
+        <section id="ecb-board" data-region="board"
+            class="card overflow-hidden mb-5">
+            <div class="px-4 sm:px-5 pt-4 pb-3 flex flex-wrap items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="flex items-center gap-2 text-xs font-medium text-gray-500">
+                        EC Information Board
+                        <span class="inline-flex items-center gap-1 text-gray-500"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Live</span>
+                    </p>
+                    <h1 id="ecb-center-name" class="text-lg font-semibold text-gray-900 leading-snug mt-0.5"></h1>
+                    <p class="text-sm text-gray-500">Barangay <span id="ecb-barangay" class="text-gray-700 font-medium"></span></p>
                 </div>
+                <label class="flex flex-col gap-1 text-xs text-gray-500 w-full sm:w-auto">
+                    Event
+                    <select id="ecb-event-select" class="input input-sm sm:min-w-[14rem]"></select>
+                </label>
+            </div>
 
-                {{-- Header figures, ruled like the template's own header
-                    rows. Matches its row order too: the 4Ps family count
-                    sits here WITH Families/Persons, before the Age & Sex
-                    table -- not down with the Sectoral table, whose own
-                    "4Ps beneficiary" row is a different, per-person-sex
-                    figure. Live, like the rest of this strip (families here
-                    now marked 4Ps -- see liveFourPsFamiliesNow()). --}}
-                <div class="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] border-y border-gray-200 divide-gray-200 text-sm"
-                    title="&quot;Now&quot; reflects current records exactly; &quot;Cumulative&quot; is a running total from every evacuee added here and never drops when someone is later removed.">
-                    <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
-                        <p class="text-xs text-gray-500">Families, cumulative</p>
-                        <p id="ecb-families-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
-                    </div>
-                    <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
-                        <p class="text-xs text-gray-500">Families now</p>
-                        <p id="ecb-families-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
-                    </div>
-                    <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
-                        <p class="text-xs text-gray-500">Persons, cumulative</p>
-                        <p id="ecb-persons-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
-                    </div>
-                    <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
-                        <p class="text-xs text-gray-500">Persons now</p>
-                        <p id="ecb-persons-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
-                    </div>
-                    <div class="col-span-2 sm:col-span-1 px-4 sm:px-5 py-2.5 flex sm:block items-center justify-between gap-3"
-                        title="Families here now that are marked as 4Ps beneficiaries.">
-                        <p class="text-xs text-gray-500">4Ps families</p>
-                        <p id="ecb-beneficiaries-4ps" class="text-xl font-semibold text-gray-900 tabular-nums">0</p>
-                    </div>
+            {{-- Header figures, ruled like the template's own header
+                rows. Matches its row order too: the 4Ps family count
+                sits here WITH Families/Persons, before the Age & Sex
+                table -- not down with the Sectoral table, whose own
+                "4Ps beneficiary" row is a different, per-person-sex
+                figure. Live, like the rest of this strip (families here
+                now marked 4Ps -- see liveFourPsFamiliesNow()). --}}
+            <div class="grid grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] border-y border-gray-200 divide-gray-200 text-sm"
+                title="&quot;Now&quot; reflects current records exactly; &quot;Cumulative&quot; is a running total from every evacuee added here and never drops when someone is later removed.">
+                <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
+                    <p class="text-xs text-gray-500">Families, cumulative</p>
+                    <p id="ecb-families-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
                 </div>
+                <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
+                    <p class="text-xs text-gray-500">Families now</p>
+                    <p id="ecb-families-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
+                </div>
+                <div class="px-4 sm:px-5 py-2.5 border-r border-b sm:border-b-0 border-gray-200">
+                    <p class="text-xs text-gray-500">Persons, cumulative</p>
+                    <p id="ecb-persons-cumulative" class="text-xl font-semibold text-gray-600 tabular-nums">0</p>
+                </div>
+                <div class="px-4 sm:px-5 py-2.5 border-b sm:border-b-0 sm:border-r border-gray-200">
+                    <p class="text-xs text-gray-500">Persons now</p>
+                    <p id="ecb-persons-now" class="text-xl font-bold text-gray-900 tabular-nums">0</p>
+                </div>
+                <div class="col-span-2 sm:col-span-1 px-4 sm:px-5 py-2.5 flex sm:block items-center justify-between gap-3"
+                    title="Families here now that are marked as 4Ps beneficiaries.">
+                    <p class="text-xs text-gray-500">4Ps families</p>
+                    <p id="ecb-beneficiaries-4ps" class="text-xl font-semibold text-gray-900 tabular-nums">0</p>
+                </div>
+            </div>
 
+            <div class="xl:grid xl:grid-cols-2 xl:items-start">
                 {{-- Age & sex: all live, computed server-side from real
                     records (EvacuationCenterQuickCount::liveAgeSexBreakdown). --}}
                 <table class="ecb-table text-sm">
@@ -126,13 +143,14 @@
                     </tfoot>
                 </table>
 
-                {{-- Sectoral: same columns as the table above, so the board
-                    reads straight down. Every row is live -- nothing here is
-                    typed in (EvacuationCenterQuickCount::liveSectoralBreakdown()):
+                {{-- Sectoral: same columns as the age & sex table, so the
+                    board reads straight down on a narrower screen. Every row
+                    is live -- nothing here is typed in
+                    (EvacuationCenterQuickCount::liveSectoralBreakdown()):
                     per-person rows from the flags Add Evacuee records, the
                     child-/single-headed rows once per household from its
                     "New household" answers, by the head's sex. --}}
-                <div class="border-t-2 border-gray-300">
+                <div class="border-t-2 border-gray-300 xl:border-t-0 xl:border-l xl:border-gray-200">
                     <table class="ecb-table text-sm">
                         <colgroup><col><col class="ecb-num"><col class="ecb-num"><col class="ecb-num"></colgroup>
                         <thead>
@@ -150,21 +168,36 @@
                         Counted from each evacuee's sectoral details. Child- and single-headed families are counted once per household, by the head's sex, from the answers given when the household was added.
                     </p>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            {{-- Add Evacuee: the fast-entry path, kept to a narrow panel --
-                bracket, sex, household, optional flags, one button. --}}
-            {{-- On wide screens the panel stays in view (sticky) and never
-                grows taller than the space left below it on screen (set by
-                fitAddEvacueePanel()) -- its fields scroll inside it
-                instead, under the pinned read-back + button. --}}
-            <section data-region="add-evacuee" class="card px-4 pt-4 lg:sticky lg:top-2 lg:overflow-y-auto">
-                <h2 class="card-title">Add evacuee</h2>
-                <p class="text-xs text-gray-500 mt-0.5 mb-3">Name and birthdate can be added later on the Evacuees page.</p>
+        <div id="form-errors" class="hidden callout callout-danger mb-5"></div>
+    </div>
 
-                <div id="add-evacuee-errors" class="hidden callout callout-danger mb-3"></div>
+    {{-- Add Evacuee: the fast-entry path -- bracket, sex, household,
+        optional flags, one button -- in a centered pop-up. The header and
+        the read-back + buttons stay put while the questions between them
+        scroll, so the Add button is always in reach however many
+        questions are open. It stays open after each add, ready for the
+        next person, with the board updating behind it. --}}
+    <div id="add-evacuee-modal" class="hidden modal-backdrop">
+        <div data-region="add-evacuee" class="modal max-w-lg max-h-[90dvh] flex flex-col overflow-hidden"
+            role="dialog" aria-modal="true" aria-labelledby="add-evacuee-title" aria-describedby="add-evacuee-context">
+            <div class="modal-header shrink-0">
+                <div class="min-w-0">
+                    <h2 id="add-evacuee-title" class="modal-title">Add evacuee</h2>
+                    <p id="add-evacuee-context" class="text-xs text-gray-600 font-medium mt-0.5"></p>
+                    <p class="text-xs text-gray-500">Name and birthdate can be added later on the Evacuees page.</p>
+                </div>
+                <button type="button" class="btn-icon -mr-1.5" data-close-modal aria-label="Close">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
 
-                <form id="add-evacuee-form" class="flex flex-col">
+            <form id="add-evacuee-form" class="flex flex-col flex-1 min-h-0">
+                <div class="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                    <div id="add-evacuee-errors" class="hidden callout callout-danger mb-3"></div>
+
                     {{-- Four sections, in the order staff actually answer
                         them: the person, their household, the household's
                         head (only when that's someone else), then optional
@@ -283,7 +316,7 @@
                                 Sectoral details <span class="text-gray-500">(optional)</span>
                                 <span id="ae-sectoral-count" class="hidden ml-1 badge badge-info"></span>
                             </summary>
-                            <div class="px-3 pb-1 pt-1 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-gray-700">
+                            <div class="px-3 pb-1 pt-1 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-sm text-gray-700">
                                 <label class="flex items-center gap-2"><input type="checkbox" class="ae-flag" value="is_pwd"> PWD</label>
                                 <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_pregnant"> Pregnant</label>
                                 <label class="flex items-center gap-2" data-female-only><input type="checkbox" class="ae-flag" value="is_lactating"> Lactating</label>
@@ -294,75 +327,84 @@
                             <p class="px-3 pb-2.5 pt-1 text-xs text-gray-500">Tick only what you know. Leaving a box unticked records nothing -- it doesn't mean "no".</p>
                         </details>
                     </div>
+                </div>
 
-                    {{-- Pinned to the bottom of whatever is scrolling (the
-                        panel itself on wide screens, the page on a phone),
-                        so the read-back and the Add button are always in
-                        view however many questions are open above them.
-                        The negative side margins let it reach the panel's edges;
-                        the panel has no bottom padding, this supplies it. --}}
-                    <div class="sticky bottom-0 z-10 bg-white -mx-4 mt-3 px-4 pt-3 pb-4 border-t border-gray-200 rounded-b-xl">
-                        {{-- Plain-language read-back of exactly what Add
-                            evacuee will record, rewritten on every change --
-                            the last check before saving (see
-                            renderAddEvacueeSummary()). --}}
-                        <div class="rounded-lg bg-brand-light/40 border border-brand-light px-3 py-2.5 mb-2.5" aria-live="polite">
-                            <p class="text-xs font-semibold text-gray-800 mb-1">Will be recorded</p>
-                            <ul id="ae-summary" class="text-xs text-gray-700 space-y-0.5"></ul>
-                        </div>
+                <div class="shrink-0 border-t border-gray-200 px-5 pt-3 pb-4">
+                    {{-- Plain-language read-back of exactly what Add
+                        evacuee will record, rewritten on every change --
+                        the last check before saving (see
+                        renderAddEvacueeSummary()). --}}
+                    <div class="rounded-lg bg-brand-light/40 border border-brand-light px-3 py-2.5 mb-3" aria-live="polite">
+                        <p class="text-xs font-semibold text-gray-800 mb-1">Will be recorded</p>
+                        <ul id="ae-summary" class="text-xs text-gray-700 space-y-0.5"></ul>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <p id="add-evacuee-success-msg" class="hidden mr-auto text-xs text-green-700 font-medium" role="status">&check; Added -- form's ready for the next one.</p>
+                        <button type="button" class="btn btn-secondary" data-close-modal>Close</button>
                         <button type="submit" id="add-evacuee-submit-btn"
-                            class="btn btn-primary w-full py-2.5 disabled:opacity-40">
+                            class="btn btn-primary disabled:opacity-40">
                             + Add evacuee
                         </button>
-                        <p id="add-evacuee-success-msg" class="hidden text-xs text-green-700 font-medium mt-1.5">&check; Added -- form's ready for the next one.</p>
-                        <p id="add-evacuee-disabled-note" class="hidden text-xs text-gray-500 mt-1.5">No active disaster event -- can't add evacuees right now.</p>
                     </div>
-                </form>
-            </section>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <div id="form-errors" class="hidden callout callout-danger mb-5"></div>
+    {{-- Quick Departure: the reverse of Add Evacuee, by bracket + sex +
+        quantity rather than by name, for the same speed reason. Like Add
+        evacuee, it stays open after each batch, ready for the next. --}}
+    <div id="quick-departure-modal" class="hidden modal-backdrop">
+        <div data-region="quick-departure" class="modal max-w-md max-h-[90dvh]"
+            role="dialog" aria-modal="true" aria-labelledby="quick-departure-title" aria-describedby="quick-departure-context">
+            <div class="modal-header">
+                <div class="min-w-0">
+                    <h2 id="quick-departure-title" class="modal-title">Quick departure</h2>
+                    <p id="quick-departure-context" class="text-xs text-gray-600 font-medium mt-0.5"></p>
+                    <p class="text-xs text-gray-500">Marks that many people currently here as departed, oldest arrivals in that group first.</p>
+                </div>
+                <button type="button" class="btn-icon -mr-1.5" data-close-modal aria-label="Close">
+                    <i class="ti ti-x" style="font-size: 20px;" aria-hidden="true"></i>
+                </button>
+            </div>
 
-        {{-- Quick Departure: the reverse of Add Evacuee, by bracket + sex +
-            quantity rather than by name, for the same speed reason. Used
-            far less often than adding, so it sits last, as one compact row. --}}
-        <section data-region="quick-departure" class="card p-4">
-            <h2 class="card-title">Quick departure</h2>
-            <p class="text-xs text-gray-500 mt-0.5 mb-3">Marks that many people currently here as departed, oldest arrivals in that group first. To check out one specific person, open their family on the Evacuees page and use Check out on their row.</p>
+            <div id="quick-departure-errors" class="hidden callout callout-danger mx-5 mt-4"></div>
 
-            <div id="quick-departure-errors" class="hidden callout callout-danger mb-3"></div>
-
-            <form id="quick-departure-form" class="grid grid-cols-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_6rem_minmax(0,1.2fr)_auto] gap-2 items-end">
-                <div class="col-span-2 lg:col-span-1">
-                    <label for="qd-age-bracket" class="label-sm">Age group</label>
-                    <select id="qd-age-bracket" class="input px-2"></select>
+            <form id="quick-departure-form" class="grid grid-cols-2 gap-x-3 gap-y-4 p-5">
+                <div class="col-span-2">
+                    <label for="qd-age-bracket" class="label">Age group</label>
+                    <select id="qd-age-bracket" class="input"></select>
                 </div>
                 <div>
-                    <label for="qd-sex" class="label-sm">Sex</label>
-                    <select id="qd-sex" class="input px-2">
+                    <label for="qd-sex" class="label">Sex</label>
+                    <select id="qd-sex" class="input">
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                 </div>
                 <div>
-                    <label for="qd-quantity" class="label-sm">How many</label>
-                    <input type="number" min="1" value="1" id="qd-quantity" class="input px-2">
+                    <label for="qd-quantity" class="label">How many</label>
+                    <input type="number" min="1" value="1" id="qd-quantity" class="input">
                 </div>
-                <div class="col-span-2 lg:col-span-1">
-                    <label for="qd-status" class="label-sm">Reason</label>
-                    <select id="qd-status" class="input px-2">
+                <div class="col-span-2">
+                    <label for="qd-status" class="label">Reason</label>
+                    <select id="qd-status" class="input">
                         <option value="returned_home">Returned home</option>
                         <option value="transferred">Transferred elsewhere</option>
                     </select>
+                    <p class="help">To check out one specific person, open their family on the Evacuees page and use Check out on their row.</p>
                 </div>
-                <button type="submit" id="quick-departure-submit-btn"
-                    class="btn btn-neutral col-span-2 lg:col-span-1 disabled:opacity-40">
-                    Mark as departed
-                </button>
+
+                <div class="modal-footer col-span-2 items-center">
+                    <p id="quick-departure-success-msg" class="hidden mr-auto text-xs text-green-700 font-medium" role="status">&check; Marked as departed.</p>
+                    <button type="button" class="btn btn-secondary" data-close-modal>Close</button>
+                    <button type="submit" id="quick-departure-submit-btn"
+                        class="btn btn-neutral disabled:opacity-40">
+                        Mark as departed
+                    </button>
+                </div>
             </form>
-            <p id="quick-departure-success-msg" class="hidden text-xs text-green-700 font-medium mt-2">&check; Marked as departed.</p>
-            <p id="quick-departure-disabled-note" class="hidden text-xs text-gray-500 mt-2">No active disaster event -- can't log departures right now.</p>
-        </section>
+        </div>
     </div>
 @endsection
 
@@ -548,18 +590,21 @@
 
             const submitBtn = document.getElementById('add-evacuee-submit-btn');
             submitBtn.disabled = ! openEvents.length;
-            document.getElementById('add-evacuee-disabled-note').classList.toggle('hidden', !! openEvents.length);
 
             const quickDepartureBtn = document.getElementById('quick-departure-submit-btn');
             quickDepartureBtn.disabled = ! openEvents.length;
-            document.getElementById('quick-departure-disabled-note').classList.toggle('hidden', !! openEvents.length);
+
+            // The buttons that open the two forms follow the same rule, and
+            // say why when there's nothing to record against.
+            document.getElementById('open-add-evacuee-btn').disabled = ! openEvents.length;
+            document.getElementById('open-quick-departure-btn').disabled = ! openEvents.length;
+            document.getElementById('board-actions-disabled-note').classList.toggle('hidden', !! openEvents.length);
 
             if (openEvents.length) {
                 await Promise.all([loadEcBoard(eventSelect.value), loadAddEvacueeFormData(eventSelect.value)]);
             }
 
             document.getElementById('content-wrap').classList.remove('hidden');
-            fitAddEvacueePanel();
         } catch (error) {
             showFormErrors(error);
         }
@@ -691,25 +736,85 @@
     document.getElementById('add-evacuee-form').addEventListener('change', renderAddEvacueeSummary);
     updateHeadQuestionsUi();
 
-    // Wide screens: cap the sticky panel at the space actually left below
-    // its top edge -- lower down before the page is scrolled, taller once it
-    // sticks -- so its pinned read-back + Add button never fall off the
-    // bottom of the screen. A fixed CSS max-height can't do both. Phones
-    // don't need it: the page scrolls and the footer sticks to the screen.
-    function fitAddEvacueePanel() {
-        const panel = document.querySelector('[data-region="add-evacuee"]');
-        if (! window.matchMedia('(min-width: 1024px)').matches) {
-            panel.style.maxHeight = '';
-            return;
-        }
-        const main = document.querySelector('main').getBoundingClientRect();
-        const gap = 8; // matches the panel's lg:top-2
-        const top = Math.max(panel.getBoundingClientRect().top, main.top + gap);
-        panel.style.maxHeight = `${Math.max(240, Math.min(main.bottom, window.innerHeight) - top - gap)}px`;
+    // --- Pop-up forms --------------------------------------------------------
+
+    // Add evacuee and Quick departure each open in a centered pop-up over
+    // the board. The X, Close, Escape and a click on the dimmed backdrop all
+    // close it. Focus moves to the form's first field on open, stays inside
+    // the pop-up while it's open (Tab wraps around), and goes back to the
+    // button that opened it on close. Nothing in the form is reset by
+    // closing -- reopening carries on where staff left off, the same as
+    // the old always-open panels.
+    let openBoardModalEl = null;
+    let boardModalOpener = null;
+
+    function openBoardModal(modalId, opener, firstFieldId) {
+        // Which center and event the form records against -- the board's
+        // own header says so, but it's dimmed behind the pop-up.
+        const eventSelect = document.getElementById('ecb-event-select');
+        const context = [document.getElementById('ecb-center-name').textContent, eventSelect.selectedOptions[0]?.textContent]
+            .filter(Boolean).join(' · ');
+        document.querySelectorAll('#add-evacuee-context, #quick-departure-context').forEach((el) => { el.textContent = context; });
+
+        document.getElementById('add-evacuee-errors').classList.add('hidden');
+        document.getElementById('quick-departure-errors').classList.add('hidden');
+
+        openBoardModalEl = document.getElementById(modalId);
+        boardModalOpener = opener;
+        openBoardModalEl.classList.remove('hidden');
+        openBoardModalEl.classList.add('flex');
+        document.getElementById(firstFieldId).focus();
     }
 
-    document.querySelector('main').addEventListener('scroll', fitAddEvacueePanel, { passive: true });
-    window.addEventListener('resize', fitAddEvacueePanel);
+    function closeBoardModal() {
+        if (! openBoardModalEl) return;
+        openBoardModalEl.classList.add('hidden');
+        openBoardModalEl.classList.remove('flex');
+        openBoardModalEl = null;
+        boardModalOpener?.focus();
+    }
+
+    document.getElementById('open-add-evacuee-btn').addEventListener('click', (e) => {
+        openBoardModal('add-evacuee-modal', e.currentTarget, 'ae-age-bracket');
+    });
+    document.getElementById('open-quick-departure-btn').addEventListener('click', (e) => {
+        openBoardModal('quick-departure-modal', e.currentTarget, 'qd-age-bracket');
+    });
+
+    document.querySelectorAll('#add-evacuee-modal, #quick-departure-modal').forEach((modal) => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.closest('[data-close-modal]')) closeBoardModal();
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (! openBoardModalEl) return;
+        if (e.key === 'Escape') {
+            closeBoardModal();
+            return;
+        }
+        if (e.key !== 'Tab') return;
+        const focusable = [...openBoardModalEl.querySelectorAll('button, input, select, textarea, summary, a[href]')]
+            .filter((el) => ! el.disabled && el.getClientRects().length);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (! e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    });
+
+    // An error comes back at the top of the form, which may be scrolled
+    // out of view by then -- bring it into view.
+    const showFormError = (errorBox, error) => {
+        const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
+        errorBox.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
+        errorBox.classList.remove('hidden');
+        errorBox.scrollIntoView({ block: 'nearest' });
+    };
 
     // '' (Not yet known) -> null, never a guessed "no".
     const triState = (value) => (value === '' ? null : value === '1');
@@ -781,9 +886,7 @@
 
             await Promise.all([loadEcBoard(eventId), loadAddEvacueeFormData(eventId)]);
         } catch (error) {
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            errorBox.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            errorBox.classList.remove('hidden');
+            showFormError(errorBox, error);
         } finally {
             button.disabled = false;
             button.textContent = '+ Add evacuee';
@@ -833,9 +936,7 @@
             // The "only N available" block from quickDeparture() is a
             // plain top-level message, not a per-field errors object --
             // same fallback families/index.blade.php's own forms use.
-            const messages = error.errors ? Object.values(error.errors).flat() : [error.message];
-            errorBox.innerHTML = messages.map((m) => `<p>${m}</p>`).join('');
-            errorBox.classList.remove('hidden');
+            showFormError(errorBox, error);
         } finally {
             button.disabled = false;
             button.textContent = 'Mark as departed';

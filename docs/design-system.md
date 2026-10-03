@@ -316,6 +316,13 @@ border, `brand-50` fill and `brand-700` text (6.16:1), and the markup carries
   close button.
 - The body is `p-5`. `.modal-footer` puts Cancel (secondary) left of the
   primary.
+- A long form keeps its header and buttons in view while the questions
+  scroll: add `flex flex-col overflow-hidden` to `.modal` and give the body
+  `flex-1 min-h-0 overflow-y-auto`. EC Board's *Add evacuee* is the example.
+- A form staff repeat many times in a row (*Add evacuee*, *Quick departure*)
+  stays open after saving, with a short success line beside the buttons.
+  Its secondary button says *Close*, not *Cancel*, because what was saved
+  stays saved.
 
 ### Meters
 
